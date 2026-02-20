@@ -47,7 +47,7 @@ export async function POST(req: Request) {
         const finalTargetAddress = targetAddress || 'dummy_address_for_testing_123';
 
         // Build a reliable base URL
-        let baseUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+        let baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').trim();
         if (!baseUrl) {
             const host = req.headers.get('host') || 'retatrutide-landing.vercel.app';
             const proto = req.headers.get('x-forwarded-proto') || 'https';
