@@ -69,7 +69,7 @@ export async function POST(req: Request) {
 
         if (cryptapiData.status !== 'success') {
             console.error("CryptAPI Error:", cryptapiData);
-            return NextResponse.json({ error: 'Failed to generate crypto address', debug: { ticker: cryptapiTicker, wallet_prefix: finalTargetAddress?.substring(0, 10), response: cryptapiData } }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to generate crypto address', debug: { ticker: cryptapiTicker, wallet_prefix: finalTargetAddress?.substring(0, 10), callbackUrl, baseUrl, response: cryptapiData } }, { status: 500 });
         }
 
         const paymentAddress = cryptapiData.address_in;
