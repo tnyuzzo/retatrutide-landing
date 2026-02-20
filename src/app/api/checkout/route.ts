@@ -58,18 +58,15 @@ export async function POST(req: Request) {
         if (!baseUrl.startsWith('http')) baseUrl = `https://${baseUrl}`;
 
         const callbackUrl = `${baseUrl}/api/webhooks/cryptapi?order_id=${referenceId}`;
-        console.log("[Checkout Debug] baseUrl:", baseUrl, "| callbackUrl:", callbackUrl);
 
         // 1. Generate Payment Address
         const cryptapiUrl = `https://api.cryptapi.io/${cryptapiTicker}/create/?address=${finalTargetAddress}&callback=${encodeURIComponent(callbackUrl)}&pending=0`;
-        console.log("[Checkout Debug] Ticker:", cryptapiTicker, "| Wallet:", finalTargetAddress?.substring(0, 10) + "...", "| URL:", cryptapiUrl.substring(0, 100));
         const cryptapiRes = await fetch(cryptapiUrl);
         const cryptapiData = await cryptapiRes.json();
-        console.log("[Checkout Debug] CryptAPI response:", JSON.stringify(cryptapiData));
 
         if (cryptapiData.status !== 'success') {
             console.error("CryptAPI Error:", cryptapiData);
-            return NextResponse.json({ error: 'Failed to generate crypto address', debug: { ticker: cryptapiTicker, wallet_prefix: finalTargetAddress?.substring(0, 10), callbackUrl, baseUrl, response: cryptapiData } }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to generate crypto address' }, { status: 500 });
         }
 
         const paymentAddress = cryptapiData.address_in;
