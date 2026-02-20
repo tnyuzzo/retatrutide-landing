@@ -62,17 +62,21 @@ export async function POST(req: Request) {
         const paymentAddress = cryptapiData.address_in;
 
         // 2. Fetch Real Exchange Rate (EUR to Crypto)
-        // CryptAPI converts from fiat to coin based on current market rates
+        // CryptAPI /info/ endpoint returns the current prices of coins
         let calculatedCryptoAmount = 0;
         try {
-            const estimateUrl = `https://api.cryptapi.io/${cryptapiTicker}/estimate/?value=${fiat_amount}&currency=EUR`;
-            const estimateRes = await fetch(estimateUrl);
-            const estimateData = await estimateRes.json();
+            const infoUrl = `https://api.cryptapi.io/${cryptapiTicker}/info/`;
+            const infoRes = await fetch(infoUrl);
+            const infoData = await infoRes.json();
 
-            if (estimateData.status === 'success') {
-                calculatedCryptoAmount = parseFloat(estimateData.value_coin);
+            if (infoData.status === 'success' && infoData.prices && infoData.prices.EUR) {
+                const eurPricePerCoin = parseFloat(infoData.prices.EUR);
+                // The amount of crypto needed is total EUR amount divided by the price of 1 coin in EUR
+                // We add a tiny buffer (1%) to ensure underpayment doesn't happen due to volatility
+                const exactCryptoAmount = fiat_amount / eurPricePerCoin;
+                calculatedCryptoAmount = parseFloat((exactCryptoAmount * 1.01).toFixed(6));
             } else {
-                throw new Error("Failed to get estimate");
+                throw new Error("Failed to get price info");
             }
         } catch (e) {
             console.error("Exchange rate error, falling back to mock:", e);
