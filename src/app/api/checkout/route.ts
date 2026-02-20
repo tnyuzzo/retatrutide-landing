@@ -5,11 +5,24 @@ import { v4 as uuidv4 } from 'uuid';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { email, shipping_address, fiat_amount, crypto_currency, items } = body;
+        const { email, shipping_address, quantity = 1, crypto_currency } = body;
 
-        if (!fiat_amount || fiat_amount <= 0) {
-            return NextResponse.json({ error: 'Invalid order amount' }, { status: 400 });
+        const qty = parseInt(quantity.toString(), 10);
+        if (isNaN(qty) || qty <= 0 || qty > 10) {
+            return NextResponse.json({ error: 'Invalid quantity' }, { status: 400 });
         }
+
+        const basePrice = 197;
+        let discountPercent = 0;
+        if (qty > 2) {
+            discountPercent = (qty - 2) * 5;
+            if (discountPercent > 40) discountPercent = 40; // max 10 items
+        }
+
+        const totalBase = basePrice * qty;
+        const fiat_amount = totalBase - (totalBase * (discountPercent / 100));
+
+        const items = [{ sku: 'RET-KIT-1', name: 'Retatrutide 10mg', quantity: qty, price: fiat_amount }];
 
         const referenceId = uuidv4();
         const coin = crypto_currency ? crypto_currency.toLowerCase() : 'btc';

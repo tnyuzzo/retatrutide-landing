@@ -13,6 +13,20 @@ export default function Home() {
   const locale = useLocale();
   const [selectedCrypto, setSelectedCrypto] = useState("BTC");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [quantity, setQuantity] = useState(1);
+
+  const calculatePrice = (qty: number) => {
+    const basePrice = 197;
+    let discountPercent = 0;
+    if (qty > 2) {
+      discountPercent = (qty - 2) * 5;
+      if (discountPercent > 40) discountPercent = 40; // Max 10 items
+    }
+    const total = basePrice * qty;
+    return total - (total * (discountPercent / 100));
+  };
+
+  const totalPrice = calculatePrice(quantity);
 
   return (
     <main className="min-h-screen bg-brand-void text-white overflow-hidden font-sans">
@@ -69,21 +83,33 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-8 items-center">
-              <div className="relative w-full sm:w-auto">
+              <div className="flex bg-brand-void/80 border border-brand-gold/30 rounded-full h-[46px] items-center px-4 self-stretch sm:self-auto">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="text-brand-gold/70 hover:text-brand-gold w-6 h-6 flex items-center justify-center text-lg"
+                >-</button>
+                <span className="text-white w-8 text-center font-mono">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(Math.min(10, quantity + 1))}
+                  className="text-brand-gold/70 hover:text-brand-gold w-6 h-6 flex items-center justify-center text-lg"
+                >+</button>
+              </div>
+
+              <div className="relative w-full sm:w-auto self-stretch sm:self-auto h-[46px]">
                 <select
                   value={selectedCrypto}
                   onChange={(e) => setSelectedCrypto(e.target.value)}
-                  className="w-full bg-brand-void/80 border border-brand-gold/30 text-white text-sm rounded-full px-6 py-3 appearance-none focus:outline-none focus:border-brand-gold min-w-[140px] tracking-wider cursor-pointer font-medium"
+                  className="w-full h-full bg-brand-void/80 border border-brand-gold/30 text-white text-sm rounded-full px-6 appearance-none focus:outline-none focus:border-brand-gold min-w-[120px] tracking-wider cursor-pointer font-medium"
                 >
-                  <option value="BTC">BTC (Bitcoin)</option>
-                  <option value="ETH">ETH (Ethereum)</option>
-                  <option value="SOL">SOL (Solana)</option>
-                  <option value="USDC">USDC (ERC-20)</option>
-                  <option value="USDT">USDT (TRC-20)</option>
-                  <option value="XMR">XMR (Monero)</option>
-                  <option value="XRP">XRP (Ripple)</option>
+                  <option value="BTC">BTC</option>
+                  <option value="ETH">ETH</option>
+                  <option value="SOL">SOL</option>
+                  <option value="USDC">USDC</option>
+                  <option value="USDT">USDT</option>
+                  <option value="XMR">XMR</option>
+                  <option value="XRP">XRP</option>
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-gold/50 text-xs">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-gold/50 text-[10px]">
                   ▼
                 </div>
               </div>
@@ -94,13 +120,13 @@ export default function Home() {
                   const res = await fetch('/api/checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fiat_amount: 150, crypto_currency: selectedCrypto })
+                    body: JSON.stringify({ quantity, crypto_currency: selectedCrypto })
                   });
                   const data = await res.json();
                   if (data.reference_id) window.location.href = `/${locale}/checkout/${data.reference_id}`;
                 }}
               >
-                {t('nav_order')} <Lock className="w-4 h-4 ml-2" />
+                Ordina {totalPrice.toFixed(0)}€ <Lock className="w-4 h-4 ml-2" />
               </PremiumButton>
             </div>
 
@@ -137,7 +163,7 @@ export default function Home() {
                 <div className="relative w-full h-full rounded-xl overflow-hidden">
                   <Image
                     src="/images/retatrutide_hero_gold.png"
-                    alt="Retatrutide 10mg Lyophilized Gold Vial"
+                    alt="retatrutide 10mg"
                     fill
                     className="object-cover mix-blend-screen scale-110 opacity-90"
                     priority
