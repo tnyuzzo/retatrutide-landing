@@ -2,14 +2,17 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Shield, Zap, Lock } from "lucide-react";
+import { Shield, Zap, Lock, Truck, FlaskConical, Navigation, ChevronDown } from "lucide-react";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { useState } from "react";
 
 export default function Home() {
   const t = useTranslations('Index');
   const locale = useLocale();
+  const [selectedCrypto, setSelectedCrypto] = useState("BTC");
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
     <main className="min-h-screen bg-brand-void text-white overflow-hidden font-sans">
@@ -65,23 +68,39 @@ export default function Home() {
               {t('hero_subtitle')}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mt-8">
+            <div className="flex flex-col sm:flex-row gap-4 mt-8 items-center">
+              <div className="relative w-full sm:w-auto">
+                <select
+                  value={selectedCrypto}
+                  onChange={(e) => setSelectedCrypto(e.target.value)}
+                  className="w-full bg-brand-void/80 border border-brand-gold/30 text-white text-sm rounded-full px-6 py-3 appearance-none focus:outline-none focus:border-brand-gold min-w-[140px] tracking-wider cursor-pointer font-medium"
+                >
+                  <option value="BTC">BTC (Bitcoin)</option>
+                  <option value="ETH">ETH (Ethereum)</option>
+                  <option value="SOL">SOL (Solana)</option>
+                  <option value="USDC">USDC (ERC-20)</option>
+                  <option value="USDT">USDT (TRC-20)</option>
+                  <option value="XMR">XMR (Monero)</option>
+                  <option value="XRP">XRP (Ripple)</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-gold/50 text-xs">
+                  ▼
+                </div>
+              </div>
+
               <PremiumButton
                 onClick={async (e) => {
                   e.currentTarget.innerHTML = 'Caricamento...';
                   const res = await fetch('/api/checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fiat_amount: 150, crypto_currency: 'BTC' })
+                    body: JSON.stringify({ fiat_amount: 150, crypto_currency: selectedCrypto })
                   });
                   const data = await res.json();
                   if (data.reference_id) window.location.href = `/${locale}/checkout/${data.reference_id}`;
                 }}
               >
                 {t('nav_order')} <Lock className="w-4 h-4 ml-2" />
-              </PremiumButton>
-              <PremiumButton variant="secondary">
-                {t('btn_coa')}
               </PremiumButton>
             </div>
 
@@ -189,6 +208,76 @@ export default function Home() {
               <h3 className="text-xl font-medium mb-3">{t('card3_title')}</h3>
               <p className="text-white/50 text-sm leading-relaxed">{t('card3_desc')}</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TRUST BADGES & GUARANTEES */}
+      <section className="py-16 px-6 bg-[#0a0a0a] border-t border-b border-white/5">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="w-12 h-12 rounded-full border border-brand-gold/30 bg-brand-gold/5 flex items-center justify-center">
+              <FlaskConical className="w-5 h-5 text-brand-gold" />
+            </div>
+            <p className="font-medium text-white/90">{t('feature_hplc_sub') || '3rd Party Tested'}</p>
+            <p className="text-xs text-white/40">HPLC & MS Verified</p>
+          </div>
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="w-12 h-12 rounded-full border border-brand-gold/30 bg-brand-gold/5 flex items-center justify-center">
+              <Truck className="w-5 h-5 text-brand-gold" />
+            </div>
+            <p className="font-medium text-white/90">No Customs Risk</p>
+            <p className="text-xs text-white/40">Domestic EU Shipping</p>
+          </div>
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="w-12 h-12 rounded-full border border-brand-gold/30 bg-brand-gold/5 flex items-center justify-center">
+              <Lock className="w-5 h-5 text-brand-gold" />
+            </div>
+            <p className="font-medium text-white/90">100% Private</p>
+            <p className="text-xs text-white/40">Crypto Native Orders</p>
+          </div>
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="w-12 h-12 rounded-full border border-brand-gold/30 bg-brand-gold/5 flex items-center justify-center">
+              <Navigation className="w-5 h-5 text-brand-gold" />
+            </div>
+            <p className="font-medium text-white/90">{t('trust_made_in') || 'Made in USA'}</p>
+            <p className="text-xs text-white/40">Synthesized Excellence</p>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ SECTION */}
+      <section className="py-24 px-6 bg-brand-void relative" id="faq">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-light mb-4 text-white">
+              {t('faq_title') || 'Frequently Asked Questions'}
+            </h2>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            {[1, 2, 3, 4].map((num) => {
+              const isOpen = openFaq === num;
+              return (
+                <div
+                  key={num}
+                  className={`glass-panel overflow-hidden transition-all duration-300 border ${isOpen ? 'border-brand-gold/50' : 'border-white/5'}`}
+                >
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : num)}
+                    className="w-full flex justify-between items-center p-6 text-left"
+                  >
+                    <span className="font-medium text-lg text-white/90">{t(`faq_q${num}`)}</span>
+                    <ChevronDown className={`w-5 h-5 text-brand-gold transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <div
+                    className={`px-6 text-white/60 leading-relaxed transition-all duration-300 ease-in-out ${isOpen ? 'max-h-48 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}
+                  >
+                    {t(`faq_a${num}`)}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

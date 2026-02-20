@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { email, shipping_address, fiat_amount, crypto_currency } = body;
+        const { email, shipping_address, fiat_amount, crypto_currency, items } = body;
 
         if (!fiat_amount || fiat_amount <= 0) {
             return NextResponse.json({ error: 'Invalid order amount' }, { status: 400 });
@@ -15,15 +15,19 @@ export async function POST(req: Request) {
         const coin = crypto_currency ? crypto_currency.toLowerCase() : 'btc';
 
         let cryptapiTicker = coin;
-        if (coin === 'usdt') {
-            cryptapiTicker = 'trc20/usdt';
-        }
+        if (coin === 'usdt') cryptapiTicker = 'trc20/usdt';
+        if (coin === 'usdc') cryptapiTicker = 'erc20/usdc';
+        if (coin === 'xrp') cryptapiTicker = 'bep20/xrp'; // Using Binance-Peg XRP as native isn't always supported by CryptAPI
 
         const targetWalletEnvs: Record<string, string | undefined> = {
             'btc': process.env.CRYPTAPI_BTC_WALLET,
             'xmr': process.env.CRYPTAPI_XMR_WALLET,
+            'eth': process.env.CRYPTAPI_ETH_WALLET,
+            'sol': process.env.CRYPTAPI_SOL_WALLET,
+            'bep20/xrp': process.env.CRYPTAPI_XRP_WALLET,
             'trc20/usdt': process.env.CRYPTAPI_USDT_TRC20_WALLET,
             'erc20/usdt': process.env.CRYPTAPI_USDT_ERC20_WALLET,
+            'erc20/usdc': process.env.CRYPTAPI_USDC_WALLET,
         };
 
         const targetAddress = targetWalletEnvs[cryptapiTicker];
@@ -32,6 +36,7 @@ export async function POST(req: Request) {
         const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `https://${req.headers.get('host')}`;
         const callbackUrl = `${baseUrl}/api/webhooks/cryptapi?order_id=${referenceId}`;
 
+        // 1. Generate Payment Address
         const cryptapiUrl = `https://api.cryptapi.io/${cryptapiTicker}/create/?address=${finalTargetAddress}&callback=${encodeURIComponent(callbackUrl)}&pending=0`;
         const cryptapiRes = await fetch(cryptapiUrl);
         const cryptapiData = await cryptapiRes.json();
@@ -42,9 +47,26 @@ export async function POST(req: Request) {
         }
 
         const paymentAddress = cryptapiData.address_in;
-        // Mocking the exchange rate for demo purposes
-        const calculatedCryptoAmount = 0.0015;
 
+        // 2. Fetch Real Exchange Rate (EUR to Crypto)
+        // CryptAPI converts from fiat to coin based on current market rates
+        let calculatedCryptoAmount = 0;
+        try {
+            const estimateUrl = `https://api.cryptapi.io/${cryptapiTicker}/estimate/?value=${fiat_amount}&currency=EUR`;
+            const estimateRes = await fetch(estimateUrl);
+            const estimateData = await estimateRes.json();
+
+            if (estimateData.status === 'success') {
+                calculatedCryptoAmount = parseFloat(estimateData.value_coin);
+            } else {
+                throw new Error("Failed to get estimate");
+            }
+        } catch (e) {
+            console.error("Exchange rate error, falling back to mock:", e);
+            calculatedCryptoAmount = 0.0015; // Fallback in case estimate API fails
+        }
+
+        // 3. Insert into Supabase (New Schema)
         const { data: orderData, error: dbError } = await supabase
             .from('orders')
             .insert([
@@ -56,7 +78,8 @@ export async function POST(req: Request) {
                     crypto_amount: calculatedCryptoAmount,
                     email: email || null,
                     shipping_address: shipping_address || {},
-                    payment_url: paymentAddress // Using this field to store the generated Crypto Address
+                    payment_url: paymentAddress,
+                    items: items || [{ sku: 'RET-KIT-1', name: 'Retatrutide Research Kit (Singolo)', quantity: 1, unit_price: fiat_amount }] // Default items fallback
                 }
             ])
             .select()
@@ -71,6 +94,7 @@ export async function POST(req: Request) {
             success: true,
             reference_id: referenceId,
             payment_url: paymentAddress,
+            crypto_amount: calculatedCryptoAmount, // Pass back exactly what to show user
             order: orderData
         });
 

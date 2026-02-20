@@ -28,6 +28,16 @@
         "card3_title": "EU-Distribution",
         "card3_desc": "Versand aus der Europäischen Union. Keine Zollverzögerungen, keine Einfuhrzölle. Schnelle und diskrete Kurierzustellung.",
         "footer_copy": "© 2026 Aura Peptides Europe. Nur für Forschungszwecke.",
-        "footer_secure": "Sicherer Krypto-Checkout"
+        "footer_secure": "Sicherer Krypto-Checkout",
+        "trust_made_in": "Made in USA",
+        "faq_title": "Domande Frequenti",
+        "faq_q1": "C'è il rischio che la dogana blocchi il pacco?",
+        "faq_a1": "Assolutamente no. Tutti i nostri prodotti vengono spediti direttamente dall'interno dell'Unione Europea. Non ci sono controlli doganali, nessun dazio di importazione a sorpresa e nessun rischio di sequestro.",
+        "faq_q2": "Quanto tempo impiega la spedizione?",
+        "faq_a2": "La consegna standard in tutta Europa richiede solitamente dai 3 ai 5 giorni lavorativi successivi all'evasione dell'ordine. Riceverai un link di tracciamento (tracking) non appena il pacco lascia il nostro magazzino.",
+        "faq_q3": "Il prodotto è testato in modo indipendente?",
+        "faq_a3": "Sì, ogni singolo lotto è soggetto a rigorosi test tramite HPLC e Spettrometria di Massa da laboratori di terze parti per garantire una purezza minima del 99.8%. I certificati d'analisi (COA) sono disponibili per ogni lotto.",
+        "faq_q4": "Perché accettate solo pagamenti in Criptovaluta?",
+        "faq_a4": "Per garantire la totale privacy e sicurezza dei nostri clienti ricercatori. I pagamenti tramite Crypto (BTC, USDC, SOL ecc.) impediscono a terzi o banche di tracciare i tuoi acquisti sensibili."
     }
 }
