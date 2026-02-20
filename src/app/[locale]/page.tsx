@@ -4,11 +4,12 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Shield, Zap, Lock } from "lucide-react";
 import { PremiumButton } from "@/components/ui/PremiumButton";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 export default function Home() {
   const t = useTranslations('Index');
+  const locale = useLocale();
 
   return (
     <main className="min-h-screen bg-brand-void text-white overflow-hidden font-sans">
@@ -74,7 +75,7 @@ export default function Home() {
                     body: JSON.stringify({ fiat_amount: 150, crypto_currency: 'BTC' })
                   });
                   const data = await res.json();
-                  if (data.payment_url) window.location.href = data.payment_url;
+                  if (data.reference_id) window.location.href = `/${locale}/checkout/${data.reference_id}`;
                 }}
               >
                 {t('nav_order')} <Lock className="w-4 h-4 ml-2" />

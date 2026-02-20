@@ -11,15 +11,40 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid order amount' }, { status: 400 });
         }
 
-        // 1. Genera ID tracking anonimo per l'utente, non dipende dai suoi dati sensibili
         const referenceId = uuidv4();
+        const coin = crypto_currency ? crypto_currency.toLowerCase() : 'btc';
 
-        // 2. Simulazione/Integrazione di un Gateway Crypto (Es: Coinbase Commerce, NowPayments, Plisio)
-        // Sostituire con vera chiamata HTTP POST a API Gateway.
-        const fakeGatewayPaymentUrl = `https://nowpayments.io/payment/?iid=${referenceId}&coin=${crypto_currency || 'BTC'}`;
-        const calculatedCryptoAmount = 0.0015; // simulazione rate usd/crypto
+        let cryptapiTicker = coin;
+        if (coin === 'usdt') {
+            cryptapiTicker = 'trc20/usdt';
+        }
 
-        // 3. Salvataggio sicuro in Supabase tramite client
+        const targetWalletEnvs: Record<string, string | undefined> = {
+            'btc': process.env.CRYPTAPI_BTC_WALLET,
+            'xmr': process.env.CRYPTAPI_XMR_WALLET,
+            'trc20/usdt': process.env.CRYPTAPI_USDT_TRC20_WALLET,
+            'erc20/usdt': process.env.CRYPTAPI_USDT_ERC20_WALLET,
+        };
+
+        const targetAddress = targetWalletEnvs[cryptapiTicker];
+        const finalTargetAddress = targetAddress || 'dummy_address_for_testing_123';
+
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `https://${req.headers.get('host')}`;
+        const callbackUrl = `${baseUrl}/api/webhooks/cryptapi?order_id=${referenceId}`;
+
+        const cryptapiUrl = `https://api.cryptapi.io/${cryptapiTicker}/create/?address=${finalTargetAddress}&callback=${encodeURIComponent(callbackUrl)}&pending=0`;
+        const cryptapiRes = await fetch(cryptapiUrl);
+        const cryptapiData = await cryptapiRes.json();
+
+        if (cryptapiData.status !== 'success') {
+            console.error("CryptAPI Error:", cryptapiData);
+            return NextResponse.json({ error: 'Failed to generate crypto address' }, { status: 500 });
+        }
+
+        const paymentAddress = cryptapiData.address_in;
+        // Mocking the exchange rate for demo purposes
+        const calculatedCryptoAmount = 0.0015;
+
         const { data: orderData, error: dbError } = await supabase
             .from('orders')
             .insert([
@@ -27,11 +52,11 @@ export async function POST(req: Request) {
                     reference_id: referenceId,
                     status: 'pending',
                     fiat_amount: fiat_amount,
-                    crypto_currency: crypto_currency || 'BTC',
+                    crypto_currency: coin.toUpperCase(),
                     crypto_amount: calculatedCryptoAmount,
                     email: email || null,
                     shipping_address: shipping_address || {},
-                    payment_url: fakeGatewayPaymentUrl
+                    payment_url: paymentAddress // Using this field to store the generated Crypto Address
                 }
             ])
             .select()
@@ -42,11 +67,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Failed to create order tracking' }, { status: 500 });
         }
 
-        // 4. Ritorna i dati al client per fare redirect al checkout "No Fiat"
         return NextResponse.json({
             success: true,
             reference_id: referenceId,
-            payment_url: fakeGatewayPaymentUrl,
+            payment_url: paymentAddress,
             order: orderData
         });
 
