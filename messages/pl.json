@@ -1,0 +1,33 @@
+{
+    "Index": {
+        "title": "Aura Peptides",
+        "nav_science": "Nauka",
+        "nav_lab": "Raporty Laboratoryjne",
+        "nav_order": "Zamów (Krypto)",
+        "nav_portal": "Portal Klienta",
+        "hero_badge": "Klasa Badawcza • Czystość ≥99.8%",
+        "hero_title": "Ewolucja",
+        "hero_subtitle": "Precyzyjnie wykonany liofilizowany peptyd do zaawansowanych badań laboratoryjnych. Pierwszy potrójny agonista (GLP-1, GIP, GCGR) dostępny w formacie premium dla rynku europejskiego.",
+        "btn_catalog": "Zobacz Katalog",
+        "btn_coa": "Zobacz COA / Wyniki Lab",
+        "feature_eu": "EU",
+        "feature_eu_sub": "Szybka Wysyłka",
+        "feature_crypto": "Brak Fiat",
+        "feature_crypto_sub": "100% Krypto Prywatność",
+        "feature_hplc": "HPLC",
+        "feature_hplc_sub": "Testowane przez Osoby Trzecie",
+        "vial_purity": "Liofilizat • Minimalna Czystość 99.8%",
+        "purity_level": "Poziom Czystości",
+        "section_science_title_1": "Złoty",
+        "section_science_title_2": "Standard",
+        "section_science_desc": "Zaprojektowane dla badaczy wymagających najwyższego poziomu czystości, dokładności i absolutnej prywatności w całej Europie.",
+        "card1_title": "Niezależna Weryfikacja",
+        "card1_desc": "Każda partia jest testowana przez zewnętrzne laboratoria z protokołami HPLC i spektrometrii mas, aby zagwarantować czystość i wykryć endotoksyny.",
+        "card2_title": "Natywna Kasa Krypto",
+        "card2_desc": "Bez walut fiducjarnych, bez śledzenia, całkowita prywatność. Płać płynnie za pomocą BTC, ETH, USDT lub Monero przez naszą zintegrowaną, bezpieczną bramkę.",
+        "card3_title": "Dystrybucja EU",
+        "card3_desc": "Wysyłane z terytorium Unii Europejskiej. Brak formalności celnych, brak cła. Szybka i dyskretna dostawa kurierska.",
+        "footer_copy": "© 2026 Aura Peptides Europe. Wyłącznie do Celów Badawczych.",
+        "footer_secure": "Bezpieczna Kasa Krypto"
+    }
+}

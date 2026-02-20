@@ -1,0 +1,33 @@
+{
+    "Index": {
+        "title": "Aura Peptides",
+        "nav_science": "La Ciencia",
+        "nav_lab": "Informes de Laboratorio",
+        "nav_order": "Comprar (Crypto)",
+        "nav_portal": "Portal del Cliente",
+        "hero_badge": "Grado de Investigación • Pureza ≥99.8%",
+        "hero_title": "La Evolución de",
+        "hero_subtitle": "Péptido liofilizado de precisión para investigación de laboratorio avanzada. El primer triple agonista (GLP-1, GIP, GCGR) disponible en un formato premium y verificable para el mercado europeo.",
+        "btn_catalog": "Ver Catálogo",
+        "btn_coa": "Ver COA / Resultados de Lab",
+        "feature_eu": "EU",
+        "feature_eu_sub": "Envío Rápido",
+        "feature_crypto": "Sin Fiat",
+        "feature_crypto_sub": "100% Crypto Privado",
+        "feature_hplc": "HPLC",
+        "feature_hplc_sub": "Probado por Terceros",
+        "vial_purity": "Polvo Liofilizado • Pureza Mínima 99.8%",
+        "purity_level": "Nivel de Pureza",
+        "section_science_title_1": "El",
+        "section_science_title_2": "Estándar de Oro",
+        "section_science_desc": "Diseñado para investigadores que exigen el más alto nivel de pureza, precisión y privacidad absoluta en toda Europa.",
+        "card1_title": "Verificación Independiente",
+        "card1_desc": "Cada lote es probado por laboratorios externos con protocolos HPLC y de espectrometría de masas para garantizar la pureza y detectar endotoxinas.",
+        "card2_title": "Pago Crypto Nativo",
+        "card2_desc": "Sin dinero fiduciario, sin seguimiento, privacidad total. Pague sin problemas con BTC, ETH, USDT o Monero a través de nuestra pasarela segura integrada. Procedimiento 100% anónimo.",
+        "card3_title": "Distribución Europea",
+        "card3_desc": "Enviado desde el interior de la Unión Europea. Sin retrasos en la aduana, sin aranceles de importación. Entrega por mensajería rápida y discreta.",
+        "footer_copy": "© 2026 Aura Peptides Europe. Solo para Fines de Investigación.",
+        "footer_secure": "Pago Crypto Seguro"
+    }
+}

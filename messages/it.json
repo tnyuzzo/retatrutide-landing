@@ -1,0 +1,33 @@
+{
+    "Index": {
+        "title": "Aura Peptides",
+        "nav_science": "La Scienza",
+        "nav_lab": "Analisi Lab",
+        "nav_order": "Ordina (Crypto)",
+        "nav_portal": "Portale Clienti",
+        "hero_badge": "Grado Ricerca • Purezza ≥99.8%",
+        "hero_title": "L'Evoluzione del",
+        "hero_subtitle": "Peptide liofilizzato di precisione per la ricerca di laboratorio avanzata. Il primo triplo-agonista (GLP-1, GIP, GCGR) disponibile in formato premium e verificato per il mercato europeo.",
+        "btn_catalog": "Vedi Catalogo",
+        "btn_coa": "Vedi COA / Risultati Lab",
+        "feature_eu": "EU",
+        "feature_eu_sub": "Spedizione Veloce",
+        "feature_crypto": "No Fiat",
+        "feature_crypto_sub": "100% Crypto Privato",
+        "feature_hplc": "HPLC",
+        "feature_hplc_sub": "Testato da Terzi",
+        "vial_purity": "Polvere Liofilizzata • Purezza Minima 99.8%",
+        "purity_level": "Livello Purezza",
+        "section_science_title_1": "Lo",
+        "section_science_title_2": "Standard Aureo",
+        "section_science_desc": "Progettato per ricercatori che esigono il massimo livello di purezza, precisione e privacy assoluta in tutta Europa.",
+        "card1_title": "Verifica Indipendente",
+        "card1_desc": "Ogni singolo lotto è testato da laboratori terzi con protocolli HPLC e Spettrometria di Massa per garantire la purezza e rilevare le endotossine.",
+        "card2_title": "Checkout Crypto Nativo",
+        "card2_desc": "Nessuna valuta fiat, nessun tracciamento, privacy completa. Paga senza problemi con BTC, ETH, USDT o Monero tramite il nostro gateway sicuro integrato. Evasione ordini 100% anonima.",
+        "card3_title": "Distribuzione EU",
+        "card3_desc": "Spedito dall'interno dell'Unione Europea. Nessun ritardo in dogana, nessun dazio di importazione. Consegna tramite corriere rapida e discreta.",
+        "footer_copy": "© 2026 Aura Peptides Europe. Solo per Scopi di Ricerca.",
+        "footer_secure": "Checkout Crypto Sicuro"
+    }
+}

@@ -1,0 +1,33 @@
+{
+  "Index": {
+    "title": "Aura Peptides",
+    "nav_science": "The Science",
+    "nav_lab": "Lab Reports",
+    "nav_order": "Order (Crypto)",
+    "nav_portal": "Client Portal",
+    "hero_badge": "Research Grade • ≥99.8% Purity",
+    "hero_title": "The Evolution of",
+    "hero_subtitle": "Precision-engineered lyophilized peptide for advanced laboratory research. The first triple-agonist (GLP-1, GIP, GCGR) available in a premium, verifiable format for the European market.",
+    "btn_catalog": "View Catalog",
+    "btn_coa": "View COA / Lab Results",
+    "feature_eu": "EU",
+    "feature_eu_sub": "Fast Shipping",
+    "feature_crypto": "No Fiat",
+    "feature_crypto_sub": "100% Crypto Private",
+    "feature_hplc": "HPLC",
+    "feature_hplc_sub": "3rd Party Tested",
+    "vial_purity": "Lyophilized Powder • 99.8% Minimum Purity",
+    "purity_level": "Purity Level",
+    "section_science_title_1": "The",
+    "section_science_title_2": "Gold Standard",
+    "section_science_desc": "Engineered for researchers demanding the highest level of purity, accuracy, and absolute privacy across Europe.",
+    "card1_title": "Independent Verification",
+    "card1_desc": "Every single batch is third-party tested with HPLC and Mass Spectrometry protocols to guarantee purity and detect endotoxins.",
+    "card2_title": "Crypto Native Checkout",
+    "card2_desc": "No fiat, no tracking, complete privacy. Pay seamlessly with BTC, ETH, USDT or Monero through our integrated secure gateway. 100% anonymous fulfillment.",
+    "card3_title": "EU Distribution",
+    "card3_desc": "Dispatched from within the European Union. No customs delays, no import duties. Fast and stealthy courier delivery.",
+    "footer_copy": "© 2026 Aura Peptides Europe. For Research Purposes Only.",
+    "footer_secure": "Secure Crypto Checkout"
+  }
+}

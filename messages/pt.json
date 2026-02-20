@@ -1,0 +1,33 @@
+{
+    "Index": {
+        "title": "Aura Peptides",
+        "nav_science": "A Ciência",
+        "nav_lab": "Relatórios de Laboratório",
+        "nav_order": "Comprar (Cripto)",
+        "nav_portal": "Portal do Cliente",
+        "hero_badge": "Grau de Pesquisa • Pureza ≥99.8%",
+        "hero_title": "A Evolução do",
+        "hero_subtitle": "Peptídeo liofilizado de precisão para pesquisa laboratorial avançada. O primeiro agonista triplo (GLP-1, GIP, GCGR) disponível num formato premium e verificável para o mercado europeu.",
+        "btn_catalog": "Ver Catálogo",
+        "btn_coa": "Ver COA / Resultados de Lab",
+        "feature_eu": "EU",
+        "feature_eu_sub": "Envio Rápido",
+        "feature_crypto": "Sem Fiat",
+        "feature_crypto_sub": "100% Cripto Privado",
+        "feature_hplc": "HPLC",
+        "feature_hplc_sub": "Testado por Terceiros",
+        "vial_purity": "Pó Liofilizado • Pureza Mínima 99.8%",
+        "purity_level": "Nível de Pureza",
+        "section_science_title_1": "O",
+        "section_science_title_2": "Padrão Ouro",
+        "section_science_desc": "Projetado para pesquisadores que exigem o mais alto nível de pureza, precisão e privacidade absoluta em toda a Europa.",
+        "card1_title": "Verificação Independente",
+        "card1_desc": "Cada lote é testado por laboratórios terceirizados com protocolos HPLC e de espectrometria de massa para garantir a pureza e detetar endotoxinas.",
+        "card2_title": "Checkout Cripto Nativo",
+        "card2_desc": "Sem moeda fiduciária, sem rastreamento, privacidade total. Pague facilmente com BTC, ETH, USDT ou Monero através da nossa gateway segura integrada. Tratamento 100% anónimo.",
+        "card3_title": "Distribuição EU",
+        "card3_desc": "Enviado a partir de dentro da União Europeia. Sem atrasos na alfândega, sem taxas de importação. Entrega por correio rápida e discreta.",
+        "footer_copy": "© 2026 Aura Peptides Europe. Apenas para Fins de Pesquisa.",
+        "footer_secure": "Checkout Cripto Seguro"
+    }
+}

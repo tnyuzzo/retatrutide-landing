@@ -1,0 +1,33 @@
+{
+    "Index": {
+        "title": "Aura Peptides",
+        "nav_science": "La Science",
+        "nav_lab": "Rapports Lab",
+        "nav_order": "Commander (Crypto)",
+        "nav_portal": "Portail Client",
+        "hero_badge": "Qualité Recherche • Pureté ≥99.8%",
+        "hero_title": "L'Évolution du",
+        "hero_subtitle": "Peptide lyophilisé de précision pour la recherche en laboratoire avancée. Le premier triple agoniste (GLP-1, GIP, GCGR) disponible dans un format premium et vérifiable pour le marché européen.",
+        "btn_catalog": "Voir Catalogue",
+        "btn_coa": "Voir COA / Résultats Lab",
+        "feature_eu": "EU",
+        "feature_eu_sub": "Expédition Rapide",
+        "feature_crypto": "Sans Fiat",
+        "feature_crypto_sub": "100% Crypto Privé",
+        "feature_hplc": "HPLC",
+        "feature_hplc_sub": "Testé par Tiers",
+        "vial_purity": "Poudre Lyophilisée • Pureté Minimale 99.8%",
+        "purity_level": "Niveau de Pureté",
+        "section_science_title_1": "L'",
+        "section_science_title_2": "Étalon-Or",
+        "section_science_desc": "Conçu pour les chercheurs exigeant le plus haut niveau de pureté, de précision et de confidentialité absolue à travers l'Europe.",
+        "card1_title": "Vérification Indépendante",
+        "card1_desc": "Chaque lot est testé par des laboratoires tiers avec des protocoles HPLC et de spectrométrie de masse pour garantir la pureté et détecter les endotoxines.",
+        "card2_title": "Paiement Crypto Natif",
+        "card2_desc": "Pas de monnaie fiduciaire, pas de suivi, confidentialité totale. Payez en toute transparence avec BTC, ETH, USDT ou Monero via notre passerelle sécurisée intégrée. Traitement 100% anonyme.",
+        "card3_title": "Distribution UE",
+        "card3_desc": "Expédié de l'intérieur de l'Union européenne. Pas de retards douaniers, pas de droits d'importation. Livraison par courrier rapide et discrète.",
+        "footer_copy": "© 2026 Aura Peptides Europe. À des Fins de Recherche Uniquement.",
+        "footer_secure": "Paiement Crypto Sécurisé"
+    }
+}
