@@ -38,6 +38,8 @@
         "faq_q3": "Is the product independently tested?",
         "faq_a3": "Yes, every single batch undergoes rigorous testing via third-party HPLC and Mass Spectrometry protocols to ensure a minimum purity of 99.8%. Certificates of Analysis (COAs) are publicly available.",
         "faq_q4": "Why do you only accept Cryptocurrency payments?",
-        "faq_a4": "To guarantee the total privacy and security of our research clients. Payments via Crypto (BTC, USDC, SOL etc.) prevent third parties or banks from tracking your sensitive research acquisitions."
+        "faq_a4": "To guarantee the total privacy and security of our research clients. Payments via Crypto (BTC, USDC, SOL etc.) prevent third parties or banks from tracking your sensitive research acquisitions.",
+        "btn_order": "Order Now",
+        "btn_loading": "Loading..."
     }
 }

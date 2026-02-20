@@ -116,7 +116,7 @@ export default function Home() {
 
               <PremiumButton
                 onClick={async (e) => {
-                  e.currentTarget.innerHTML = 'Caricamento...';
+                  e.currentTarget.innerHTML = t('btn_loading');
                   const res = await fetch('/api/checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -126,7 +126,7 @@ export default function Home() {
                   if (data.reference_id) window.location.href = `/${locale}/checkout/${data.reference_id}`;
                 }}
               >
-                Ordina {totalPrice.toFixed(0)}€ <Lock className="w-4 h-4 ml-2" />
+                {t('btn_order')} {totalPrice.toFixed(0)}€ <Lock className="w-4 h-4 ml-2" />
               </PremiumButton>
             </div>
 

@@ -38,6 +38,8 @@
         "faq_q3": "Il prodotto è testato in modo indipendente?",
         "faq_a3": "Sì, ogni singolo lotto è soggetto a rigorosi test tramite HPLC e Spettrometria di Massa da laboratori di terze parti per garantire una purezza minima del 99.8%. I certificati d'analisi (COA) sono disponibili per ogni lotto.",
         "faq_q4": "Perché accettate solo pagamenti in Criptovaluta?",
-        "faq_a4": "Per garantire la totale privacy e sicurezza dei nostri clienti ricercatori. I pagamenti tramite Crypto (BTC, USDC, SOL ecc.) impediscono a terzi o banche di tracciare i tuoi acquisti sensibili."
+        "faq_a4": "Per garantire la totale privacy e sicurezza dei nostri clienti ricercatori. I pagamenti tramite Crypto (BTC, USDC, SOL ecc.) impediscono a terzi o banche di tracciare i tuoi acquisti sensibili.",
+        "btn_order": "Commander",
+        "btn_loading": "Chargement..."
     }
 }

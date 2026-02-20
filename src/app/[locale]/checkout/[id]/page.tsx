@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { QRCodeSVG } from "qrcode.react";
 import { Lock, CheckCircle, ArrowLeft } from "lucide-react";
 import { CheckoutPoller } from "@/components/ui/CheckoutPoller";
@@ -14,6 +14,7 @@ export default async function CheckoutPage(props: {
     const params = await props.params;
     const t = await getTranslations({ locale: params.locale, namespace: 'Index' });
 
+    const supabase = getSupabaseAdmin();
     const { data: order } = await supabase
         .from('orders')
         .select('*')
