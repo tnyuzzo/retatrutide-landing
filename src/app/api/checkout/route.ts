@@ -46,8 +46,19 @@ export async function POST(req: Request) {
         const targetAddress = targetWalletEnvs[cryptapiTicker];
         const finalTargetAddress = targetAddress || 'dummy_address_for_testing_123';
 
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `https://${req.headers.get('host')}`;
+        // Build a reliable base URL
+        let baseUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+        if (!baseUrl) {
+            const host = req.headers.get('host') || 'retatrutide-landing.vercel.app';
+            const proto = req.headers.get('x-forwarded-proto') || 'https';
+            baseUrl = `${proto}://${host}`;
+        }
+        // Ensure no trailing slash and starts with https://
+        baseUrl = baseUrl.replace(/\/+$/, '');
+        if (!baseUrl.startsWith('http')) baseUrl = `https://${baseUrl}`;
+
         const callbackUrl = `${baseUrl}/api/webhooks/cryptapi?order_id=${referenceId}`;
+        console.log("[Checkout Debug] baseUrl:", baseUrl, "| callbackUrl:", callbackUrl);
 
         // 1. Generate Payment Address
         const cryptapiUrl = `https://api.cryptapi.io/${cryptapiTicker}/create/?address=${finalTargetAddress}&callback=${encodeURIComponent(callbackUrl)}&pending=0`;
