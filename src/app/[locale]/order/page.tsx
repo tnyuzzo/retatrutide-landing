@@ -417,8 +417,11 @@ export default function OrderPage() {
                                         className="w-full h-full bg-brand-void/80 border border-brand-gold/30 text-white text-sm rounded-lg px-4 appearance-none focus:outline-none focus:border-brand-gold tracking-wider cursor-pointer font-medium"
                                     >
                                         <option value="BTC">Bitcoin (BTC)</option>
+                                        <option value="ETH">Ethereum (ETH)</option>
                                         <option value="XMR">Monero (XMR)</option>
+                                        <option value="SOL">Solana (SOL)</option>
                                         <option value="USDT">Tether USDT (TRC20)</option>
+                                        <option value="USDC">USD Coin (ERC20)</option>
                                     </select>
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-gold/50 text-xs">▼</div>
                                 </div>
