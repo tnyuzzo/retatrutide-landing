@@ -25,17 +25,17 @@ export default async function CheckoutPage(props: {
         return notFound();
     }
 
-    // Se l'ordine è già pagato, mostra una schermata di successo
+    // If already paid, show success screen
     if (order.status === 'paid' || order.status === 'shipped') {
         return (
             <main className="min-h-screen bg-brand-void text-white flex flex-col items-center justify-center p-6 text-center">
                 <CheckCircle className="w-16 h-16 text-brand-gold mb-6" />
-                <h1 className="text-3xl font-light text-brand-gold mb-2">Pagamento Ricevuto</h1>
+                <h1 className="text-3xl font-light text-brand-gold mb-2">{t('checkout_payment_received')}</h1>
                 <p className="text-white/60 mb-8 max-w-sm">
-                    Il tuo ordine {order.reference_id.split('-')[0].toUpperCase()} è stato confermato ed è in lavorazione. Riceverai presto aggiornamenti.
+                    {t('checkout_payment_received_desc')}
                 </p>
                 <Link href={`/${params.locale}`} className="text-brand-gold hover:text-white transition-colors border border-brand-gold px-6 py-2 rounded-full text-sm">
-                    Torna alla Home
+                    {t('nav_home')}
                 </Link>
             </main>
         );
@@ -43,14 +43,14 @@ export default async function CheckoutPage(props: {
 
     return (
         <main className="min-h-screen bg-brand-void text-white font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden">
-            {/* Polling Silenzioso in Client-Side */}
+            {/* Silent Client-Side Polling */}
             <CheckoutPoller referenceId={order.reference_id} />
 
             {/* Background Effects */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
 
             <Link href={`/${params.locale}`} className="absolute top-8 left-8 flex items-center gap-2 text-white/50 hover:text-brand-gold transition-colors text-sm">
-                <ArrowLeft className="w-4 h-4" /> {t('nav_home') || 'Indietro'}
+                <ArrowLeft className="w-4 h-4" /> {t('checkout_back')}
             </Link>
 
             <div className="z-10 max-w-md w-full glass-panel p-8 md:p-10 flex flex-col items-center text-center gap-6 rounded-3xl border border-white/10 relative overflow-hidden">
@@ -60,14 +60,14 @@ export default async function CheckoutPage(props: {
                 </div>
 
                 <div className="w-full">
-                    <h1 className="text-2xl md:text-3xl font-light text-white mb-2">Completa l'Ordine</h1>
+                    <h1 className="text-2xl md:text-3xl font-light text-white mb-2">{t('checkout_complete_order')}</h1>
                     <p className="text-white/60 text-sm leading-relaxed">
-                        Invia esattamente l'importo indicato all'indirizzo {order.crypto_currency} qui sotto. Non ricaricare la pagina.
+                        {t('checkout_send_exact', { crypto: order.crypto_currency })}
                     </p>
                 </div>
 
                 <div className="w-full py-6 border-y border-white/10 flex flex-col gap-2">
-                    <span className="text-xs text-brand-gold/60 uppercase tracking-widest">Importo Esatto Da Inviare</span>
+                    <span className="text-xs text-brand-gold/60 uppercase tracking-widest">{t('checkout_exact_amount')}</span>
                     <div className="text-4xl font-light text-brand-gold flex items-center justify-center gap-2">
                         <span>{order.crypto_amount}</span>
                         <span className="text-xl text-white/50">{order.crypto_currency}</span>
@@ -86,15 +86,15 @@ export default async function CheckoutPage(props: {
 
                 <div className="flex items-center gap-3 mt-4 mb-6">
                     <div className="w-4 h-4 rounded-full border-2 border-brand-gold/50 border-t-brand-gold animate-spin"></div>
-                    <p className="text-xs text-brand-gold/80">In attesa di transazione sulla rete...</p>
+                    <p className="text-xs text-brand-gold/80">{t('checkout_waiting')}</p>
                 </div>
 
-                {/* Rec 6: Buyer Protection Box */}
+                {/* Buyer Protection Box */}
                 <div className="w-full mt-2 p-4 rounded-xl border border-green-500/20 bg-green-500/5 flex flex-col items-center text-center gap-2">
                     <Shield className="w-6 h-6 text-green-400" />
-                    <h4 className="text-sm font-medium text-white">100% Delivery Guarantee</h4>
+                    <h4 className="text-sm font-medium text-white">{t('checkout_buyer_protection')}</h4>
                     <p className="text-xs text-white/60 leading-relaxed">
-                        Your order is fully protected. We offer a full free reshipment if your order is seized by customs or lost in transit.
+                        {t('checkout_buyer_protection_desc')}
                     </p>
                 </div>
             </div>

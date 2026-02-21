@@ -193,6 +193,15 @@
         "portal_detail_tracking": "Номер відстеження",
         "portal_detail_items": "Товари в замовленні",
         "portal_date": "Дата замовлення",
-        "nav_home": "Головна"
+        "nav_home": "Головна",
+        "checkout_complete_order": "Оформити Замовлення",
+        "checkout_payment_received": "Оплату Отримано",
+        "checkout_payment_received_desc": "Ваше замовлення підтверджено та обробляється. Ви скоро отримаєте оновлення.",
+        "checkout_send_exact": "Відправте точну суму на вказану адресу. Не перезавантажуйте сторінку.",
+        "checkout_exact_amount": "Точна Сума для Відправки",
+        "checkout_waiting": "Очікування транзакції в мережі...",
+        "checkout_buyer_protection": "100% Гарантія Доставки",
+        "checkout_buyer_protection_desc": "Ваше замовлення повністю захищене. Ми безкоштовно перевідправимо при конфіскації або втраті.",
+        "checkout_back": "Назад"
     }
 }

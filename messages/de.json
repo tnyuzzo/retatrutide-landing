@@ -193,6 +193,15 @@
         "portal_detail_tracking": "Sendungsnummer",
         "portal_detail_items": "Artikel in der Bestellung",
         "portal_date": "Bestelldatum",
-        "nav_home": "Startseite"
+        "nav_home": "Startseite",
+        "checkout_complete_order": "Bestellung Abschließen",
+        "checkout_payment_received": "Zahlung Erhalten",
+        "checkout_payment_received_desc": "Ihre Bestellung wurde bestätigt und wird bearbeitet. Sie erhalten bald Updates.",
+        "checkout_send_exact": "Senden Sie genau den angegebenen Betrag an die untenstehende Adresse. Laden Sie die Seite nicht neu.",
+        "checkout_exact_amount": "Exakter Betrag zum Senden",
+        "checkout_waiting": "Warten auf Transaktion im Netzwerk...",
+        "checkout_buyer_protection": "100% Liefergarantie",
+        "checkout_buyer_protection_desc": "Ihre Bestellung ist vollständig geschützt. Wir bieten einen kostenlosen Neuversand bei Zollbeschlagnahme oder Verlust.",
+        "checkout_back": "Zurück"
     }
 }

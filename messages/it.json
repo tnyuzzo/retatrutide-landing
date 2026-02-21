@@ -193,6 +193,15 @@
         "portal_detail_tracking": "Numero Tracking",
         "portal_detail_items": "Articoli in Ordine",
         "portal_date": "Data Ordine",
-        "nav_home": "Home"
+        "nav_home": "Home",
+        "checkout_complete_order": "Completa l'Ordine",
+        "checkout_payment_received": "Pagamento Ricevuto",
+        "checkout_payment_received_desc": "Il tuo ordine è stato confermato ed è in lavorazione. Riceverai presto aggiornamenti.",
+        "checkout_send_exact": "Invia esattamente l'importo indicato all'indirizzo qui sotto. Non ricaricare la pagina.",
+        "checkout_exact_amount": "Importo Esatto Da Inviare",
+        "checkout_waiting": "In attesa di transazione sulla rete...",
+        "checkout_buyer_protection": "Garanzia di Consegna al 100%",
+        "checkout_buyer_protection_desc": "Il tuo ordine è completamente protetto. Offriamo una rispedizione gratuita se il pacco viene sequestrato in dogana o perso.",
+        "checkout_back": "Indietro"
     }
 }

@@ -193,6 +193,15 @@
         "portal_detail_tracking": "Tracking Number",
         "portal_detail_items": "Items in Order",
         "portal_date": "Order Date",
-        "nav_home": "Home"
+        "nav_home": "Home",
+        "checkout_complete_order": "Complete Order",
+        "checkout_payment_received": "Payment Received",
+        "checkout_payment_received_desc": "Your order has been confirmed and is being processed. You will receive updates soon.",
+        "checkout_send_exact": "Send exactly the amount shown to the address below. Do not reload the page.",
+        "checkout_exact_amount": "Exact Amount to Send",
+        "checkout_waiting": "Waiting for transaction on the network...",
+        "checkout_buyer_protection": "100% Delivery Guarantee",
+        "checkout_buyer_protection_desc": "Your order is fully protected. We offer a full free reshipment if your order is seized by customs or lost in transit.",
+        "checkout_back": "Back"
     }
 }

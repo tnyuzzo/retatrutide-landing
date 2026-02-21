@@ -1,66 +1,138 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
+
+// ── Rate Limiting (in-memory, per IP, 5 req/min) ──
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 5;
+
+function isRateLimited(ip: string): boolean {
+    const now = Date.now();
+    const entry = rateLimitMap.get(ip);
+
+    if (!entry || now > entry.resetAt) {
+        rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+        return false;
+    }
+
+    entry.count++;
+    return entry.count > RATE_LIMIT_MAX;
+}
+
+// Clean up stale entries every 5 minutes
+setInterval(() => {
+    const now = Date.now();
+    for (const [ip, entry] of rateLimitMap) {
+        if (now > entry.resetAt) rateLimitMap.delete(ip);
+    }
+}, 5 * 60_000);
+
+// ── Validation Schema ──
+const ALLOWED_CRYPTOS = ['btc', 'eth', 'xmr', 'sol', 'usdt', 'usdc', 'xrp'] as const;
+
+const checkoutSchema = z.object({
+    email: z.string().email('Invalid email address').max(255).transform(v => v.toLowerCase().trim()),
+    shipping_address: z.object({
+        full_name: z.string().min(2).max(200),
+        address_line_1: z.string().min(3).max(500),
+        address_line_2: z.string().max(500).optional().default(''),
+        city: z.string().min(1).max(200),
+        postal_code: z.string().min(2).max(20),
+        country: z.string().min(2).max(100),
+        phone: z.string().max(30).optional().default(''),
+    }).optional().default({}),
+    quantity: z.coerce.number().int().min(1).max(10).default(1),
+    crypto_currency: z.enum(ALLOWED_CRYPTOS).default('btc'),
+});
+
+// ── Crypto Ticker Mapping ──
+const CRYPTO_TICKERS: Record<string, string> = {
+    btc: 'btc',
+    eth: 'eth',
+    xmr: 'xmr',
+    sol: 'sol',
+    usdt: 'trc20/usdt',
+    usdc: 'erc20/usdc',
+    xrp: 'bep20/xrp',
+};
+
+const WALLET_ENV_KEYS: Record<string, string> = {
+    btc: 'CRYPTAPI_BTC_WALLET',
+    eth: 'CRYPTAPI_ETH_WALLET',
+    xmr: 'CRYPTAPI_XMR_WALLET',
+    sol: 'CRYPTAPI_SOL_WALLET',
+    'trc20/usdt': 'CRYPTAPI_USDT_TRC20_WALLET',
+    'erc20/usdc': 'CRYPTAPI_USDC_WALLET',
+    'bep20/xrp': 'CRYPTAPI_XRP_WALLET',
+};
 
 export async function POST(req: Request) {
     try {
-        const body = await req.json();
-        const { email, shipping_address, quantity = 1, crypto_currency } = body;
+        // Rate limiting
+        const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+            || req.headers.get('x-real-ip')
+            || 'unknown';
 
-        const qty = parseInt(quantity.toString(), 10);
-        if (isNaN(qty) || qty <= 0 || qty > 10) {
-            return NextResponse.json({ error: 'Invalid quantity' }, { status: 400 });
+        if (isRateLimited(ip)) {
+            return NextResponse.json(
+                { error: 'Too many requests. Please wait a minute.' },
+                { status: 429 }
+            );
         }
 
+        // Validate input
+        const body = await req.json().catch(() => ({}));
+        const parsed = checkoutSchema.safeParse(body);
+
+        if (!parsed.success) {
+            const errors = parsed.error.flatten().fieldErrors;
+            return NextResponse.json(
+                { error: 'Validation failed', details: errors },
+                { status: 400 }
+            );
+        }
+
+        const { email, shipping_address, quantity, crypto_currency } = parsed.data;
+
+        // ── Price Calculation ──
         const basePrice = 197;
         let discountPercent = 0;
-        if (qty > 2) {
-            discountPercent = (qty - 2) * 5;
-            if (discountPercent > 40) discountPercent = 40; // max 10 items
+        if (quantity > 2) {
+            discountPercent = Math.min((quantity - 2) * 5, 40);
         }
-
-        const totalBase = basePrice * qty;
+        const totalBase = basePrice * quantity;
         const fiat_amount = totalBase - (totalBase * (discountPercent / 100));
 
-        const items = [{ sku: 'RET-KIT-1', name: 'Retatrutide 10mg', quantity: qty, price: fiat_amount }];
+        const items = [{ sku: 'RET-KIT-1', name: 'Retatrutide 10mg', quantity, price: fiat_amount }];
 
+        // ── CryptAPI Integration ──
         const referenceId = uuidv4();
-        const coin = crypto_currency ? crypto_currency.toLowerCase() : 'btc';
+        const cryptapiTicker = CRYPTO_TICKERS[crypto_currency] || 'btc';
+        const walletEnvKey = WALLET_ENV_KEYS[cryptapiTicker];
+        const targetAddress = walletEnvKey ? process.env[walletEnvKey] : undefined;
 
-        let cryptapiTicker = coin;
-        if (coin === 'usdt') cryptapiTicker = 'trc20/usdt';
-        if (coin === 'usdc') cryptapiTicker = 'erc20/usdc';
-        if (coin === 'xrp') cryptapiTicker = 'bep20/xrp'; // Using Binance-Peg XRP as native isn't always supported by CryptAPI
+        if (!targetAddress) {
+            console.error(`Missing wallet for ${cryptapiTicker} (env: ${walletEnvKey})`);
+            return NextResponse.json({ error: 'Payment method temporarily unavailable' }, { status: 503 });
+        }
 
-        const targetWalletEnvs: Record<string, string | undefined> = {
-            'btc': process.env.CRYPTAPI_BTC_WALLET,
-            'xmr': process.env.CRYPTAPI_XMR_WALLET,
-            'eth': process.env.CRYPTAPI_ETH_WALLET,
-            'sol': process.env.CRYPTAPI_SOL_WALLET,
-            'bep20/xrp': process.env.CRYPTAPI_XRP_WALLET,
-            'trc20/usdt': process.env.CRYPTAPI_USDT_TRC20_WALLET,
-            'erc20/usdt': process.env.CRYPTAPI_USDT_ERC20_WALLET,
-            'erc20/usdc': process.env.CRYPTAPI_USDC_WALLET,
-        };
-
-        const targetAddress = targetWalletEnvs[cryptapiTicker];
-        const finalTargetAddress = targetAddress || 'dummy_address_for_testing_123';
-
-        // Build a reliable base URL
+        // Build callback URL with webhook secret
         let baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').trim();
         if (!baseUrl) {
-            const host = req.headers.get('host') || 'retatrutide-landing.vercel.app';
+            const host = req.headers.get('host') || 'localhost:3000';
             const proto = req.headers.get('x-forwarded-proto') || 'https';
             baseUrl = `${proto}://${host}`;
         }
-        // Ensure no trailing slash and starts with https://
         baseUrl = baseUrl.replace(/\/+$/, '');
         if (!baseUrl.startsWith('http')) baseUrl = `https://${baseUrl}`;
 
-        const callbackUrl = `${baseUrl}/api/webhooks/cryptapi?order_id=${referenceId}`;
+        const webhookSecret = process.env.WEBHOOK_SECRET || '';
+        const callbackUrl = `${baseUrl}/api/webhooks/cryptapi?order_id=${referenceId}&secret=${webhookSecret}`;
 
-        // 1. Generate Payment Address
-        const cryptapiUrl = `https://api.cryptapi.io/${cryptapiTicker}/create/?address=${finalTargetAddress}&callback=${encodeURIComponent(callbackUrl)}&pending=0`;
+        // 1. Generate Payment Address via CryptAPI
+        const cryptapiUrl = `https://api.cryptapi.io/${cryptapiTicker}/create/?address=${targetAddress}&callback=${encodeURIComponent(callbackUrl)}&pending=0`;
         const cryptapiRes = await fetch(cryptapiUrl);
         const cryptapiData = await cryptapiRes.json();
 
@@ -71,58 +143,56 @@ export async function POST(req: Request) {
 
         const paymentAddress = cryptapiData.address_in;
 
-        // 2. Fetch Real Exchange Rate (EUR to Crypto)
-        // CryptAPI /info/ endpoint returns the current prices of coins
+        // 2. Fetch Real Exchange Rate
         let calculatedCryptoAmount = 0;
         try {
             const infoUrl = `https://api.cryptapi.io/${cryptapiTicker}/info/`;
             const infoRes = await fetch(infoUrl);
             const infoData = await infoRes.json();
 
-            if (infoData.status === 'success' && infoData.prices && infoData.prices.EUR) {
+            if (infoData.status === 'success' && infoData.prices?.EUR) {
                 const eurPricePerCoin = parseFloat(infoData.prices.EUR);
-                // The amount of crypto needed is total EUR amount divided by the price of 1 coin in EUR
-                // We add a tiny buffer (1%) to ensure underpayment doesn't happen due to volatility
                 const exactCryptoAmount = fiat_amount / eurPricePerCoin;
-                calculatedCryptoAmount = parseFloat((exactCryptoAmount * 1.01).toFixed(6));
+                // 1% buffer to account for volatility
+                calculatedCryptoAmount = parseFloat((exactCryptoAmount * 1.01).toFixed(8));
             } else {
                 throw new Error("Failed to get price info");
             }
         } catch (e) {
-            console.error("Exchange rate error, falling back to mock:", e);
-            calculatedCryptoAmount = 0.0015; // Fallback in case estimate API fails
+            console.error("Exchange rate error:", e);
+            return NextResponse.json({ error: 'Unable to calculate exchange rate. Please try again.' }, { status: 503 });
         }
 
-        // 3. Insert into Supabase (New Schema)
-        const { data: orderData, error: dbError } = await supabase
+        // 3. Insert Order into Supabase (using service role — bypasses RLS)
+        const { data: orderData, error: dbError } = await supabaseAdmin
             .from('orders')
             .insert([
                 {
                     reference_id: referenceId,
                     status: 'pending',
-                    fiat_amount: fiat_amount,
-                    crypto_currency: coin.toUpperCase(),
+                    fiat_amount,
+                    crypto_currency: crypto_currency.toUpperCase(),
                     crypto_amount: calculatedCryptoAmount,
-                    email: email || null,
-                    shipping_address: shipping_address || {},
+                    email,
+                    shipping_address,
                     payment_url: paymentAddress,
-                    items: items || [{ sku: 'RET-KIT-1', name: 'Retatrutide Research Kit (Singolo)', quantity: 1, unit_price: fiat_amount }] // Default items fallback
+                    items,
                 }
             ])
             .select()
             .single();
 
         if (dbError) {
-            console.error("Supabase Error:", dbError);
-            return NextResponse.json({ error: 'Failed to create order tracking' }, { status: 500 });
+            console.error("Supabase Insert Error:", dbError);
+            return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
         }
 
         return NextResponse.json({
             success: true,
             reference_id: referenceId,
             payment_url: paymentAddress,
-            crypto_amount: calculatedCryptoAmount, // Pass back exactly what to show user
-            order: orderData
+            crypto_amount: calculatedCryptoAmount,
+            order: orderData,
         });
 
     } catch (error) {

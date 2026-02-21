@@ -193,6 +193,15 @@
         "portal_detail_tracking": "Número de seguimiento",
         "portal_detail_items": "Artículos en el pedido",
         "portal_date": "Fecha del pedido",
-        "nav_home": "Inicio"
+        "nav_home": "Inicio",
+        "checkout_complete_order": "Completar Pedido",
+        "checkout_payment_received": "Pago Recibido",
+        "checkout_payment_received_desc": "Tu pedido ha sido confirmado y está siendo procesado. Recibirás actualizaciones pronto.",
+        "checkout_send_exact": "Envía exactamente el importe indicado a la dirección de abajo. No recargues la página.",
+        "checkout_exact_amount": "Importe Exacto a Enviar",
+        "checkout_waiting": "Esperando transacción en la red...",
+        "checkout_buyer_protection": "100% Garantía de Entrega",
+        "checkout_buyer_protection_desc": "Tu pedido está completamente protegido. Ofrecemos reenvío gratuito si el paquete es confiscado o se pierde.",
+        "checkout_back": "Atrás"
     }
 }

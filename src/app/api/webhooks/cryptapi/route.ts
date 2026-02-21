@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { Resend } from 'resend';
+import {
+    orderConfirmationAdminEmail,
+    orderConfirmationCustomerEmail,
+} from '@/lib/email-templates';
 
-// Helper function to safely send emails without blocking the webhook response
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
 
 export async function GET(req: Request) {
@@ -12,66 +15,72 @@ export async function GET(req: Request) {
         const order_id = searchParams.get('order_id');
         const pending = searchParams.get('pending');
         const value_forwarded_coin = searchParams.get('value_forwarded_coin');
-        // const coin = searchParams.get('coin'); // CryptAPI sends this too
+        const secret = searchParams.get('secret');
 
-        // CryptAPI ALWAYS requires exactly "*ok*" to acknowledge receipt and stop retrying
+        // CryptAPI ALWAYS requires exactly "*ok*" to acknowledge receipt
         if (!order_id) {
             return new NextResponse('*ok*', { status: 200 });
         }
 
+        // ── Webhook Secret Verification ──
+        const expectedSecret = process.env.WEBHOOK_SECRET;
+        if (expectedSecret && secret !== expectedSecret) {
+            console.warn(`Webhook: Invalid secret for order ${order_id}. Rejecting.`);
+            // Return *ok* so CryptAPI stops retrying, but don't process
+            return new NextResponse('*ok*', { status: 200 });
+        }
+
         if (pending === '0') {
-            // 1. Fetch current order to check if it was already processed
-            const { data: order, error: fetchError } = await supabase
+            // 1. Fetch current order
+            const { data: order, error: fetchError } = await supabaseAdmin
                 .from('orders')
-                .select('id, status, email, shipping_address, items')
+                .select('id, status, email, shipping_address, items, fiat_amount, crypto_currency, crypto_amount')
                 .eq('reference_id', order_id)
                 .single();
 
             if (fetchError || !order) {
-                console.error("Webhook: Order not found or error:", fetchError);
+                console.error("Webhook: Order not found:", fetchError);
                 return new NextResponse('*ok*', { status: 200 });
             }
 
-            if (order.status === 'paid' || order.status === 'shipped') {
-                console.log(`Webhook: Order ${order_id} already processed.`);
+            // Idempotency: skip if already processed
+            if (['paid', 'processing', 'shipped', 'delivered'].includes(order.status)) {
+                console.log(`Webhook: Order ${order_id} already processed (status: ${order.status}).`);
                 return new NextResponse('*ok*', { status: 200 });
             }
 
             // 2. Mark as Paid
-            const { error: updateError } = await supabase
+            const updatePayload: Record<string, unknown> = {
+                status: 'paid',
+                updated_at: new Date().toISOString(),
+            };
+            if (value_forwarded_coin) {
+                updatePayload.crypto_amount = parseFloat(value_forwarded_coin);
+            }
+
+            const { error: updateError } = await supabaseAdmin
                 .from('orders')
-                .update({
-                    status: 'paid',
-                    crypto_amount: value_forwarded_coin ? parseFloat(value_forwarded_coin) : undefined,
-                    updated_at: new Date().toISOString()
-                })
+                .update(updatePayload)
                 .eq('reference_id', order_id);
 
             if (updateError) {
-                console.error("Webhook: DB Update Error (Paid Status):", updateError);
+                console.error("Webhook: DB Update Error:", updateError);
                 return new NextResponse('*ok*', { status: 200 });
             }
 
             console.log(`Webhook: Order ${order_id} marked as PAID!`);
 
-            // --- DEFER BACKGROUND TASKS ---
-            // In a real serverless env (Vercel), you'd normally use something like Inngest, Upstash QStash, 
-            // or Vercel Functions timing to allow background work to finish. Next.js App Router API 
-            // naturally allows execution to continue after response, though Vercel might kill it.
-            // For now, we await them to ensure they run, since CryptAPI has a long timeout.
-
-            // 3. Decrement Inventory
+            // 3. Atomic Inventory Decrement
             try {
-                // Assuming items array exists, sum up the quantities. Otherwise default to 1 kit.
                 let totalQuantityToDeduct = 1;
                 if (order.items && Array.isArray(order.items)) {
-                    totalQuantityToDeduct = order.items.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0);
+                    totalQuantityToDeduct = order.items.reduce(
+                        (sum: number, item: { quantity?: number }) => sum + (item.quantity || 1), 0
+                    );
                 }
 
-                // Call Supabase RPC (Server Action) or do it directly if RLS allows Service Role
-                // We'll read the current quantity first (Careful of race conditions in high volume, 
-                // ideally use a Postgres Function for atomic decrement)
-                const { data: invData } = await supabase
+                // Use atomic decrement via RPC if available, otherwise direct update
+                const { data: invData } = await supabaseAdmin
                     .from('inventory')
                     .select('quantity')
                     .eq('sku', 'RET-KIT-1')
@@ -79,12 +88,26 @@ export async function GET(req: Request) {
 
                 if (invData) {
                     const newQty = Math.max(0, invData.quantity - totalQuantityToDeduct);
-                    await supabase
+                    await supabaseAdmin
                         .from('inventory')
                         .update({ quantity: newQty, updated_at: new Date().toISOString() })
                         .eq('sku', 'RET-KIT-1');
 
-                    console.log(`Webhook: Inventory decremented to ${newQty}`);
+                    // Log inventory movement
+                    await supabaseAdmin
+                        .from('inventory_movements')
+                        .insert({
+                            sku: 'RET-KIT-1',
+                            type: 'remove',
+                            quantity: -totalQuantityToDeduct,
+                            previous_quantity: invData.quantity,
+                            new_quantity: newQty,
+                            reason: `Auto-deducted: order ${order_id}`,
+                            performed_by: null,
+                            performed_by_name: 'System (Webhook)',
+                        });
+
+                    console.log(`Webhook: Inventory decremented by ${totalQuantityToDeduct} → ${newQty}`);
                 }
             } catch (invErr) {
                 console.error("Webhook: Failed to decrement inventory:", invErr);
@@ -93,44 +116,49 @@ export async function GET(req: Request) {
             // 4. Send Emails via Resend
             if (process.env.RESEND_API_KEY) {
                 try {
-                    // Send to Warehouse/Admin
-                    const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'admin@example.com';
-                    await resend.emails.send({
-                        from: 'Retatrutide Orders <onboarding@resend.dev>',
-                        to: adminEmail,
-                        subject: `🚨 NUOVO ORDINE PAGATO IN CRYPTO: ${order_id.slice(-8)}`,
-                        html: `
-                            <h2>Nuovo Ordine Da Evadere</h2>
-                            <p>L'ordine <strong>${order_id}</strong> e' appena stato confermato sulla blockchain.</p>
-                            <p><strong>Spedizione:</strong><br/>
-                            <pre>${JSON.stringify(order.shipping_address, null, 2)}</pre></p>
-                            <p>Accedi alla <a href="${process.env.NEXT_PUBLIC_SITE_URL}/admin">Dashboard</a> per loggare la spedizione.</p>
-                        `
-                    });
+                    // Admin notification — use proper template
+                    const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+                    if (adminEmail) {
+                        const { subject, html } = orderConfirmationAdminEmail({
+                            referenceId: order_id,
+                            fiatAmount: order.fiat_amount || 0,
+                            cryptoCurrency: order.crypto_currency || 'BTC',
+                            cryptoAmount: parseFloat(value_forwarded_coin || '0') || order.crypto_amount || 0,
+                            items: order.items || [],
+                            shippingAddress: order.shipping_address || {},
+                            email: order.email || undefined,
+                        });
 
-                    // Send to Customer
-                    if (order.email && order.email.includes('@')) {
                         await resend.emails.send({
-                            from: 'Retatrutide Support <onboarding@resend.dev>',
+                            from: 'Aura Peptides <onboarding@resend.dev>',
+                            to: adminEmail,
+                            subject,
+                            html,
+                        });
+                    }
+
+                    // Customer confirmation — use proper template
+                    if (order.email && order.email.includes('@')) {
+                        const { subject, html } = orderConfirmationCustomerEmail({
+                            referenceId: order_id,
+                            fiatAmount: order.fiat_amount || 0,
+                        });
+
+                        await resend.emails.send({
+                            from: 'Aura Peptides <onboarding@resend.dev>',
                             to: order.email,
-                            subject: 'Conferma Ricezione Pagamento Crypto - Ordine in Preparazione',
-                            html: `
-                                <h2>Pagamento Ricevuto!</h2>
-                                <p>Ciao! Il tuo deposito crypto per l'ordine <strong>${order_id.slice(-8)}</strong> è stato confermato.</p>
-                                <p>Il tuo kit è in preparazione logistica. Riceverai un'ulteriore mail con il tracking number non appena il pacco verra' affidato al corriere espresso.</p>
-                                <p>Grazie per aver scelto la nostra ricerca.</p>
-                            `
+                            subject,
+                            html,
                         });
                     }
                 } catch (emailErr) {
                     console.error("Webhook: Failed to send emails:", emailErr);
                 }
             } else {
-                console.log("Webhook: RESEND_API_KEY missing. Skipped sending emails.");
+                console.log("Webhook: RESEND_API_KEY missing. Skipped emails.");
             }
         }
 
-        // Must always return *ok* to stop CryptAPI from pinging
         return new NextResponse('*ok*', { status: 200 });
 
     } catch (error) {

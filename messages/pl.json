@@ -193,6 +193,15 @@
         "portal_detail_tracking": "Numer śledzenia",
         "portal_detail_items": "Przedmioty w zamówieniu",
         "portal_date": "Data zamówienia",
-        "nav_home": "Strona Główna"
+        "nav_home": "Strona Główna",
+        "checkout_complete_order": "Złóż Zamówienie",
+        "checkout_payment_received": "Płatność Otrzymana",
+        "checkout_payment_received_desc": "Twoje zamówienie zostało potwierdzone i jest przetwarzane. Wkrótce otrzymasz aktualizacje.",
+        "checkout_send_exact": "Wyślij dokładnie podaną kwotę na poniższy adres. Nie odświeżaj strony.",
+        "checkout_exact_amount": "Dokładna Kwota do Wysłania",
+        "checkout_waiting": "Oczekiwanie na transakcję w sieci...",
+        "checkout_buyer_protection": "100% Gwarancja Dostawy",
+        "checkout_buyer_protection_desc": "Twoje zamówienie jest w pełni chronione. Oferujemy bezpłatną ponowną wysyłkę w przypadku konfiskaty lub zagubienia.",
+        "checkout_back": "Wróć"
     }
 }

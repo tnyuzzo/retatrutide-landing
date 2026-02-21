@@ -193,6 +193,15 @@
         "portal_detail_tracking": "Numéro de suivi",
         "portal_detail_items": "Articles dans la commande",
         "portal_date": "Date de la commande",
-        "nav_home": "Accueil"
+        "nav_home": "Accueil",
+        "checkout_complete_order": "Finaliser la Commande",
+        "checkout_payment_received": "Paiement Reçu",
+        "checkout_payment_received_desc": "Votre commande a été confirmée et est en cours de traitement. Vous recevrez bientôt des mises à jour.",
+        "checkout_send_exact": "Envoyez exactement le montant indiqué à l'adresse ci-dessous. Ne rechargez pas la page.",
+        "checkout_exact_amount": "Montant Exact à Envoyer",
+        "checkout_waiting": "En attente de transaction sur le réseau...",
+        "checkout_buyer_protection": "100% Garantie de Livraison",
+        "checkout_buyer_protection_desc": "Votre commande est entièrement protégée. Nous offrons une réexpédition gratuite en cas de saisie douanière ou de perte.",
+        "checkout_back": "Retour"
     }
 }
