@@ -12,6 +12,7 @@ const STATUS_TRANSITIONS: Record<string, string[]> = {
     shipped: ['delivered'],
     delivered: [],
     cancelled: [],
+    expired: [],
 };
 
 const CARRIER_TRACKING_URLS: Record<string, (num: string) => string> = {

@@ -202,6 +202,7 @@
         "checkout_waiting": "In attesa di transazione sulla rete...",
         "checkout_buyer_protection": "Garanzia di Consegna al 100%",
         "checkout_buyer_protection_desc": "Il tuo ordine è completamente protetto. Offriamo una rispedizione gratuita se il pacco viene sequestrato in dogana o perso.",
-        "checkout_back": "Indietro"
+        "checkout_back": "Indietro",
+        "portal_shipping_title": "Spedizione In Corso"
     }
 }

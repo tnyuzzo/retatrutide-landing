@@ -202,6 +202,7 @@
         "checkout_waiting": "Ожидание транзакции в сети...",
         "checkout_buyer_protection": "100% Гарантия Доставки",
         "checkout_buyer_protection_desc": "Ваш заказ полностью защищён. Мы бесплатно перешлём заказ при конфискации или утере.",
-        "checkout_back": "Назад"
+        "checkout_back": "Назад",
+        "portal_shipping_title": "Отправка В Пути"
     }
 }

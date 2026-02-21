@@ -210,7 +210,7 @@ export function PortalForm() {
                             {(orderData.status === 'shipped' || orderData.status === 'delivered') && orderData.tracking_number && (
                                 <div className="glass-panel p-6 flex flex-col gap-4 md:col-span-2 border-green-500/20 bg-green-500/5">
                                     <h4 className="text-green-400 text-xs tracking-widest uppercase font-medium border-b border-green-500/20 pb-2 flex items-center gap-2">
-                                        <Truck className="w-4 h-4" /> Spedizione In Corso
+                                        <Truck className="w-4 h-4" /> {t('portal_shipping_title')}
                                     </h4>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

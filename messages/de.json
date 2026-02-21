@@ -202,6 +202,7 @@
         "checkout_waiting": "Warten auf Transaktion im Netzwerk...",
         "checkout_buyer_protection": "100% Liefergarantie",
         "checkout_buyer_protection_desc": "Ihre Bestellung ist vollständig geschützt. Wir bieten einen kostenlosen Neuversand bei Zollbeschlagnahme oder Verlust.",
-        "checkout_back": "Zurück"
+        "checkout_back": "Zurück",
+        "portal_shipping_title": "Versand Unterwegs"
     }
 }

@@ -202,6 +202,7 @@
         "checkout_waiting": "Esperando transacción en la red...",
         "checkout_buyer_protection": "100% Garantía de Entrega",
         "checkout_buyer_protection_desc": "Tu pedido está completamente protegido. Ofrecemos reenvío gratuito si el paquete es confiscado o se pierde.",
-        "checkout_back": "Atrás"
+        "checkout_back": "Atrás",
+        "portal_shipping_title": "Envío En Curso"
     }
 }
