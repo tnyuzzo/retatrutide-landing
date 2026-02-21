@@ -238,6 +238,12 @@
         "order_card_desc": "Pay easily with Visa, Mastercard, or Apple Pay via our secure partner Guardarian.",
         "order_card_no_wallet": "No wallet required. Enter your details, and the fiat will automatically be converted to pay for this exact order.",
         "order_cta": "Complete Secure Order",
-        "order_secured_by": "Secured by AES-256"
+        "order_secured_by": "Secured by AES-256",
+        "order_quantity": "Quantity",
+        "order_unit_price": "Unit Price",
+        "order_discount_label": "Discount",
+        "order_volume_discounts": "Volume Discounts",
+        "order_pieces": "pcs",
+        "order_piece_short": "pc"
     }
 }

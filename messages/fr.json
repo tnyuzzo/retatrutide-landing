@@ -238,6 +238,12 @@
         "order_card_desc": "Payez facilement avec Visa, Mastercard ou Apple Pay via notre partenaire sécurisé Guardarian.",
         "order_card_no_wallet": "Aucun portefeuille requis. Entrez vos coordonnées et le paiement sera automatiquement converti pour cette commande.",
         "order_cta": "Finaliser la Commande Sécurisée",
-        "order_secured_by": "Sécurisé par AES-256"
+        "order_secured_by": "Sécurisé par AES-256",
+        "order_quantity": "Quantité",
+        "order_unit_price": "Prix Unitaire",
+        "order_discount_label": "Remise",
+        "order_volume_discounts": "Remises Volume",
+        "order_pieces": "pcs",
+        "order_piece_short": "pc"
     }
 }

@@ -1,53 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, Check, Lock, Shield, CreditCard, ChevronRight } from "lucide-react";
-import Image from "next/image";
+import { ArrowLeft, Check, Lock, Shield, CreditCard, ChevronRight, Minus, Plus } from "lucide-react";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
+const BASE_PRICE = 197;
+
+const DISCOUNT_TIERS = [
+    { min: 1, discount: 0 },
+    { min: 3, discount: 10 },
+    { min: 5, discount: 15 },
+    { min: 10, discount: 25 },
+    { min: 20, discount: 35 },
+    { min: 30, discount: 50 },
+];
+
+function getDiscount(qty: number): number {
+    let discount = 0;
+    for (const tier of DISCOUNT_TIERS) {
+        if (qty >= tier.min) discount = tier.discount;
+    }
+    return discount;
+}
+
 export default function OrderPage() {
     const t = useTranslations('Index');
     const locale = useLocale();
-
-    const PACKAGES = [
-        {
-            id: "basic",
-            quantity: 1,
-            title: t('order_pkg1_title'),
-            pricePerVial: 197,
-            total: 1970,
-            discountPercentage: 0,
-            isPopular: false,
-        },
-        {
-            id: "pro",
-            quantity: 5,
-            title: t('order_pkg2_title'),
-            pricePerVial: 147,
-            total: 7350,
-            originalTotal: 9850,
-            discountPercentage: 25,
-            isPopular: true,
-        },
-        {
-            id: "elite",
-            quantity: 20,
-            title: t('order_pkg3_title'),
-            pricePerVial: 97,
-            total: 19400,
-            originalTotal: 39400,
-            discountPercentage: 50,
-            isPopular: false,
-        }
-    ];
-
-    const [selectedPackage, setSelectedPackage] = useState(PACKAGES[1]);
+    const [quantity, setQuantity] = useState(1);
     const [paymentMethod, setPaymentMethod] = useState<"crypto" | "card">("crypto");
     const [selectedCrypto, setSelectedCrypto] = useState("BTC");
     const [isProcessing, setIsProcessing] = useState(false);
+
+    const discount = getDiscount(quantity);
+    const unitPrice = Math.round(BASE_PRICE * (1 - discount / 100));
+    const totalPrice = unitPrice * quantity;
+    const savedAmount = (BASE_PRICE * quantity) - totalPrice;
 
     const handleCheckout = async () => {
         setIsProcessing(true);
@@ -58,7 +47,7 @@ export default function OrderPage() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        quantity: selectedPackage.quantity,
+                        quantity,
                         crypto_currency: selectedCrypto
                     })
                 });
@@ -72,8 +61,7 @@ export default function OrderPage() {
                 }
             } else {
                 const depositWallet = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
-                const fiatAmount = selectedPackage.total;
-                const guardarianUrl = `https://guardarian.com/calculator/v1?default_fiat_amount=${fiatAmount}&default_fiat_currency=EUR&default_crypto_currency=BTC&crypto_address=${depositWallet}`;
+                const guardarianUrl = `https://guardarian.com/calculator/v1?default_fiat_amount=${totalPrice}&default_fiat_currency=EUR&default_crypto_currency=BTC&crypto_address=${depositWallet}`;
                 window.open(guardarianUrl, '_blank');
                 setIsProcessing(false);
             }
@@ -102,59 +90,121 @@ export default function OrderPage() {
             <div className="flex-1 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 p-6 md:p-12 relative">
                 <div className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
 
-                {/* LEFT COLUMN: Package Selection */}
+                {/* LEFT COLUMN */}
                 <div className="lg:col-span-7 flex flex-col gap-8 relative z-10">
                     <div>
                         <h1 className="text-3xl md:text-5xl font-light mb-2">{t('order_select_title')} <span className="font-medium text-brand-gold">{t('order_select_highlight')}</span></h1>
                         <p className="text-white/50 text-sm">{t('order_select_desc')}</p>
                     </div>
 
-                    <div className="flex flex-col gap-4">
-                        {PACKAGES.map((pkg) => {
-                            const isSelected = selectedPackage.id === pkg.id;
-
-                            return (
-                                <div
-                                    key={pkg.id}
-                                    onClick={() => setSelectedPackage(pkg)}
-                                    className={`relative p-6 rounded-2xl border cursor-pointer transition-all duration-300 ${isSelected ? 'glass-panel border-brand-gold gold-glow bg-brand-gold/10 scale-[1.02]' : 'border-white/10 bg-white/5 hover:border-brand-gold/30 hover:bg-white/10'}`}
+                    {/* QUANTITY SELECTOR */}
+                    <div className="glass-panel p-8 border-brand-gold/20">
+                        <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-sm text-white/50 uppercase tracking-widest">{t('order_quantity')}</span>
+                                <span className="text-white/40 text-xs">Retatrutide 10mg</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                    className="w-12 h-12 rounded-xl border border-white/20 flex items-center justify-center hover:border-brand-gold hover:bg-brand-gold/10 transition-all active:scale-95"
                                 >
-                                    {pkg.isPopular && (
-                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-gold text-black text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-[0_0_15px_rgba(212,175,55,0.4)]">
-                                            {t('order_most_popular')}
-                                        </div>
-                                    )}
+                                    <Minus className="w-5 h-5" />
+                                </button>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="100"
+                                    value={quantity}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value) || 1;
+                                        setQuantity(Math.max(1, Math.min(100, val)));
+                                    }}
+                                    className="w-20 h-12 text-center text-2xl font-light bg-transparent border border-white/20 rounded-xl focus:border-brand-gold focus:outline-none text-white"
+                                />
+                                <button
+                                    onClick={() => setQuantity(Math.min(100, quantity + 1))}
+                                    className="w-12 h-12 rounded-xl border border-white/20 flex items-center justify-center hover:border-brand-gold hover:bg-brand-gold/10 transition-all active:scale-95"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
 
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'border-brand-gold bg-brand-gold/20' : 'border-white/30'}`}>
-                                                {isSelected && <div className="w-3 h-3 rounded-full bg-brand-gold" />}
-                                            </div>
-
-                                            <div className="flex flex-col">
-                                                <span className="text-xl font-medium">{pkg.title}</span>
-                                                {pkg.discountPercentage > 0 && (
-                                                    <span className="text-green-400 text-xs font-medium mt-1">{t('order_save')} {pkg.discountPercentage}% ({(pkg.originalTotal || 0) - pkg.total}€)</span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-col items-end">
-                                            <div className="flex items-end gap-1">
-                                                <span className="text-2xl font-light">{pkg.pricePerVial}€</span>
-                                                <span className="text-white/50 text-xs mb-1">/vial</span>
-                                            </div>
-                                            <span className="text-white/40 text-xs line-through mt-1">
-                                                {pkg.originalTotal ? `${(pkg.originalTotal / (pkg.quantity * 10)).toFixed(0)}€/vial` : ''}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        {/* LIVE PRICING BREAKDOWN */}
+                        <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-3 gap-4 text-center">
+                            <div className="flex flex-col">
+                                <span className="text-xs text-white/40 uppercase tracking-wider">{t('order_unit_price')}</span>
+                                <span className="text-2xl font-light text-white mt-1">{unitPrice}€</span>
+                                {discount > 0 && (
+                                    <span className="text-xs text-white/30 line-through">{BASE_PRICE}€</span>
+                                )}
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-xs text-white/40 uppercase tracking-wider">{t('order_discount_label')}</span>
+                                <span className={`text-2xl font-light mt-1 ${discount > 0 ? 'text-green-400' : 'text-white/30'}`}>
+                                    {discount > 0 ? `-${discount}%` : '—'}
+                                </span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-xs text-white/40 uppercase tracking-wider">{t('order_total')}</span>
+                                <span className="text-2xl font-light text-brand-gold mt-1">{totalPrice}€</span>
+                                {savedAmount > 0 && (
+                                    <span className="text-xs text-green-400">{t('order_save')} {savedAmount}€</span>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="mt-8 flex items-start gap-4 p-6 glass-panel border-white/10">
+                    {/* DISCOUNT TIERS TABLE */}
+                    <div className="glass-panel border-white/10 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-white/10 bg-white/5">
+                            <h3 className="text-sm font-medium uppercase tracking-widest text-brand-gold">{t('order_volume_discounts')}</h3>
+                        </div>
+                        <div className="divide-y divide-white/5">
+                            {DISCOUNT_TIERS.map((tier, i) => {
+                                const nextTier = DISCOUNT_TIERS[i + 1];
+                                const isActive = discount === tier.discount;
+                                const isNextTarget = nextTier && quantity < nextTier.min && quantity >= tier.min;
+                                const tierPrice = Math.round(BASE_PRICE * (1 - tier.discount / 100));
+
+                                return (
+                                    <div
+                                        key={tier.min}
+                                        onClick={() => setQuantity(tier.min)}
+                                        className={`flex items-center justify-between px-6 py-3.5 cursor-pointer transition-all ${isActive
+                                                ? 'bg-brand-gold/10 border-l-2 border-brand-gold'
+                                                : 'hover:bg-white/5 border-l-2 border-transparent'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className={`text-sm font-medium ${isActive ? 'text-white' : 'text-white/60'}`}>
+                                                {tier.min === 1 ? `1–2 ${t('order_pieces')}` :
+                                                    nextTier ? `${tier.min}–${nextTier.min - 1} ${t('order_pieces')}` :
+                                                        `${tier.min}+ ${t('order_pieces')}`}
+                                            </span>
+                                            {isNextTarget && nextTier && (
+                                                <span className="text-[10px] text-brand-gold bg-brand-gold/10 px-2 py-0.5 rounded-full">
+                                                    +{nextTier.min - quantity} → -{nextTier.discount}%
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            {tier.discount > 0 ? (
+                                                <span className={`text-sm font-medium ${isActive ? 'text-green-400' : 'text-green-400/60'}`}>-{tier.discount}%</span>
+                                            ) : (
+                                                <span className="text-sm text-white/30">—</span>
+                                            )}
+                                            <span className={`text-sm font-mono ${isActive ? 'text-white' : 'text-white/50'}`}>{tierPrice}€/{t('order_piece_short')}</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* GUARANTEE */}
+                    <div className="flex items-start gap-4 p-6 glass-panel border-white/10">
                         <Shield className="w-8 h-8 text-brand-gold shrink-0" />
                         <div className="flex flex-col gap-1 text-sm text-white/70">
                             <span className="font-semibold text-white">{t('order_guarantee_title')}</span>
@@ -171,17 +221,21 @@ export default function OrderPage() {
                         <div className="flex flex-col gap-3 text-sm">
                             <div className="flex justify-between text-white/70">
                                 <span>{t('order_product')}</span>
-                                <span>{selectedPackage.title}</span>
+                                <span>Retatrutide 10mg × {quantity}</span>
+                            </div>
+                            <div className="flex justify-between text-white/70">
+                                <span>{t('order_unit_price')}</span>
+                                <span>{unitPrice}€ {discount > 0 && <span className="text-white/30 line-through ml-1">{BASE_PRICE}€</span>}</span>
                             </div>
                             <div className="flex justify-between text-white/70">
                                 <span>{t('order_shipping')}</span>
                                 <span className="text-green-400">{t('order_free_stealth')}</span>
                             </div>
 
-                            {selectedPackage.discountPercentage > 0 && (
+                            {discount > 0 && (
                                 <div className="flex justify-between text-green-400">
-                                    <span>{t('order_bulk_discount')}</span>
-                                    <span>- {((selectedPackage.originalTotal || 0) - selectedPackage.total).toFixed(0)}€</span>
+                                    <span>{t('order_bulk_discount')} ({discount}%)</span>
+                                    <span>- {savedAmount}€</span>
                                 </div>
                             )}
                         </div>
@@ -189,7 +243,7 @@ export default function OrderPage() {
                         <div className="flex justify-between items-end border-t border-white/10 pt-4">
                             <span className="text-lg">{t('order_total')}</span>
                             <div className="flex flex-col items-end">
-                                <span className="text-3xl font-light text-brand-gold">{selectedPackage.total.toFixed(0)}€</span>
+                                <span className="text-3xl font-light text-brand-gold">{totalPrice}€</span>
                             </div>
                         </div>
 

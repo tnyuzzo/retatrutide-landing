@@ -238,6 +238,12 @@
         "order_card_desc": "Оплатіть легко через Visa, Mastercard або Apple Pay через нашого партнера Guardarian.",
         "order_card_no_wallet": "Гаманець не потрібен. Введіть дані, і оплату буде автоматично конвертовано для цього замовлення.",
         "order_cta": "Оформити Безпечне Замовлення",
-        "order_secured_by": "Захищено AES-256"
+        "order_secured_by": "Захищено AES-256",
+        "order_quantity": "Кількість",
+        "order_unit_price": "Ціна за шт.",
+        "order_discount_label": "Знижка",
+        "order_volume_discounts": "Знижки за обсяг",
+        "order_pieces": "шт",
+        "order_piece_short": "шт"
     }
 }
