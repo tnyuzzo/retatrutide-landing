@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Check, Lock, Shield, CreditCard, ChevronRight, Minus, Plus } from "lucide-react";
+import { ArrowLeft, Check, Lock, Shield, CreditCard, ChevronRight, Minus, Plus, MapPin, User, Mail, Phone } from "lucide-react";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
@@ -25,6 +25,13 @@ function getDiscount(qty: number): number {
     return discount;
 }
 
+const EU_COUNTRIES = [
+    "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
+    "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary",
+    "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands",
+    "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"
+];
+
 export default function OrderPage() {
     const t = useTranslations('Index');
     const locale = useLocale();
@@ -32,14 +39,57 @@ export default function OrderPage() {
     const [paymentMethod, setPaymentMethod] = useState<"crypto" | "card">("crypto");
     const [selectedCrypto, setSelectedCrypto] = useState("BTC");
     const [isProcessing, setIsProcessing] = useState(false);
+    const [formError, setFormError] = useState<string | null>(null);
+
+    // Shipping form state
+    const [email, setEmail] = useState("");
+    const [fullName, setFullName] = useState("");
+    const [addressLine1, setAddressLine1] = useState("");
+    const [addressLine2, setAddressLine2] = useState("");
+    const [city, setCity] = useState("");
+    const [postalCode, setPostalCode] = useState("");
+    const [country, setCountry] = useState("");
+    const [phone, setPhone] = useState("");
 
     const discount = getDiscount(quantity);
     const unitPrice = Math.round(BASE_PRICE * (1 - discount / 100));
     const totalPrice = unitPrice * quantity;
     const savedAmount = (BASE_PRICE * quantity) - totalPrice;
 
+    const validateForm = (): boolean => {
+        if (!email || !email.includes('@')) {
+            setFormError(t('order_error_email'));
+            return false;
+        }
+        if (!fullName || fullName.length < 2) {
+            setFormError(t('order_error_name'));
+            return false;
+        }
+        if (!addressLine1 || addressLine1.length < 3) {
+            setFormError(t('order_error_address'));
+            return false;
+        }
+        if (!city) {
+            setFormError(t('order_error_city'));
+            return false;
+        }
+        if (!postalCode) {
+            setFormError(t('order_error_postal'));
+            return false;
+        }
+        if (!country) {
+            setFormError(t('order_error_country'));
+            return false;
+        }
+        setFormError(null);
+        return true;
+    };
+
     const handleCheckout = async () => {
+        if (!validateForm()) return;
+
         setIsProcessing(true);
+        setFormError(null);
 
         try {
             if (paymentMethod === "crypto") {
@@ -47,6 +97,16 @@ export default function OrderPage() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        email,
+                        shipping_address: {
+                            full_name: fullName,
+                            address_line_1: addressLine1,
+                            address_line_2: addressLine2,
+                            city,
+                            postal_code: postalCode,
+                            country,
+                            phone,
+                        },
                         quantity,
                         crypto_currency: selectedCrypto
                     })
@@ -56,7 +116,7 @@ export default function OrderPage() {
                 if (data.reference_id) {
                     window.location.href = `/${locale}/checkout/${data.reference_id}`;
                 } else {
-                    console.error("Failed to initialize checkout", data);
+                    setFormError(data.error || 'Checkout failed');
                     setIsProcessing(false);
                 }
             } else {
@@ -67,6 +127,7 @@ export default function OrderPage() {
             }
         } catch (err) {
             console.error("Checkout Error:", err);
+            setFormError('Network error. Please try again.');
             setIsProcessing(false);
         }
     };
@@ -203,6 +264,102 @@ export default function OrderPage() {
                         </div>
                     </div>
 
+                    {/* SHIPPING FORM */}
+                    <div className="glass-panel border-white/10 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-brand-gold" />
+                            <h3 className="text-sm font-medium uppercase tracking-widest text-brand-gold">{t('order_shipping_details')}</h3>
+                        </div>
+                        <div className="p-6 flex flex-col gap-4">
+                            {/* Email */}
+                            <div className="relative">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                <input
+                                    type="email"
+                                    placeholder={t('order_field_email')}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                />
+                            </div>
+
+                            {/* Full Name */}
+                            <div className="relative">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                <input
+                                    type="text"
+                                    placeholder={t('order_field_name')}
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                />
+                            </div>
+
+                            {/* Address Line 1 */}
+                            <input
+                                type="text"
+                                placeholder={t('order_field_address1')}
+                                value={addressLine1}
+                                onChange={(e) => setAddressLine1(e.target.value)}
+                                className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                            />
+
+                            {/* Address Line 2 (optional) */}
+                            <input
+                                type="text"
+                                placeholder={t('order_field_address2')}
+                                value={addressLine2}
+                                onChange={(e) => setAddressLine2(e.target.value)}
+                                className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                            />
+
+                            {/* City + Postal Code */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <input
+                                    type="text"
+                                    placeholder={t('order_field_city')}
+                                    value={city}
+                                    onChange={(e) => setCity(e.target.value)}
+                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder={t('order_field_postal')}
+                                    value={postalCode}
+                                    onChange={(e) => setPostalCode(e.target.value)}
+                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                />
+                            </div>
+
+                            {/* Country */}
+                            <div className="relative">
+                                <select
+                                    value={country}
+                                    onChange={(e) => setCountry(e.target.value)}
+                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
+                                >
+                                    <option value="" className="bg-brand-void">{t('order_field_country')}</option>
+                                    {EU_COUNTRIES.map(c => (
+                                        <option key={c} value={c} className="bg-brand-void">{c}</option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 text-xs">▼</div>
+                            </div>
+
+                            {/* Phone (optional) */}
+                            <div className="relative">
+                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                <input
+                                    type="tel"
+                                    placeholder={t('order_field_phone')}
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     {/* GUARANTEE */}
                     <div className="flex items-start gap-4 p-6 glass-panel border-white/10">
                         <Shield className="w-8 h-8 text-brand-gold shrink-0" />
@@ -299,6 +456,13 @@ export default function OrderPage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* ERROR */}
+                        {formError && (
+                            <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                                {formError}
+                            </div>
+                        )}
 
                         <PremiumButton
                             className="w-full justify-center group py-4 mt-4"

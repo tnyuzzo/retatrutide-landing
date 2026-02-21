@@ -244,6 +244,22 @@
         "order_discount_label": "Скидка",
         "order_volume_discounts": "Скидки за объём",
         "order_pieces": "шт",
-        "order_piece_short": "шт"
+        "order_piece_short": "шт",
+        "order_shipping_details": "Данные Доставки",
+        "order_field_email": "Электронная почта",
+        "order_field_name": "Полное имя",
+        "order_field_address1": "Адрес строка 1",
+        "order_field_address2": "Адрес строка 2 (необязательно)",
+        "order_field_city": "Город",
+        "order_field_postal": "Почтовый индекс",
+        "order_field_country": "Выберите страну",
+        "order_field_phone": "Телефон (необязательно)",
+        "order_error_email": "Пожалуйста, введите действительный адрес электронной почты",
+        "order_error_name": "Пожалуйста, введите ваше полное имя",
+        "order_error_address": "Пожалуйста, введите ваш адрес",
+        "order_error_city": "Пожалуйста, введите ваш город",
+        "order_error_postal": "Пожалуйста, введите почтовый индекс",
+        "order_error_country": "Пожалуйста, выберите вашу страну",
+        "footer_description": "Исследовательские пептиды премиум-класса для европейского рынка. Все продукты предназначены исключительно для лабораторных исследований."
     }
 }

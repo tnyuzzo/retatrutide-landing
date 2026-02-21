@@ -42,10 +42,27 @@ const checkoutSchema = z.object({
         postal_code: z.string().min(2).max(20),
         country: z.string().min(2).max(100),
         phone: z.string().max(30).optional().default(''),
-    }).optional().default({}),
-    quantity: z.coerce.number().int().min(1).max(10).default(1),
+    }),
+    quantity: z.coerce.number().int().min(1).max(100).default(1),
     crypto_currency: z.enum(ALLOWED_CRYPTOS).default('btc'),
 });
+
+// ── Volume Discount Tiers ──
+const DISCOUNT_TIERS = [
+    { min: 30, discount: 50 },
+    { min: 20, discount: 35 },
+    { min: 10, discount: 25 },
+    { min: 5, discount: 15 },
+    { min: 3, discount: 10 },
+    { min: 1, discount: 0 },
+];
+
+function getDiscount(qty: number): number {
+    for (const tier of DISCOUNT_TIERS) {
+        if (qty >= tier.min) return tier.discount;
+    }
+    return 0;
+}
 
 // ── Crypto Ticker Mapping ──
 const CRYPTO_TICKERS: Record<string, string> = {
@@ -96,14 +113,11 @@ export async function POST(req: Request) {
 
         const { email, shipping_address, quantity, crypto_currency } = parsed.data;
 
-        // ── Price Calculation ──
+        // ── Price Calculation (must match frontend tiers) ──
         const basePrice = 197;
-        let discountPercent = 0;
-        if (quantity > 2) {
-            discountPercent = Math.min((quantity - 2) * 5, 40);
-        }
-        const totalBase = basePrice * quantity;
-        const fiat_amount = totalBase - (totalBase * (discountPercent / 100));
+        const discountPercent = getDiscount(quantity);
+        const unitPrice = Math.round(basePrice * (1 - discountPercent / 100));
+        const fiat_amount = unitPrice * quantity;
 
         const items = [{ sku: 'RET-KIT-1', name: 'Retatrutide 10mg', quantity, price: fiat_amount }];
 

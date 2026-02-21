@@ -244,6 +244,22 @@
         "order_discount_label": "Знижка",
         "order_volume_discounts": "Знижки за обсяг",
         "order_pieces": "шт",
-        "order_piece_short": "шт"
+        "order_piece_short": "шт",
+        "order_shipping_details": "Дані Доставки",
+        "order_field_email": "Електронна пошта",
+        "order_field_name": "Повне ім'я",
+        "order_field_address1": "Адреса рядок 1",
+        "order_field_address2": "Адреса рядок 2 (необов'язково)",
+        "order_field_city": "Місто",
+        "order_field_postal": "Поштовий індекс",
+        "order_field_country": "Оберіть країну",
+        "order_field_phone": "Телефон (необов'язково)",
+        "order_error_email": "Будь ласка, введіть дійсну електронну адресу",
+        "order_error_name": "Будь ласка, введіть ваше повне ім'я",
+        "order_error_address": "Будь ласка, введіть вашу адресу",
+        "order_error_city": "Будь ласка, введіть ваше місто",
+        "order_error_postal": "Будь ласка, введіть поштовий індекс",
+        "order_error_country": "Будь ласка, оберіть вашу країну",
+        "footer_description": "Дослідницькі пептиди преміум-класу для європейського ринку. Усі продукти призначені виключно для лабораторних досліджень."
     }
 }

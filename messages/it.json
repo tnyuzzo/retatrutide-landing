@@ -244,6 +244,22 @@
         "order_discount_label": "Sconto",
         "order_volume_discounts": "Sconti Volume",
         "order_pieces": "pz",
-        "order_piece_short": "pz"
+        "order_piece_short": "pz",
+        "order_shipping_details": "Dettagli Spedizione",
+        "order_field_email": "Indirizzo email",
+        "order_field_name": "Nome completo",
+        "order_field_address1": "Indirizzo riga 1",
+        "order_field_address2": "Indirizzo riga 2 (opzionale)",
+        "order_field_city": "Città",
+        "order_field_postal": "CAP",
+        "order_field_country": "Seleziona paese",
+        "order_field_phone": "Telefono (opzionale)",
+        "order_error_email": "Inserisci un indirizzo email valido",
+        "order_error_name": "Inserisci il tuo nome completo",
+        "order_error_address": "Inserisci il tuo indirizzo",
+        "order_error_city": "Inserisci la tua città",
+        "order_error_postal": "Inserisci il CAP",
+        "order_error_country": "Seleziona il tuo paese",
+        "footer_description": "Peptidi di ricerca premium per il mercato europeo. Tutti i prodotti sono esclusivamente per scopi di ricerca in laboratorio."
     }
 }

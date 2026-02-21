@@ -244,6 +244,22 @@
         "order_discount_label": "Descuento",
         "order_volume_discounts": "Descuentos por Volumen",
         "order_pieces": "uds",
-        "order_piece_short": "ud"
+        "order_piece_short": "ud",
+        "order_shipping_details": "Detalles de Envío",
+        "order_field_email": "Correo electrónico",
+        "order_field_name": "Nombre completo",
+        "order_field_address1": "Dirección línea 1",
+        "order_field_address2": "Dirección línea 2 (opcional)",
+        "order_field_city": "Ciudad",
+        "order_field_postal": "Código postal",
+        "order_field_country": "Seleccionar país",
+        "order_field_phone": "Teléfono (opcional)",
+        "order_error_email": "Por favor, introduce un correo electrónico válido",
+        "order_error_name": "Por favor, introduce tu nombre completo",
+        "order_error_address": "Por favor, introduce tu dirección",
+        "order_error_city": "Por favor, introduce tu ciudad",
+        "order_error_postal": "Por favor, introduce tu código postal",
+        "order_error_country": "Por favor, selecciona tu país",
+        "footer_description": "Péptidos de investigación premium para el mercado europeo. Todos los productos son estrictamente para fines de investigación en laboratorio."
     }
 }

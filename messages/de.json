@@ -244,6 +244,22 @@
         "order_discount_label": "Rabatt",
         "order_volume_discounts": "Mengenrabatte",
         "order_pieces": "Stk",
-        "order_piece_short": "Stk"
+        "order_piece_short": "Stk",
+        "order_shipping_details": "Versanddetails",
+        "order_field_email": "E-Mail-Adresse",
+        "order_field_name": "Vollständiger Name",
+        "order_field_address1": "Adresszeile 1",
+        "order_field_address2": "Adresszeile 2 (optional)",
+        "order_field_city": "Stadt",
+        "order_field_postal": "Postleitzahl",
+        "order_field_country": "Land auswählen",
+        "order_field_phone": "Telefon (optional)",
+        "order_error_email": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+        "order_error_name": "Bitte geben Sie Ihren vollständigen Namen ein",
+        "order_error_address": "Bitte geben Sie Ihre Adresse ein",
+        "order_error_city": "Bitte geben Sie Ihre Stadt ein",
+        "order_error_postal": "Bitte geben Sie Ihre Postleitzahl ein",
+        "order_error_country": "Bitte wählen Sie Ihr Land aus",
+        "footer_description": "Premium-Forschungspeptide für den europäischen Markt. Alle Produkte sind ausschließlich für Laborforschungszwecke bestimmt."
     }
 }

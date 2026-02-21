@@ -244,6 +244,22 @@
         "order_discount_label": "Rabat",
         "order_volume_discounts": "Rabaty Ilościowe",
         "order_pieces": "szt",
-        "order_piece_short": "szt"
+        "order_piece_short": "szt",
+        "order_shipping_details": "Dane Wysyłki",
+        "order_field_email": "Adres email",
+        "order_field_name": "Imię i nazwisko",
+        "order_field_address1": "Adres linia 1",
+        "order_field_address2": "Adres linia 2 (opcjonalnie)",
+        "order_field_city": "Miasto",
+        "order_field_postal": "Kod pocztowy",
+        "order_field_country": "Wybierz kraj",
+        "order_field_phone": "Telefon (opcjonalnie)",
+        "order_error_email": "Podaj prawidłowy adres email",
+        "order_error_name": "Podaj swoje imię i nazwisko",
+        "order_error_address": "Podaj swój adres",
+        "order_error_city": "Podaj swoje miasto",
+        "order_error_postal": "Podaj kod pocztowy",
+        "order_error_country": "Wybierz swój kraj",
+        "footer_description": "Peptydy badawcze premium dla rynku europejskiego. Wszystkie produkty są przeznaczone wyłącznie do celów badawczych w laboratorium."
     }
 }
