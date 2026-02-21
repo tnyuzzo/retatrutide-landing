@@ -36,3 +36,9 @@ body {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-gold to-brand-gold-light;
   }
 }
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

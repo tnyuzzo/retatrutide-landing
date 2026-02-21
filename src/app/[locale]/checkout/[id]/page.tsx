@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { QRCodeSVG } from "qrcode.react";
-import { Lock, CheckCircle, ArrowLeft } from "lucide-react";
+import { Lock, CheckCircle, ArrowLeft, Shield } from "lucide-react";
 import { CheckoutPoller } from "@/components/ui/CheckoutPoller";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -84,9 +84,18 @@ export default async function CheckoutPage(props: {
                     </span>
                 </div>
 
-                <div className="flex items-center gap-3 mt-4">
+                <div className="flex items-center gap-3 mt-4 mb-6">
                     <div className="w-4 h-4 rounded-full border-2 border-brand-gold/50 border-t-brand-gold animate-spin"></div>
                     <p className="text-xs text-brand-gold/80">In attesa di transazione sulla rete...</p>
+                </div>
+
+                {/* Rec 6: Buyer Protection Box */}
+                <div className="w-full mt-2 p-4 rounded-xl border border-green-500/20 bg-green-500/5 flex flex-col items-center text-center gap-2">
+                    <Shield className="w-6 h-6 text-green-400" />
+                    <h4 className="text-sm font-medium text-white">100% Delivery Guarantee</h4>
+                    <p className="text-xs text-white/60 leading-relaxed">
+                        Your order is fully protected. We offer a full free reshipment if your order is seized by customs or lost in transit.
+                    </p>
                 </div>
             </div>
         </main>
