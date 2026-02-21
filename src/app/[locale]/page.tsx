@@ -11,25 +11,8 @@ import { useState } from "react";
 export default function Home() {
   const t = useTranslations('Index');
   const locale = useLocale();
-  const [selectedCrypto, setSelectedCrypto] = useState("BTC");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [showCryptoModal, setShowCryptoModal] = useState(false);
   const [showCoaModal, setShowCoaModal] = useState(false);
-
-  const calculatePrice = (qty: number) => {
-    const basePrice = 197;
-    let discountPercent = 0;
-    if (qty > 2) {
-      discountPercent = (qty - 2) * 5;
-      if (discountPercent > 40) discountPercent = 40; // Max 10 items
-    }
-    const total = basePrice * qty;
-    const finalPrice = total - (total * (discountPercent / 100));
-    return { finalPrice, total, discountPercent };
-  };
-
-  const { finalPrice: totalPrice, total: rawTotal, discountPercent } = calculatePrice(quantity);
 
   return (
     <main className="min-h-screen bg-brand-void text-white overflow-hidden font-sans">
@@ -85,79 +68,19 @@ export default function Home() {
               {t('hero_subtitle')}
             </p>
 
-            <div className="flex flex-col mt-8">
-              <div className="flex flex-col sm:flex-row gap-4 items-center">
-                <div className="flex bg-brand-void/80 border border-brand-gold/30 rounded-full h-[46px] items-center px-4 self-stretch sm:self-auto transition-colors hover:border-brand-gold/50">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="text-brand-gold/70 hover:text-brand-gold w-6 h-6 flex items-center justify-center text-lg transition-colors"
-                  >-</button>
-                  <span className="text-white w-8 text-center font-mono">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(Math.min(10, quantity + 1))}
-                    className="text-brand-gold/70 hover:text-brand-gold w-6 h-6 flex items-center justify-center text-lg transition-colors"
-                  >+</button>
-                </div>
-
-                <div className="relative w-full sm:w-auto self-stretch sm:self-auto h-[46px]">
-                  <select
-                    value={selectedCrypto}
-                    onChange={(e) => setSelectedCrypto(e.target.value)}
-                    className="w-full h-full bg-brand-void/80 border border-brand-gold/30 text-white text-sm rounded-full px-6 appearance-none focus:outline-none focus:border-brand-gold min-w-[120px] tracking-wider cursor-pointer font-medium transition-colors hover:border-brand-gold/50"
-                  >
-                    <option value="BTC">BTC</option>
-                    <option value="ETH">ETH</option>
-                    <option value="SOL">SOL</option>
-                    <option value="USDC">USDC</option>
-                    <option value="USDT">USDT</option>
-                    <option value="XMR">XMR</option>
-                    <option value="XRP">XRP</option>
-                  </select>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-gold/50 text-[10px]">
-                    ▼
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center sm:items-start gap-2 w-full sm:w-auto">
-                  <PremiumButton
-                    className="w-full sm:w-auto hover:shadow-[0_0_20px_rgba(255,215,0,0.3)] transition-shadow group relative overflow-hidden"
-                    onClick={async (e) => {
-                      e.currentTarget.innerHTML = t('btn_loading');
-                      const res = await fetch('/api/checkout', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ quantity, crypto_currency: selectedCrypto })
-                      });
-                      const data = await res.json();
-                      if (data.reference_id) window.location.href = `/${locale}/checkout/${data.reference_id}`;
-                    }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                    <span className="relative z-10 flex items-center gap-2">
-                      {t('btn_order')} {totalPrice.toFixed(0)}€ <Lock className="w-4 h-4" />
-                    </span>
-                  </PremiumButton>
-                </div>
-              </div>
-
-              {/* Dynamic Bulk Discount Display */}
-              <div className="h-6 mt-3 flex items-center gap-3 text-sm">
-                <button
-                  onClick={() => setShowCryptoModal(true)}
-                  className="text-white/50 hover:text-brand-gold transition-colors underline underline-offset-4 decoration-brand-gold/30 flex items-center gap-1 text-xs"
-                >
-                  <Zap className="w-3 h-3" /> New to Crypto?
-                </button>
-                {discountPercent > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 px-3 py-1 rounded-full"
-                  >
-                    <span className="text-white/50 line-through text-xs font-mono">{rawTotal.toFixed(0)}€</span>
-                    <span className="text-green-400 font-medium text-xs">Save {discountPercent}% ({(rawTotal - totalPrice).toFixed(0)}€)</span>
-                  </motion.div>
-                )}
+            <div className="mt-10 flex flex-col items-start gap-4">
+              <PremiumButton
+                className="hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] transition-shadow group relative overflow-hidden px-10 py-4 text-lg"
+                onClick={() => window.location.href = `/${locale}/order`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                <span className="relative z-10 flex items-center gap-2">
+                  Secure Your Supply <ArrowRight className="w-5 h-5 ml-1" />
+                </span>
+              </PremiumButton>
+              <div className="flex items-center gap-2 text-white/50 text-sm">
+                <Lock className="w-3 h-3 text-brand-gold" />
+                <span>Starting from <strong className="text-white">97€</strong> per vial. Credit Card & Crypto accepted.</span>
               </div>
             </div>
 
@@ -709,45 +632,7 @@ export default function Home() {
         )
       }
 
-      {/* CRYPTO PAYMENT MODAL */}
-      {
-        showCryptoModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCryptoModal(false)}></div>
-            <div className="relative glass-panel border-brand-gold/30 p-8 max-w-lg w-full gold-glow animate-fade-in flex flex-col gap-6">
-              <div className="flex justify-between items-center border-b border-white/10 pb-4">
-                <h3 className="text-2xl font-light text-white flex items-center gap-3">
-                  <Lock className="w-6 h-6 text-brand-gold" />
-                  Secure Crypto Checkout
-                </h3>
-                <button onClick={() => setShowCryptoModal(false)} className="text-white/50 hover:text-white transition-colors">
-                  ✕
-                </button>
-              </div>
 
-              <div className="flex flex-col gap-4 text-sm text-white/70 leading-relaxed">
-                <p>We use cryptocurrency to guarantee 100% privacy and discretion for your research material orders.</p>
-
-                <div className="bg-brand-gold/5 border border-brand-gold/20 p-4 rounded-xl flex flex-col gap-3">
-                  <h4 className="font-semibold text-white">How it works:</h4>
-                  <ol className="list-decimal list-inside space-y-2">
-                    <li>Select your preferred coin (e.g., BTC, SOL, USDT) and click "Order".</li>
-                    <li>You will be redirected to a secure payment page with a unique QR code and wallet address.</li>
-                    <li>Send the exact amount from your crypto wallet (like Coinbase, Binance, or Phantom).</li>
-                    <li>Your payment is automatically verified in minutes, and your order ships securely.</li>
-                  </ol>
-                </div>
-
-                <p className="text-xs text-white/40 mt-2">Need a wallet? We recommend downloading <a href="https://trustwallet.com/" target="_blank" className="text-brand-gold hover:underline">TrustWallet</a> or <a href="https://moonpay.com/" target="_blank" className="text-brand-gold hover:underline">MoonPay</a> to buy crypto instantly with your credit card.</p>
-              </div>
-
-              <PremiumButton onClick={() => setShowCryptoModal(false)} className="w-full justify-center">
-                Got it, let's proceed
-              </PremiumButton>
-            </div>
-          </div>
-        )
-      }
 
     </main >
   );
