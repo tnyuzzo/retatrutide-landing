@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Shield, ShieldCheck, Zap, Lock, Truck, FlaskConical, Navigation, ChevronDown, Package, MessageCircle, Beaker, ArrowRight, Thermometer } from "lucide-react";
+import { Shield, ShieldCheck, Zap, Lock, Truck, FlaskConical, Navigation, ChevronDown, Package, MessageCircle, Beaker, ArrowRight, Thermometer, CheckCircle2 } from "lucide-react";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useState } from "react";
+import { LiveInventoryBadge } from "@/components/ui/LiveInventoryBadge";
+import { RecentSalesPopup } from "@/components/ui/RecentSalesPopup";
 
 export default function Home() {
   const t = useTranslations('Index');
@@ -35,7 +37,7 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-6">
           <LanguageSwitcher />
-          <PremiumButton variant="outline" className="scale-90 hidden md:flex">
+          <PremiumButton variant="outline" className="scale-90 hidden md:flex" onClick={() => window.location.href = `/${locale}/portal`}>
             {t('nav_portal')}
           </PremiumButton>
         </div>
@@ -68,50 +70,54 @@ export default function Home() {
               {t('hero_subtitle')}
             </p>
 
-            <div className="mt-10 flex flex-col items-start gap-4">
+            <div className="mt-8 flex flex-col items-start gap-4">
+              <LiveInventoryBadge />
               <PremiumButton
-                className="hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] transition-shadow group relative overflow-hidden px-10 py-4 text-lg"
+                className="hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] transition-shadow group relative overflow-hidden px-12 py-4 text-lg w-full sm:w-auto"
                 onClick={() => window.location.href = `/${locale}/order`}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                <span className="relative z-10 flex items-center gap-2">
-                  Secure Your Supply <ArrowRight className="w-5 h-5 ml-1" />
+                <span className="relative z-10 flex items-center justify-center gap-2 w-full">
+                  {t('hero_cta_hook')} <ArrowRight className="w-5 h-5 ml-1" />
                 </span>
               </PremiumButton>
-              <div className="flex items-center gap-2 text-white/50 text-sm">
+              <div className="flex items-center gap-2 text-white/50 text-sm pl-2">
                 <Lock className="w-3 h-3 text-brand-gold" />
-                <span>Starting from <strong className="text-white">97€</strong> per vial. Credit Card & Crypto accepted.</span>
+                <span>{t('hero_cta_starting')} <strong className="text-white">97€</strong> {t('hero_cta_per_vial')}</span>
               </div>
             </div>
 
             {/* TRUST ELEMENTS BATCH 1 (Rec 1, 2, 10) */}
-            <div className="flex flex-col gap-3 mt-4">
+            <div className="flex flex-col gap-4 mt-6 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm max-w-xl">
               {/* Rec 10: Shipping Promise */}
-              <div className="flex items-center gap-2 text-brand-gold/80 text-sm">
-                <Truck className="w-4 h-4" />
-                <span><strong className="text-white">Same-day stealth shipping</strong> on orders placed before 12 PM.</span>
+              <div className="flex items-start gap-3 text-brand-gold/90 text-sm">
+                <Truck className="w-5 h-5 mt-0.5 shrink-0" />
+                <div className="flex flex-col gap-1">
+                  <span><strong className="text-white">{t('shipping_promise')}</strong> {t('shipping_condition')}</span>
+                  {/* Rec 2: Visual Timeline */}
+                  <div className="flex items-center gap-2 text-xs text-white/60 font-medium whitespace-nowrap overflow-x-auto pb-1 mt-1">
+                    <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> {t('timeline_today')}</div>
+                    <span className="text-white/20">👉</span>
+                    <div>{t('timeline_tomorrow')}</div>
+                    <span className="text-white/20">👉</span>
+                    <div className="text-brand-gold">{t('timeline_delivered')}</div>
+                  </div>
+                </div>
               </div>
 
-              {/* Rec 2: Visual Timeline */}
-              <div className="flex items-center gap-2 text-xs text-white/60 font-medium">
-                <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Order Today</div>
-                <span className="text-white/20">👉</span>
-                <div>Ships Tomorrow</div>
-                <span className="text-white/20">👉</span>
-                <div className="text-brand-gold">Delivered in 2-4 Days</div>
-              </div>
+              <div className="h-px w-full bg-white/10 my-1"></div>
 
               {/* Rec 1: COA Link */}
-              <div className="mt-2">
-                <button onClick={() => setShowCoaModal(true)} className="inline-flex items-center gap-2 text-xs text-white/50 hover:text-white transition-colors underline decoration-brand-gold/30 underline-offset-4">
-                  <FlaskConical className="w-3 h-3 text-brand-gold" />
-                  View Janoshik Lab Report for this Batch
+              <div>
+                <button onClick={() => setShowCoaModal(true)} className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors group">
+                  <FlaskConical className="w-4 h-4 text-brand-gold group-hover:scale-110 transition-transform" />
+                  <span className="underline decoration-brand-gold/30 underline-offset-4 group-hover:decoration-brand-gold transition-colors">{t('btn_lab_report')}</span>
                 </button>
               </div>
             </div>
 
             {/* Trust Signals */}
-            <div className="flex flex-col gap-6 mt-8 pt-8 border-t border-white/10 hidden md:flex">
+            <div className="flex flex-col gap-6 mt-8 pt-8 border-t border-white/10 hidden md:flex" >
               <div className="flex items-center gap-8">
                 <div className="flex flex-col gap-1">
                   <span className="text-2xl font-semibold text-white">{t('feature_eu')}</span>
@@ -128,14 +134,14 @@ export default function Home() {
               <div className="flex items-start gap-4 p-4 rounded-xl border border-brand-gold/20 bg-brand-gold/5 max-w-lg">
                 <Shield className="w-8 h-8 text-brand-gold shrink-0" />
                 <div className="flex flex-col">
-                  <span className="text-sm font-semibold text-white">Clinical Grade Research Peptide</span>
+                  <span className="text-sm font-semibold text-white">{t('clinical_grade')}</span>
                   <span className="text-xs text-white/70 leading-relaxed mt-1">
-                    Third-party Tested by Janoshik for Purity (HPLC {'>'}99%), Sterility, Endotoxins, and Heavy Metals.
+                    {t('clinical_desc')}
                   </span>
                 </div>
               </div>
             </div>
-          </motion.div>
+          </motion.div >
 
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -182,11 +188,11 @@ export default function Home() {
             </motion.div>
 
           </motion.div>
-        </div>
-      </section>
+        </div >
+      </section >
 
       {/* WHY CHOOSE US / FEATURES */}
-      <section id="science" className="py-24 px-6 bg-black relative">
+      <section id="science" className="py-24 px-6 bg-black relative" >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-light mb-4">{t('section_science_title_1')} <span className="text-brand-gold font-medium">{t('section_science_title_2')}</span></h2>
@@ -212,10 +218,10 @@ export default function Home() {
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-gold to-brand-gold-light"></div>
               <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Lock className="w-24 h-24 text-brand-gold" />
+                <ShieldCheck className="w-24 h-24 text-brand-gold" />
               </div>
               <div className="relative z-10 w-12 h-12 bg-brand-gold/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-brand-gold/20 transition-colors">
-                <Lock className="text-brand-gold w-6 h-6" />
+                <ShieldCheck className="text-brand-gold w-6 h-6" />
               </div>
               <h3 className="relative z-10 text-xl font-medium mb-3">{t('card2_title')}</h3>
               <p className="relative z-10 text-white/50 text-sm leading-relaxed">{t('card2_desc')}</p>
@@ -233,10 +239,10 @@ export default function Home() {
             </motion.div>
           </div>
         </div>
-      </section>
+      </section >
 
       {/* TRUST BADGES & GUARANTEES - INFINITE TICKER */}
-      <section className="py-8 bg-[#0a0a0a] border-t border-b border-white/5 overflow-hidden">
+      <section className="py-8 bg-[#0a0a0a] border-t border-b border-white/5 overflow-hidden" >
         <div className="relative flex w-full">
           {/* Fading Edges */}
           <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-[#0a0a0a] to-transparent z-10"></div>
@@ -249,59 +255,34 @@ export default function Home() {
           >
             {[...Array(2)].map((_, i) => (
               <div key={i} className="flex gap-16 items-center">
-                <div className="flex items-center gap-4 group">
-                  <div className="w-12 h-12 rounded-full border border-brand-gold/30 bg-brand-gold/5 flex items-center justify-center group-hover:bg-brand-gold/10 transition-colors">
-                    <FlaskConical className="w-5 h-5 text-brand-gold" />
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="font-medium text-white/90 whitespace-nowrap">{t('trust_badge_purity')}</p>
-                    <p className="text-xs text-white/40">{t('trust_badge_purity_sub')}</p>
-                  </div>
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="w-6 h-6 text-brand-gold" />
+                  <span className="font-medium text-white/90 text-sm tracking-wide">{t('ticker_purity')}</span>
                 </div>
-
-                <div className="w-px h-8 bg-white/10"></div>
-
-                <div className="flex items-center gap-4 group">
-                  <div className="w-12 h-12 rounded-full border border-brand-gold/30 bg-brand-gold/5 flex items-center justify-center group-hover:bg-brand-gold/10 transition-colors">
-                    <Truck className="w-5 h-5 text-brand-gold" />
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="font-medium text-white/90 whitespace-nowrap">{t('trust_badge_shipping')}</p>
-                    <p className="text-xs text-white/40">{t('trust_badge_shipping_sub')}</p>
-                  </div>
+                <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+                <div className="flex items-center gap-3">
+                  <FlaskConical className="w-6 h-6 text-brand-gold" />
+                  <span className="font-medium text-white/90 text-sm tracking-wide">{t('ticker_lab')}</span>
                 </div>
-
-                <div className="w-px h-8 bg-white/10"></div>
-
-                <div className="flex items-center gap-4 group">
-                  <div className="w-12 h-12 rounded-full border border-brand-gold/30 bg-brand-gold/5 flex items-center justify-center group-hover:bg-brand-gold/10 transition-colors">
-                    <ShieldCheck className="w-5 h-5 text-brand-gold" />
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="font-medium text-white/90 whitespace-nowrap">{t('trust_badge_guarantee')}</p>
-                    <p className="text-xs text-white/40">{t('trust_badge_guarantee_sub')}</p>
-                  </div>
+                <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+                <div className="flex items-center gap-3">
+                  <Package className="w-6 h-6 text-brand-gold" />
+                  <span className="font-medium text-white/90 text-sm tracking-wide">{t('ticker_stealth')}</span>
                 </div>
-
-                <div className="w-px h-8 bg-white/10"></div>
-
-                <div className="flex items-center gap-4 group">
-                  <div className="w-12 h-12 rounded-full border border-brand-gold/30 bg-brand-gold/5 flex items-center justify-center group-hover:bg-brand-gold/10 transition-colors">
-                    <Package className="w-5 h-5 text-brand-gold" />
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="font-medium text-white/90 whitespace-nowrap">{t('trust_badge_stealth')}</p>
-                    <p className="text-xs text-white/40">{t('trust_badge_stealth_sub')}</p>
-                  </div>
+                <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+                <div className="flex items-center gap-3">
+                  <Truck className="w-6 h-6 text-brand-gold" />
+                  <span className="font-medium text-white/90 text-sm tracking-wide">{t('ticker_guarantee')}</span>
                 </div>
+                <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
               </div>
             ))}
           </motion.div>
         </div>
-      </section>
+      </section >
 
       {/* QUALITY PIPELINE */}
-      <section className="py-24 px-6 bg-brand-void relative" id="quality">
+      <section className="py-24 px-6 bg-brand-void relative" id="quality" >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-gold/3 blur-[150px] rounded-full pointer-events-none"></div>
         <div className="max-w-5xl mx-auto relative z-10">
           <div className="text-center mb-16">
@@ -334,19 +315,19 @@ export default function Home() {
           <div className="mt-12 text-center">
             <button onClick={() => setShowCoaModal(true)} className="inline-flex items-center gap-2 text-sm text-brand-gold hover:text-brand-gold-light transition-colors underline underline-offset-4 decoration-brand-gold/30">
               <FlaskConical className="w-4 h-4" />
-              View Full COA for Current Batch →
+              {t('btn_view_coa')}
             </button>
           </div>
         </div>
-      </section>
+      </section >
 
       {/* TESTIMONIALS (Rec 4) */}
-      <section className="py-24 px-6 bg-[#0a0a0a] border-t border-white/5 relative overflow-hidden" id="testimonials">
+      <section className="py-24 px-6 bg-[#0a0a0a] border-t border-white/5 relative overflow-hidden" id="testimonials" >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-light mb-4 text-white">Trust <span className="text-brand-gold font-medium">Earned</span></h2>
-            <p className="text-white/50 max-w-2xl mx-auto">Rated 4.9/5 by 7,496+ Researchers Worldwide.</p>
+            <h2 className="text-3xl md:text-5xl font-light mb-4 text-white">{t('trust_earned')} <span className="text-brand-gold font-medium">{t('trust_earned_gold')}</span></h2>
+            <p className="text-white/50 max-w-2xl mx-auto">{t('trust_earned_sub')}</p>
           </div>
           <motion.div
             whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.6 }}
@@ -355,42 +336,42 @@ export default function Home() {
             <div className="glass-panel p-8 border-brand-gold/20 flex flex-col gap-4">
               <div className="flex justify-between items-start">
                 <div className="flex text-brand-gold text-lg">★★★★★</div>
-                <span className="flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded-full"><Shield className="w-3 h-3" /> Verified Buyer</span>
+                <span className="flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded-full"><Shield className="w-3 h-3" /> {t('verified_buyer')}</span>
               </div>
-              <p className="text-white/80 leading-relaxed italic">"Purity is unmatched. I sent a sample from my batch for independent MS testing and it came back at 99.9%. Shipping to Europe took exactly 3 days with no customs issues."</p>
+              <p className="text-white/80 leading-relaxed italic">{t('review_1_desc')}</p>
               <div className="mt-auto pt-4 border-t border-white/10 flex flex-col">
-                <span className="text-white font-medium">Dr. M. R., Munich</span>
-                <span className="text-brand-gold/70 text-sm">Item: Retatrutide 10mg - Kit 5 Vials</span>
+                <span className="text-white font-medium">{t('review_1_name')}</span>
+                <span className="text-brand-gold/70 text-sm">{t('review_1_item')}</span>
               </div>
             </div>
             <div className="glass-panel p-8 border-brand-gold/20 flex flex-col gap-4">
               <div className="flex justify-between items-start">
                 <div className="flex text-brand-gold text-lg">★★★★★</div>
-                <span className="flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded-full"><Shield className="w-3 h-3" /> Verified Buyer</span>
+                <span className="flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded-full"><Shield className="w-3 h-3" /> {t('verified_buyer')}</span>
               </div>
-              <p className="text-white/80 leading-relaxed italic">"Finally a trustworthy vendor. The fact they post Janoshik results directly on the page saves me so much time. Reconstitutes perfectly clear every single time."</p>
+              <p className="text-white/80 leading-relaxed italic">{t('review_2_desc')}</p>
               <div className="mt-auto pt-4 border-t border-white/10 flex flex-col">
-                <span className="text-white font-medium">Alex T., London</span>
-                <span className="text-brand-gold/70 text-sm">Item: Retatrutide 10mg - Kit 3 Vials</span>
+                <span className="text-white font-medium">{t('review_2_name')}</span>
+                <span className="text-brand-gold/70 text-sm">{t('review_2_item')}</span>
               </div>
             </div>
             <div className="glass-panel p-8 border-brand-gold/20 flex flex-col gap-4">
               <div className="flex justify-between items-start">
                 <div className="flex text-brand-gold text-lg">★★★★★</div>
-                <span className="flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded-full"><Shield className="w-3 h-3" /> Verified Buyer</span>
+                <span className="flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded-full"><Shield className="w-3 h-3" /> {t('verified_buyer')}</span>
               </div>
-              <p className="text-white/80 leading-relaxed italic">"Customer support is actually 24/7. Had an issue with my crypto payment not confirming, emailed them and got it sorted manually in 10 minutes. Top tier service."</p>
+              <p className="text-white/80 leading-relaxed italic">{t('review_3_desc')}</p>
               <div className="mt-auto pt-4 border-t border-white/10 flex flex-col">
-                <span className="text-white font-medium">S. K., Geneva</span>
-                <span className="text-brand-gold/70 text-sm">Item: Retatrutide 10mg - Single Vial</span>
+                <span className="text-white font-medium">{t('review_3_name')}</span>
+                <span className="text-brand-gold/70 text-sm">{t('review_3_item')}</span>
               </div>
             </div>
           </motion.div>
         </div>
-      </section>
+      </section >
 
       {/* WHY AURA */}
-      <section className="py-24 px-6 bg-black border-t border-white/5">
+      <section className="py-24 px-6 bg-black border-t border-white/5" >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-light mb-4 text-white">{t('why_title')} <span className="text-brand-gold font-medium">{t('why_subtitle')}</span></h2>
@@ -415,7 +396,7 @@ export default function Home() {
       </section >
 
       {/* PRODUCT SPECIFICATIONS */}
-      < section className="py-16 px-6 bg-[#0a0a0a] border-t border-white/5" >
+      <section className="py-16 px-6 bg-[#0a0a0a] border-t border-white/5" >
         <div className="max-w-3xl mx-auto">
           <h3 className="text-xl font-medium text-white mb-8 flex items-center gap-3">
             <Thermometer className="w-5 h-5 text-brand-gold" />
@@ -440,23 +421,23 @@ export default function Home() {
       </section >
 
       {/* PEPTIDE CALCULATOR CTA (Rec 7) */}
-      < section className="py-12 px-6 bg-brand-gold/5 border-t border-brand-gold/20" >
+      <section className="py-12 px-6 bg-brand-gold/5 border-t border-brand-gold/20" >
         <div className="max-w-4xl mx-auto glass-panel p-8 flex flex-col md:flex-row items-center justify-between gap-6 border-brand-gold/30 gold-glow">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-brand-void border border-brand-gold flex items-center justify-center shrink-0">
               <FlaskConical className="w-8 h-8 text-brand-gold" />
             </div>
             <div>
-              <h3 className="text-2xl font-medium text-white">Peptide Reconstitution Calculator</h3>
-              <p className="text-white/60 text-sm mt-1">Need help calculating the exact bacteriostatic water ratio for your research? Use our free tool.</p>
+              <h3 className="text-2xl font-medium text-white">{t('calculator_title')}</h3>
+              <p className="text-white/60 text-sm mt-1">{t('calculator_desc')}</p>
             </div>
           </div>
-          <PremiumButton variant="outline" onClick={() => alert("Calculator Modal will open here.")}>Open Calculator</PremiumButton>
+          <PremiumButton variant="outline" onClick={() => alert("Calculator Modal will open here.")}>{t('calculator_cta')}</PremiumButton>
         </div>
       </section >
 
       {/* BUYER PROTECTION BOX */}
-      < section className="py-16 px-6 bg-brand-void border-t border-white/5" >
+      <section className="py-16 px-6 bg-brand-void border-t border-white/5" >
         <div className="max-w-3xl mx-auto">
           <div className="glass-panel p-8 border-green-500/30 bg-green-500/5 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-400"></div>
@@ -500,8 +481,8 @@ export default function Home() {
           {/* Ordering & Payment */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Lock className="w-4 h-4 text-brand-gold" />
-              <span className="text-xs uppercase tracking-[0.2em] text-brand-gold font-medium">Ordering & Payment</span>
+              <ShieldCheck className="w-4 h-4 text-brand-gold" /> {/* Changed Lock to ShieldCheck */}
+              <span className="text-xs uppercase tracking-[0.2em] text-brand-gold font-medium">{t('faq_category_ordering')}</span>
             </div>
             <div className="flex flex-col gap-3">
               {[1, 2, 3, 4, 5, 6].map((num) => {
@@ -525,7 +506,7 @@ export default function Home() {
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Shield className="w-4 h-4 text-brand-gold" />
-              <span className="text-xs uppercase tracking-[0.2em] text-brand-gold font-medium">Policy & Legal</span>
+              <span className="text-xs uppercase tracking-[0.2em] text-brand-gold font-medium">{t('faq_category_policy')}</span>
             </div>
             <div className="flex flex-col gap-3">
               {[7, 8, 9].map((num) => {
@@ -547,7 +528,7 @@ export default function Home() {
 
           {/* Support CTA at the bottom of FAQ */}
           <div className="mt-12 text-center">
-            <p className="text-white/40 text-sm">Still have questions? <a href="mailto:support@retatrutide-research.com" className="text-brand-gold hover:text-brand-gold-light underline underline-offset-4 decoration-brand-gold/30 transition-colors">Contact our support team</a></p>
+            <p className="text-white/40 text-sm">{t('faq_contact_pre')}<a href="mailto:support@retatrutide-research.com" className="text-brand-gold hover:text-brand-gold-light underline underline-offset-4 decoration-brand-gold/30 transition-colors">{t('faq_contact_link')}</a></p>
           </div>
         </div>
       </section >
@@ -562,14 +543,14 @@ export default function Home() {
               </div>
               <span className="text-lg font-medium tracking-widest uppercase text-white">Retatrutide</span>
             </div>
-            <p>Clinical grade peptides for advanced scientific research. Pure, potent, and third-party tested.</p>
+            <p>{t('footer_description')}</p>
           </div>
 
           <div className="flex flex-col gap-4 md:col-start-3">
-            <h4 className="text-white font-medium uppercase tracking-widest text-xs mb-2">Corporate Office</h4>
-            <p className="flex items-center gap-2"><Navigation className="w-4 h-4 text-brand-gold" /> 5700 NW 37th Ave, Miami, FL 33142</p>
-            <p className="flex items-center gap-2">📧 support@retatrutide-research.com</p>
-            <p className="flex items-center gap-2">⏱️ 24/7 Global Customer Support</p>
+            <h4 className="text-white font-medium uppercase tracking-widest text-xs mb-2">{t('footer_office_title')}</h4>
+            <p className="flex items-center gap-2"><Navigation className="w-4 h-4 text-brand-gold" /> {t('footer_office_address')}</p>
+            <p className="flex items-center gap-2">📧 {t('footer_office_email')}</p>
+            <p className="flex items-center gap-2">⏱️ {t('footer_office_hours')}</p>
           </div>
         </div>
 
@@ -582,7 +563,7 @@ export default function Home() {
           <p>{t('footer_copy')}</p>
           <div className="flex gap-6 items-center">
             <span className="uppercase tracking-widest text-xs flex items-center gap-2">
-              <Lock className="w-3 h-3 text-brand-gold" /> {t('footer_secure')}
+              <ShieldCheck className="w-3 h-3 text-brand-gold" /> {t('footer_secure')} {/* Changed Lock to ShieldCheck */}
             </span>
             <LanguageSwitcher />
           </div>
@@ -595,34 +576,46 @@ export default function Home() {
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowCoaModal(false)}></div>
             <div className="relative glass-panel border-brand-gold/30 p-2 md:p-6 max-w-4xl w-full h-[90vh] md:h-[80vh] flex flex-col gold-glow animate-fade-in bg-[#050505]">
-              <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-4 px-4 md:px-0">
-                <div>
-                  <h3 className="text-xl md:text-2xl font-light text-white flex items-center gap-3">
-                    <FlaskConical className="w-6 h-6 text-brand-gold" />
-                    Independent Laboratory Analysis
-                  </h3>
-                  <p className="text-brand-gold/70 text-xs mt-1 font-mono">Verified by Janoshik Analytical | Batch: JANO-RET-10</p>
-                </div>
-                <button onClick={() => setShowCoaModal(false)} className="text-white/50 hover:text-white transition-colors bg-white/5 w-8 h-8 rounded-full flex items-center justify-center">
+              <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                <h3 className="text-xl md:text-2xl font-light text-white flex items-center gap-3">
+                  <FlaskConical className="w-6 h-6 text-brand-gold" />
+                  {t('lab_title')}
+                </h3>
+                <button onClick={() => setShowCoaModal(false)} className="text-white/50 hover:text-white transition-colors">
                   ✕
                 </button>
               </div>
 
-              <div className="flex-1 overflow-hidden rounded-lg border border-white/10 relative group bg-white/5 flex items-center justify-center">
-                {/* Note: Ideally use a real image if available, falling back to a dummy or the original link here */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-brand-void z-10">
-                  <FlaskConical className="w-16 h-16 text-brand-gold/20 mb-4" />
-                  <h4 className="text-white text-lg font-medium mb-2">Certificate of Analysis</h4>
-                  <p className="text-white/50 text-sm max-w-md mb-6">Our products are rigorously tested for purity (≥99.8%), sterility, and heavy metal absence.</p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full max-w-2xl text-left border border-white/10 rounded-xl p-4 bg-white/5">
-                    <div className="flex flex-col"><span className="text-xs text-white/50">Compound</span><span className="text-brand-gold font-medium">Retatrutide</span></div>
-                    <div className="flex flex-col"><span className="text-xs text-white/50">Declared Mass</span><span className="text-brand-gold font-medium">10mg</span></div>
-                    <div className="flex flex-col"><span className="text-xs text-white/50">Purity (HPLC)</span><span className="text-brand-gold font-medium">99.86%</span></div>
-                    <div className="flex flex-col"><span className="text-xs text-white/50">Status</span><span className="text-green-400 font-medium flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> PASS</span></div>
+              <div className="flex flex-col md:flex-row gap-8">
+                <div className="w-full md:w-1/2 rounded-xl overflow-hidden border border-brand-gold/20 relative group bg-black/50">
+                  <div className="absolute inset-0 bg-brand-gold/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 backdrop-blur-sm">
+                    <PremiumButton onClick={() => window.open('/assets/janoshik-coa-retatrutide-10mg.png', '_blank')} className="scale-90">
+                      {t('lab_verify')}
+                    </PremiumButton>
+                  </div>
+                  <Image
+                    src="/assets/janoshik-coa-retatrutide-10mg.png"
+                    alt="Janoshik Lab Report"
+                    width={800}
+                    height={1000}
+                    className="w-full h-auto object-cover opacity-80"
+                  />
+                </div>
+
+                <div className="w-full md:w-1/2 flex flex-col justify-center gap-6">
+                  <div className="flex flex-col gap-2 border-b border-white/5 pb-4">
+                    <span className="text-sm text-brand-gold tracking-widest uppercase">{t('lab_compound')}</span>
+                    <span className="text-xl text-white font-medium">Retatrutide (LY3437943)</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col"><span className="text-xs text-white/50">{t('lab_declared')}</span><span className="text-white font-medium">10.0 mg</span></div>
+                    <div className="flex flex-col"><span className="text-xs text-white/50">{t('lab_measured')}</span><span className="text-white font-medium">10.12 mg</span></div>
+                    <div className="flex flex-col"><span className="text-xs text-white/50">{t('lab_purity')}</span><span className="text-brand-gold font-medium">99.86%</span></div>
+                    <div className="flex flex-col"><span className="text-xs text-white/50">{t('lab_status')}</span><span className="text-green-400 font-medium flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> {t('lab_pass')}</span></div>
                   </div>
                   <div className="mt-8">
                     <PremiumButton onClick={() => window.open('/assets/janoshik-coa-retatrutide-10mg.png', '_blank')} className="scale-90">
-                      Download Original PDF
+                      {t('lab_download')}
                     </PremiumButton>
                   </div>
                 </div>
@@ -632,8 +625,9 @@ export default function Home() {
         )
       }
 
+      {/* DYNAMIC TRUST: RECENT SALES POPUP */}
+      <RecentSalesPopup />
 
-
-    </main >
+    </main>
   );
 }
