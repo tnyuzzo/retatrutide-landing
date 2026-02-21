@@ -218,6 +218,8 @@
         "calculator_cta": "Rechner öffnen",
         "inventory_high_demand": "Hohe Nachfrage:",
         "inventory_kits_remaining": "Kits im EU Logistikzentrum verfügbar.",
-        "inventory_updated": "Gerade aktualisiert"
+        "inventory_updated": "Gerade aktualisiert",
+        "feature_guarantee": "100% Garantie",
+        "feature_guarantee_sub": "Kostenloser Neuversand"
     }
 }

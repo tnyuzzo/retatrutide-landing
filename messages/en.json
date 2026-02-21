@@ -218,6 +218,8 @@
         "calculator_cta": "Open Calculator",
         "inventory_high_demand": "High Demand:",
         "inventory_kits_remaining": "Kits remaining in EU Logistics Center.",
-        "inventory_updated": "Updated just now"
+        "inventory_updated": "Updated just now",
+        "feature_guarantee": "100% Guarantee",
+        "feature_guarantee_sub": "Free Reshipment"
     }
 }

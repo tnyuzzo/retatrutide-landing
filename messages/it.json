@@ -218,6 +218,8 @@
         "calculator_cta": "Apri Calcolatore",
         "inventory_high_demand": "Alta Richiesta:",
         "inventory_kits_remaining": "Kit rimanenti nel Centro Logistico EU.",
-        "inventory_updated": "Aggiornato ora"
+        "inventory_updated": "Aggiornato ora",
+        "feature_guarantee": "Garanzia 100%",
+        "feature_guarantee_sub": "Rispedizione Gratuita"
     }
 }

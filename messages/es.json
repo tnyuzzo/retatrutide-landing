@@ -218,6 +218,8 @@
         "calculator_cta": "Abrir Calculadora",
         "inventory_high_demand": "Alta Demanda:",
         "inventory_kits_remaining": "Kits disponibles en el Centro Logístico EU.",
-        "inventory_updated": "Actualizado ahora"
+        "inventory_updated": "Actualizado ahora",
+        "feature_guarantee": "100% Garantía",
+        "feature_guarantee_sub": "Reenvío Gratuito"
     }
 }

@@ -128,6 +128,11 @@ export default function Home() {
                   <span className="text-2xl font-semibold text-white">{t('feature_crypto')}</span>
                   <span className="text-xs text-brand-gold uppercase tracking-wider">{t('feature_crypto_sub')}</span>
                 </div>
+                <div className="w-px h-10 bg-white/10"></div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-2xl font-semibold text-white">{t('feature_guarantee')}</span>
+                  <span className="text-xs text-brand-gold uppercase tracking-wider">{t('feature_guarantee_sub')}</span>
+                </div>
               </div>
 
               {/* Rec 5 & 9: Sterility and HPLC Standardized Claims */}

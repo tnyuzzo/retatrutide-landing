@@ -218,6 +218,8 @@
         "calculator_cta": "Открыть Калькулятор",
         "inventory_high_demand": "Высокий спрос:",
         "inventory_kits_remaining": "наборов в Логистическом центре ЕС.",
-        "inventory_updated": "Обновлено только что"
+        "inventory_updated": "Обновлено только что",
+        "feature_guarantee": "100% Гарантия",
+        "feature_guarantee_sub": "Бесплатная Пересылка"
     }
 }
