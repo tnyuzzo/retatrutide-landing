@@ -203,6 +203,7 @@
         "checkout_buyer_protection": "100% Garantie de Livraison",
         "checkout_buyer_protection_desc": "Votre commande est entièrement protégée. Nous offrons une réexpédition gratuite en cas de saisie douanière ou de perte.",
         "checkout_back": "Retour",
-        "portal_shipping_title": "Expédition En Cours"
+        "portal_shipping_title": "Expédition En Cours",
+        "btn_view_coa": "Voir le Certificat d'Analyse"
     }
 }

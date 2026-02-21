@@ -203,6 +203,7 @@
         "checkout_buyer_protection": "100% Garantía de Entrega",
         "checkout_buyer_protection_desc": "Tu pedido está completamente protegido. Ofrecemos reenvío gratuito si el paquete es confiscado o se pierde.",
         "checkout_back": "Atrás",
-        "portal_shipping_title": "Envío En Curso"
+        "portal_shipping_title": "Envío En Curso",
+        "btn_view_coa": "Ver Certificado de Análisis"
     }
 }

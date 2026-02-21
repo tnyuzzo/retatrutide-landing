@@ -203,6 +203,7 @@
         "checkout_buyer_protection": "100% Delivery Guarantee",
         "checkout_buyer_protection_desc": "Your order is fully protected. We offer a full free reshipment if your order is seized by customs or lost in transit.",
         "checkout_back": "Back",
-        "portal_shipping_title": "Shipment In Progress"
+        "portal_shipping_title": "Shipment In Progress",
+        "btn_view_coa": "View Certificate of Analysis"
     }
 }

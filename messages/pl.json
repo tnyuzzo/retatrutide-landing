@@ -203,6 +203,7 @@
         "checkout_buyer_protection": "100% Gwarancja Dostawy",
         "checkout_buyer_protection_desc": "Twoje zamówienie jest w pełni chronione. Oferujemy bezpłatną ponowną wysyłkę w przypadku konfiskaty lub zagubienia.",
         "checkout_back": "Wróć",
-        "portal_shipping_title": "Przesyłka W Drodze"
+        "portal_shipping_title": "Przesyłka W Drodze",
+        "btn_view_coa": "Zobacz Certyfikat Analizy"
     }
 }

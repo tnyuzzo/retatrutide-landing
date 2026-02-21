@@ -203,6 +203,7 @@
         "checkout_buyer_protection": "100% Liefergarantie",
         "checkout_buyer_protection_desc": "Ihre Bestellung ist vollständig geschützt. Wir bieten einen kostenlosen Neuversand bei Zollbeschlagnahme oder Verlust.",
         "checkout_back": "Zurück",
-        "portal_shipping_title": "Versand Unterwegs"
+        "portal_shipping_title": "Versand Unterwegs",
+        "btn_view_coa": "Analysezertifikat ansehen"
     }
 }
