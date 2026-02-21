@@ -204,6 +204,20 @@
         "checkout_buyer_protection_desc": "Ваше замовлення повністю захищене. Ми безкоштовно перевідправимо при конфіскації або втраті.",
         "checkout_back": "Назад",
         "portal_shipping_title": "Відправка В Дорозі",
-        "btn_view_coa": "Переглянути Сертифікат Аналізу"
+        "btn_view_coa": "Переглянути Сертифікат Аналізу",
+        "footer_office_title": "Логістика",
+        "footer_office_address": "Логістичний центр ЄС",
+        "footer_office_email": "support@aurapeptides.eu",
+        "footer_office_hours": "Пн–Пт 9:00–17:00 CET",
+        "faq_category_ordering": "Замовлення та Оплата",
+        "faq_category_policy": "Політика та Правова інформація",
+        "faq_contact_pre": "Залишились питання? Зв'яжіться з нами: ",
+        "faq_contact_link": "support@aurapeptides.eu",
+        "calculator_title": "Калькулятор Пептидів",
+        "calculator_desc": "Розрахуйте точне дозування для вашого дослідницького протоколу.",
+        "calculator_cta": "Відкрити Калькулятор",
+        "inventory_high_demand": "Високий попит:",
+        "inventory_kits_remaining": "наборів у Логістичному центрі ЄС.",
+        "inventory_updated": "Оновлено щойно"
     }
 }

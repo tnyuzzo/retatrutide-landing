@@ -204,6 +204,20 @@
         "checkout_buyer_protection_desc": "O seu pedido está totalmente protegido. Oferecemos reenvio gratuito em caso de apreensão ou perda.",
         "checkout_back": "Voltar",
         "portal_shipping_title": "Envio Em Curso",
-        "btn_view_coa": "Ver Certificado de Análise"
+        "btn_view_coa": "Ver Certificado de Análise",
+        "footer_office_title": "Logística",
+        "footer_office_address": "Centro Logístico EU",
+        "footer_office_email": "support@aurapeptides.eu",
+        "footer_office_hours": "Seg–Sex 9:00–17:00 CET",
+        "faq_category_ordering": "Encomendas & Pagamento",
+        "faq_category_policy": "Política & Legal",
+        "faq_contact_pre": "Ainda tem perguntas? Contacte-nos em ",
+        "faq_contact_link": "support@aurapeptides.eu",
+        "calculator_title": "Calculadora de Peptídeos",
+        "calculator_desc": "Calcule a dosagem exata para o seu protocolo de investigação.",
+        "calculator_cta": "Abrir Calculadora",
+        "inventory_high_demand": "Alta procura:",
+        "inventory_kits_remaining": "kits disponíveis no Centro Logístico EU.",
+        "inventory_updated": "Atualizado agora"
     }
 }
