@@ -1,9 +1,11 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { verifyAuth, requireRole, AuthError } from '@/lib/auth';
 import { Resend } from 'resend';
-import { shipmentNotificationEmail, orderConfirmationAdminEmail } from '@/lib/email-templates';
+import { shipmentNotificationEmail } from '@/lib/email-templates';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
+const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
+const EMAIL_REPLY_TO = 'support@aurapeptides.eu';
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
     pending: ['paid', 'cancelled'],
@@ -141,6 +143,45 @@ async function handlePost(req: NextRequest) {
         return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
+    // Restore inventory on cancellation of paid/processing orders
+    if (new_status === 'cancelled' && ['paid', 'processing'].includes(order.status)) {
+        try {
+            let totalToRestore = 1;
+            if (order.items && Array.isArray(order.items)) {
+                totalToRestore = order.items.reduce(
+                    (sum: number, item: { quantity?: number }) => sum + (item.quantity || 1), 0
+                );
+            }
+
+            const { data: inv } = await supabase
+                .from('inventory')
+                .select('quantity')
+                .eq('sku', 'RET-KIT-1')
+                .single();
+
+            if (inv) {
+                const newQty = inv.quantity + totalToRestore;
+                await supabase
+                    .from('inventory')
+                    .update({ quantity: newQty, updated_at: new Date().toISOString() })
+                    .eq('sku', 'RET-KIT-1');
+
+                await supabase.from('inventory_movements').insert({
+                    sku: 'RET-KIT-1',
+                    type: 'add',
+                    quantity: totalToRestore,
+                    previous_quantity: inv.quantity,
+                    new_quantity: newQty,
+                    reason: `Restored: order ${order.reference_id} cancelled`,
+                    performed_by: null,
+                    performed_by_name: 'System (Cancellation)',
+                });
+            }
+        } catch (restoreErr) {
+            console.error('Failed to restore inventory on cancellation:', restoreErr);
+        }
+    }
+
     // Send shipment email to customer if shipped
     if (new_status === 'shipped' && order.email && process.env.RESEND_API_KEY) {
         try {
@@ -153,7 +194,8 @@ async function handlePost(req: NextRequest) {
             });
 
             await resend.emails.send({
-                from: 'Aura Peptides <onboarding@resend.dev>',
+                from: EMAIL_FROM,
+                replyTo: EMAIL_REPLY_TO,
                 to: order.email,
                 subject,
                 html,

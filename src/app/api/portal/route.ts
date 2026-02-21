@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
             .single();
 
         if (error || !order) {
-            return NextResponse.json({ error: 'Ordine non trovato. Verifica email e codice.' }, { status: 404 });
+            return NextResponse.json({ error: 'Order not found. Please verify your email and reference code.' }, { status: 404 });
         }
 
         return NextResponse.json({ order });

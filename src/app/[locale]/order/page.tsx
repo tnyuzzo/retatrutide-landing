@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Check, Lock, Shield, CreditCard, ChevronRight, Minus, Plus, MapPin, User, Mail, Phone } from "lucide-react";
+import { ArrowLeft, Lock, Shield, ChevronRight, Minus, Plus, MapPin, User, Mail, Phone } from "lucide-react";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
@@ -36,7 +36,6 @@ export default function OrderPage() {
     const t = useTranslations('Index');
     const locale = useLocale();
     const [quantity, setQuantity] = useState(1);
-    const [paymentMethod, setPaymentMethod] = useState<"crypto" | "card">("crypto");
     const [selectedCrypto, setSelectedCrypto] = useState("BTC");
     const [isProcessing, setIsProcessing] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
@@ -92,37 +91,30 @@ export default function OrderPage() {
         setFormError(null);
 
         try {
-            if (paymentMethod === "crypto") {
-                const res = await fetch('/api/checkout', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email,
-                        shipping_address: {
-                            full_name: fullName,
-                            address_line_1: addressLine1,
-                            address_line_2: addressLine2,
-                            city,
-                            postal_code: postalCode,
-                            country,
-                            phone,
-                        },
-                        quantity,
-                        crypto_currency: selectedCrypto
-                    })
-                });
-                const data = await res.json();
+            const res = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email,
+                    shipping_address: {
+                        full_name: fullName,
+                        address_line_1: addressLine1,
+                        address_line_2: addressLine2,
+                        city,
+                        postal_code: postalCode,
+                        country,
+                        phone,
+                    },
+                    quantity,
+                    crypto_currency: selectedCrypto
+                })
+            });
+            const data = await res.json();
 
-                if (data.reference_id) {
-                    window.location.href = `/${locale}/checkout/${data.reference_id}`;
-                } else {
-                    setFormError(data.error || 'Checkout failed');
-                    setIsProcessing(false);
-                }
+            if (data.reference_id) {
+                window.location.href = `/${locale}/checkout/${data.reference_id}`;
             } else {
-                const depositWallet = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
-                const guardarianUrl = `https://guardarian.com/calculator/v1?default_fiat_amount=${totalPrice}&default_fiat_currency=EUR&default_crypto_currency=BTC&crypto_address=${depositWallet}`;
-                window.open(guardarianUrl, '_blank');
+                setFormError(data.error || 'Checkout failed');
                 setIsProcessing(false);
             }
         } catch (err) {
@@ -408,53 +400,29 @@ export default function OrderPage() {
                         <div className="flex flex-col gap-4 mt-6">
                             <h3 className="text-sm font-medium text-white/70 uppercase tracking-widest">{t('order_payment_method')}</h3>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    onClick={() => setPaymentMethod("crypto")}
-                                    className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${paymentMethod === 'crypto' ? 'bg-brand-gold/10 border-brand-gold text-brand-gold' : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'}`}
-                                >
-                                    <Lock className="w-5 h-5" />
-                                    <span className="text-xs font-medium">{t('order_crypto_native')}</span>
-                                </button>
-
-                                <button
-                                    onClick={() => setPaymentMethod("card")}
-                                    className={`py-3 px-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${paymentMethod === 'card' ? 'bg-brand-gold/10 border-brand-gold text-brand-gold' : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10'}`}
-                                >
-                                    <CreditCard className="w-5 h-5" />
-                                    <span className="text-xs font-medium">{t('order_credit_card')}</span>
-                                </button>
+                            <div className="flex items-center gap-3 py-3 px-4 rounded-xl border bg-brand-gold/10 border-brand-gold text-brand-gold">
+                                <Lock className="w-5 h-5" />
+                                <span className="text-xs font-medium">{t('order_crypto_native')}</span>
                             </div>
                         </div>
 
-                        {/* PAYMENT CONTEXT */}
+                        {/* CRYPTO SELECTOR */}
                         <div className="bg-black/40 rounded-xl p-4 mt-2">
-                            {paymentMethod === 'crypto' ? (
-                                <div className="flex flex-col gap-3 animate-fade-in">
-                                    <p className="text-xs text-white/60">{t('order_crypto_desc')}</p>
-                                    <div className="relative h-10">
-                                        <select
-                                            value={selectedCrypto}
-                                            onChange={(e) => setSelectedCrypto(e.target.value)}
-                                            className="w-full h-full bg-brand-void/80 border border-brand-gold/30 text-white text-sm rounded-lg px-4 appearance-none focus:outline-none focus:border-brand-gold tracking-wider cursor-pointer font-medium"
-                                        >
-                                            <option value="BTC">Bitcoin (BTC)</option>
-                                            <option value="ETH">Ethereum (ETH)</option>
-                                            <option value="SOL">Solana (SOL)</option>
-                                            <option value="USDT">Tether (USDT)</option>
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-gold/50 text-xs">▼</div>
-                                    </div>
+                            <div className="flex flex-col gap-3 animate-fade-in">
+                                <p className="text-xs text-white/60">{t('order_crypto_desc')}</p>
+                                <div className="relative h-10">
+                                    <select
+                                        value={selectedCrypto}
+                                        onChange={(e) => setSelectedCrypto(e.target.value)}
+                                        className="w-full h-full bg-brand-void/80 border border-brand-gold/30 text-white text-sm rounded-lg px-4 appearance-none focus:outline-none focus:border-brand-gold tracking-wider cursor-pointer font-medium"
+                                    >
+                                        <option value="BTC">Bitcoin (BTC)</option>
+                                        <option value="XMR">Monero (XMR)</option>
+                                        <option value="USDT">Tether USDT (TRC20)</option>
+                                    </select>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-gold/50 text-xs">▼</div>
                                 </div>
-                            ) : (
-                                <div className="flex flex-col gap-3 animate-fade-in text-xs text-white/60">
-                                    <p>{t('order_card_desc')}</p>
-                                    <p className="flex items-start gap-2">
-                                        <Check className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
-                                        <span>{t('order_card_no_wallet')}</span>
-                                    </p>
-                                </div>
-                            )}
+                            </div>
                         </div>
 
                         {/* ERROR */}

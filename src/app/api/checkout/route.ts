@@ -21,14 +21,6 @@ function isRateLimited(ip: string): boolean {
     return entry.count > RATE_LIMIT_MAX;
 }
 
-// Clean up stale entries every 5 minutes
-setInterval(() => {
-    const now = Date.now();
-    for (const [ip, entry] of rateLimitMap) {
-        if (now > entry.resetAt) rateLimitMap.delete(ip);
-    }
-}, 5 * 60_000);
-
 // ── Validation Schema ──
 const ALLOWED_CRYPTOS = ['btc', 'eth', 'xmr', 'sol', 'usdt', 'usdc', 'xrp'] as const;
 
@@ -120,6 +112,20 @@ export async function POST(req: Request) {
         const fiat_amount = unitPrice * quantity;
 
         const items = [{ sku: 'RET-KIT-1', name: 'Retatrutide 10mg', quantity, price: fiat_amount }];
+
+        // ── Stock Check ──
+        const { data: inventory } = await supabaseAdmin
+            .from('inventory')
+            .select('quantity')
+            .eq('sku', 'RET-KIT-1')
+            .single();
+
+        if (!inventory || inventory.quantity < quantity) {
+            return NextResponse.json(
+                { error: 'Insufficient stock. Please reduce quantity or try again later.' },
+                { status: 409 }
+            );
+        }
 
         // ── CryptAPI Integration ──
         const referenceId = uuidv4();

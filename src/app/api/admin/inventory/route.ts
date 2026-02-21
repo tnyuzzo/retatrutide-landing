@@ -4,6 +4,8 @@ import { Resend } from 'resend';
 import { lowStockAlertEmail } from '@/lib/email-templates';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
+const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
+const EMAIL_REPLY_TO = 'support@aurapeptides.eu';
 const SKU = 'RET-KIT-1';
 
 export async function GET(req: NextRequest) {
@@ -136,7 +138,7 @@ export async function POST(req: NextRequest) {
             const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
             if (adminEmail) {
                 const { subject, html } = lowStockAlertEmail({ sku: SKU, currentQuantity: newQuantity, threshold: LOW_STOCK_THRESHOLD });
-                resend.emails.send({ from: 'Aura Peptides <onboarding@resend.dev>', to: adminEmail, subject, html })
+                resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to: adminEmail, subject, html })
                     .catch(err => console.error('Low stock email error:', err));
             }
         }

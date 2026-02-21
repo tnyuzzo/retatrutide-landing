@@ -7,11 +7,15 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  * Protected by CRON_SECRET to prevent unauthorized access.
  */
 export async function GET(req: Request) {
-    // Verify cron secret
+    // Verify cron secret (fail-closed)
     const authHeader = req.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret) {
+        console.error('CRITICAL: CRON_SECRET is not configured. Rejecting ALL cron calls.');
+        return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
+    if (authHeader !== `Bearer ${cronSecret}`) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

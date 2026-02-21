@@ -7,6 +7,8 @@ import {
 } from '@/lib/email-templates';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
+const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
+const EMAIL_REPLY_TO = 'support@aurapeptides.eu';
 
 export async function GET(req: Request) {
     try {
@@ -22,11 +24,14 @@ export async function GET(req: Request) {
             return new NextResponse('*ok*', { status: 200 });
         }
 
-        // ── Webhook Secret Verification ──
+        // ── Webhook Secret Verification (fail-closed) ──
         const expectedSecret = process.env.WEBHOOK_SECRET;
-        if (expectedSecret && secret !== expectedSecret) {
+        if (!expectedSecret) {
+            console.error('CRITICAL: WEBHOOK_SECRET is not configured. Rejecting ALL webhook calls.');
+            return new NextResponse('*ok*', { status: 200 });
+        }
+        if (secret !== expectedSecret) {
             console.warn(`Webhook: Invalid secret for order ${order_id}. Rejecting.`);
-            // Return *ok* so CryptAPI stops retrying, but don't process
             return new NextResponse('*ok*', { status: 200 });
         }
 
@@ -70,7 +75,7 @@ export async function GET(req: Request) {
 
             console.log(`Webhook: Order ${order_id} marked as PAID!`);
 
-            // 3. Atomic Inventory Decrement
+            // 3. Atomic Inventory Decrement (optimistic concurrency with retry)
             try {
                 let totalQuantityToDeduct = 1;
                 if (order.items && Array.isArray(order.items)) {
@@ -79,19 +84,34 @@ export async function GET(req: Request) {
                     );
                 }
 
-                // Use atomic decrement via RPC if available, otherwise direct update
-                const { data: invData } = await supabaseAdmin
-                    .from('inventory')
-                    .select('quantity')
-                    .eq('sku', 'RET-KIT-1')
-                    .single();
+                const MAX_RETRIES = 3;
+                let decremented = false;
 
-                if (invData) {
-                    const newQty = Math.max(0, invData.quantity - totalQuantityToDeduct);
-                    await supabaseAdmin
+                for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+                    const { data: invData } = await supabaseAdmin
+                        .from('inventory')
+                        .select('quantity')
+                        .eq('sku', 'RET-KIT-1')
+                        .single();
+
+                    if (!invData) break;
+
+                    const previousQty = invData.quantity;
+                    const newQty = Math.max(0, previousQty - totalQuantityToDeduct);
+
+                    // Optimistic concurrency: only update if quantity hasn't changed
+                    const { data: updated, error: updateErr } = await supabaseAdmin
                         .from('inventory')
                         .update({ quantity: newQty, updated_at: new Date().toISOString() })
-                        .eq('sku', 'RET-KIT-1');
+                        .eq('sku', 'RET-KIT-1')
+                        .eq('quantity', previousQty)
+                        .select()
+                        .single();
+
+                    if (updateErr || !updated) {
+                        console.warn(`Webhook: Inventory concurrent update detected (attempt ${attempt + 1}/${MAX_RETRIES})`);
+                        continue;
+                    }
 
                     // Log inventory movement
                     await supabaseAdmin
@@ -100,7 +120,7 @@ export async function GET(req: Request) {
                             sku: 'RET-KIT-1',
                             type: 'remove',
                             quantity: -totalQuantityToDeduct,
-                            previous_quantity: invData.quantity,
+                            previous_quantity: previousQty,
                             new_quantity: newQty,
                             reason: `Auto-deducted: order ${order_id}`,
                             performed_by: null,
@@ -108,6 +128,12 @@ export async function GET(req: Request) {
                         });
 
                     console.log(`Webhook: Inventory decremented by ${totalQuantityToDeduct} → ${newQty}`);
+                    decremented = true;
+                    break;
+                }
+
+                if (!decremented) {
+                    console.error(`Webhook: Failed to decrement inventory after ${MAX_RETRIES} attempts for order ${order_id}`);
                 }
             } catch (invErr) {
                 console.error("Webhook: Failed to decrement inventory:", invErr);
@@ -130,7 +156,8 @@ export async function GET(req: Request) {
                         });
 
                         await resend.emails.send({
-                            from: 'Aura Peptides <onboarding@resend.dev>',
+                            from: EMAIL_FROM,
+                            replyTo: EMAIL_REPLY_TO,
                             to: adminEmail,
                             subject,
                             html,
@@ -145,7 +172,8 @@ export async function GET(req: Request) {
                         });
 
                         await resend.emails.send({
-                            from: 'Aura Peptides <onboarding@resend.dev>',
+                            from: EMAIL_FROM,
+                            replyTo: EMAIL_REPLY_TO,
                             to: order.email,
                             subject,
                             html,
