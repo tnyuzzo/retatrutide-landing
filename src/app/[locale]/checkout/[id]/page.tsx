@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { QRCodeSVG } from "qrcode.react";
-import { Lock, CheckCircle, ArrowLeft, Shield, Package, MapPin, CreditCard } from "lucide-react";
+import { Lock, CheckCircle, ArrowLeft, Shield, Package, MapPin, CreditCard, AlertCircle, XCircle } from "lucide-react";
 import { CheckoutPoller } from "@/components/ui/CheckoutPoller";
+import { CopyAddressButton } from "@/components/ui/CopyAddressButton";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -23,6 +24,37 @@ export default async function CheckoutPage(props: {
 
     if (!order) {
         return notFound();
+    }
+
+    // Handle expired or cancelled orders — don't show QR in loop
+    if (order.status === 'expired' || order.status === 'cancelled') {
+        const isExpired = order.status === 'expired';
+        return (
+            <main className="min-h-screen bg-brand-void text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+                <div className="z-10 max-w-md w-full flex flex-col items-center gap-6 text-center">
+                    {isExpired
+                        ? <AlertCircle className="w-14 h-14 text-yellow-400/80" />
+                        : <XCircle className="w-14 h-14 text-red-400/80" />
+                    }
+                    <div>
+                        <h1 className="text-2xl font-light text-white mb-2">
+                            {isExpired ? t('checkout_order_expired') : t('checkout_order_cancelled')}
+                        </h1>
+                        <p className="text-white/50 text-sm leading-relaxed">{t('checkout_order_invalid_desc')}</p>
+                    </div>
+                    <Link
+                        href={`/${params.locale}/order`}
+                        className="bg-brand-gold text-brand-void font-semibold px-8 py-3 rounded-xl hover:bg-white transition-colors text-sm"
+                    >
+                        {t('checkout_create_new_order')}
+                    </Link>
+                    <Link href={`/${params.locale}`} className="text-white/40 hover:text-white/70 text-xs transition-colors">
+                        {t('nav_home')}
+                    </Link>
+                </div>
+            </main>
+        );
     }
 
     // If already paid, show success screen with order summary
@@ -136,11 +168,11 @@ export default async function CheckoutPage(props: {
                     <QRCodeSVG value={order.payment_url || ""} size={200} level="H" includeMargin={true} />
                 </div>
 
-                <div className="w-full flex justify-between items-center bg-black/40 p-4 rounded-xl border border-white/5 hover:border-brand-gold/30 transition-colors">
-                    <span className="font-mono text-xs md:text-sm truncate text-white/70 tracking-tight select-all">
-                        {order.payment_url}
-                    </span>
-                </div>
+                <CopyAddressButton
+                    address={order.payment_url || ""}
+                    labelCopy={t('checkout_copy_address')}
+                    labelCopied={t('checkout_copy_address_done')}
+                />
 
                 <div className="flex items-center gap-3 mt-4 mb-6">
                     <div className="w-4 h-4 rounded-full border-2 border-brand-gold/50 border-t-brand-gold animate-spin"></div>

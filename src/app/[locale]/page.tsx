@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { Shield, ShieldCheck, Zap, Lock, Truck, FlaskConical, Navigation, ChevronDown, Package, MessageCircle, Beaker, ArrowRight, Thermometer, CheckCircle2, User } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Shield, ShieldCheck, Zap, Lock, Truck, FlaskConical, Navigation, ChevronDown, Package, MessageCircle, Beaker, ArrowRight, Thermometer, CheckCircle2, User, Gift } from "lucide-react";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
@@ -17,11 +17,17 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showCoaModal, setShowCoaModal] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
+  const [tickerIndex, setTickerIndex] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => setShowStickyBar(window.scrollY > 400);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => setTickerIndex(prev => (prev + 1) % 4), 2500);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -56,7 +62,7 @@ export default function Home() {
       </nav>
 
       {/* HERO SECTION */}
-      <section className="relative min-h-screen flex items-center justify-center pt-20 md:pt-24 pb-12 px-6">
+      <section className="relative min-h-screen flex items-center justify-center pt-16 md:pt-24 pb-12 px-6">
         {/* Background Effects */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-gold/10 blur-[120px] rounded-full pointer-events-none radial-glow"></div>
 
@@ -66,24 +72,61 @@ export default function Home() {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className="flex flex-col gap-6"
+            className="flex flex-col gap-2 lg:gap-6"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-brand-gold/30 bg-brand-gold/5 w-fit whitespace-nowrap">
-              <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse shrink-0"></span>
-              <span className="text-sm uppercase tracking-[0.2em] text-brand-gold">{t('hero_badge')}</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand-gold/30 bg-brand-gold/5 w-fit whitespace-nowrap self-center">
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse shrink-0"></span>
+              <span className="text-xs uppercase tracking-[0.2em] text-brand-gold">{t('hero_badge')}</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-extralight leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-extralight leading-tight">
               {t('hero_title')} <br />
               <span className="font-semibold text-gradient-gold">Retatrutide</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-white/60 font-light max-w-lg leading-relaxed">
+            <p className="text-xs md:text-lg lg:text-xl text-white/60 font-light max-w-lg leading-relaxed line-clamp-3 lg:line-clamp-none">
               {t('hero_subtitle')}
             </p>
 
-            <div className="mt-8 flex flex-col items-start gap-4">
-              <LiveInventoryBadge />
+            {/* Mobile-only product image — above the fold before CTA */}
+            <div className="lg:hidden relative h-36 w-full rounded-2xl overflow-hidden border border-brand-gold/20 bg-brand-void gold-glow">
+              <div className="absolute inset-0 bg-gradient-to-tr from-brand-void via-brand-void/80 to-[#1a1c1a]" />
+              <div className="absolute inset-0">
+                <Image
+                  src="/images/retatrutide_hero_gold.png"
+                  alt="Retatrutide 10mg"
+                  fill
+                  className="object-cover mix-blend-screen scale-110 opacity-90"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-void via-brand-void/20 to-transparent" />
+              </div>
+              <div className="absolute bottom-3 inset-x-0 text-center z-10">
+                <p className="text-white text-sm font-light">Retatrutide <span className="text-brand-gold font-medium">10mg</span></p>
+                <p className="text-brand-gold/70 text-xs font-mono mt-0.5">≥ 99.8% HPLC</p>
+              </div>
+            </div>
+
+            {/* Mobile: info strip sopra il CTA */}
+            <div className="lg:hidden flex flex-col gap-1 px-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-brand-gold font-semibold text-sm">97€</span>
+                <span className="text-white/40 text-xs">/fiala</span>
+                <span className="text-white/20 text-xs">·</span>
+                <span className="text-white/50 text-xs">min. 3 box</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-white/50">
+                <Gift className="w-3 h-3 text-brand-gold shrink-0" />
+                <span>Acqua batteriostatica 3ml omaggio</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-start gap-3 lg:gap-4 lg:mt-8 w-full">
+              {/* Desktop: alert sopra il CTA */}
+              <div className="hidden lg:block w-full">
+                <LiveInventoryBadge />
+              </div>
+
               <PremiumButton
                 className="hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] transition-shadow group relative overflow-hidden px-12 py-4 text-lg w-full sm:w-auto"
                 onClick={() => window.location.href = `/${locale}/order`}
@@ -93,7 +136,13 @@ export default function Home() {
                   {t('hero_cta_hook')} <ArrowRight className="w-5 h-5 ml-1" />
                 </span>
               </PremiumButton>
-              <div className="flex items-center gap-2 text-white/50 text-sm pl-2">
+
+              {/* Mobile: alert sotto il CTA */}
+              <div className="lg:hidden w-full">
+                <LiveInventoryBadge />
+              </div>
+
+              <div className="hidden lg:flex items-center gap-2 text-white/50 text-sm pl-2">
                 <Lock className="w-3 h-3 text-brand-gold" />
                 <span>{t('hero_cta_starting')} <strong className="text-white">97€</strong> {t('hero_cta_per_vial')}</span>
               </div>
@@ -164,7 +213,7 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
-            className="relative lg:h-[700px] flex items-center justify-center perspective-1000 group"
+            className="hidden lg:flex lg:h-[700px] relative items-center justify-center perspective-1000 group"
           >
             <div className="relative w-full max-w-md aspect-[3/4] rounded-2xl overflow-hidden glass-panel border-brand-gold/20 p-2 gold-glow transition-all duration-700 group-hover:shadow-[0_0_40px_rgba(255,215,0,0.2)] group-hover:-translate-y-2 group-hover:border-brand-gold/40">
               <div className="absolute inset-0 bg-gradient-to-tr from-brand-void via-brand-void/80 to-[#1a1c1a] z-0 transition-opacity duration-700 group-hover:opacity-80"></div>
@@ -218,7 +267,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <motion.div
-              whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 30 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.6 }}
+              whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 30 }} viewport={{ once: true, amount: 0.05 }} transition={{ duration: 0.6 }}
               className="glass-panel p-8 group hover:-translate-y-2 transition-transform duration-300"
             >
               <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mb-6 group-hover:bg-brand-gold/10 transition-colors">
@@ -230,7 +279,7 @@ export default function Home() {
 
             {/* Crypto Checkout Feature prominently highlighted for User Request */}
             <motion.div
-              whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 30 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.6, delay: 0.1 }}
+              whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 30 }} viewport={{ once: true, amount: 0.05 }} transition={{ duration: 0.6, delay: 0.1 }}
               className="glass-panel p-8 group hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden border-brand-gold/30"
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-gold to-brand-gold-light"></div>
@@ -245,7 +294,7 @@ export default function Home() {
             </motion.div>
 
             <motion.div
-              whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 30 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.6, delay: 0.2 }}
+              whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 30 }} viewport={{ once: true, amount: 0.05 }} transition={{ duration: 0.6, delay: 0.2 }}
               className="glass-panel p-8 group hover:-translate-y-2 transition-transform duration-300"
             >
               <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mb-6 group-hover:bg-brand-gold/10 transition-colors">
@@ -258,13 +307,49 @@ export default function Home() {
         </div>
       </section >
 
-      {/* TRUST BADGES & GUARANTEES - INFINITE TICKER */}
-      <section className="py-8 bg-[#0a0a0a] border-t border-b border-white/5 overflow-hidden" >
+      {/* TRUST BADGES & GUARANTEES */}
+
+      {/* Mobile: fade banners in sequenza */}
+      <section className="md:hidden py-6 bg-[#0a0a0a] border-t border-b border-white/5">
+        {(() => {
+          const items = [
+            { icon: <ShieldCheck className="w-5 h-5 text-brand-gold shrink-0" />, label: t('ticker_purity') },
+            { icon: <FlaskConical className="w-5 h-5 text-brand-gold shrink-0" />, label: t('ticker_lab') },
+            { icon: <Package className="w-5 h-5 text-brand-gold shrink-0" />, label: t('ticker_stealth') },
+            { icon: <Truck className="w-5 h-5 text-brand-gold shrink-0" />, label: t('ticker_guarantee') },
+          ];
+          return (
+            <>
+              <div className="relative h-7 flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={tickerIndex}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.35 }}
+                    className="absolute flex items-center gap-2.5"
+                  >
+                    {items[tickerIndex].icon}
+                    <span className="font-medium text-white/90 text-sm tracking-wide">{items[tickerIndex].label}</span>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              <div className="flex justify-center gap-1.5 mt-2.5">
+                {items.map((_, i) => (
+                  <div key={i} className={`w-1 h-1 rounded-full transition-colors duration-300 ${i === tickerIndex ? 'bg-brand-gold' : 'bg-white/20'}`} />
+                ))}
+              </div>
+            </>
+          );
+        })()}
+      </section>
+
+      {/* Desktop: infinite scrolling ticker */}
+      <section className="hidden md:block py-8 bg-[#0a0a0a] border-t border-b border-white/5 overflow-hidden">
         <div className="relative flex w-full">
-          {/* Fading Edges */}
           <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-[#0a0a0a] to-transparent z-10"></div>
           <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-[#0a0a0a] to-transparent z-10"></div>
-
           <motion.div
             animate={{ x: ["0%", "-50%"] }}
             transition={{ duration: 25, ease: "linear", repeat: Infinity }}
@@ -296,7 +381,7 @@ export default function Home() {
             ))}
           </motion.div>
         </div>
-      </section >
+      </section>
 
       {/* QUALITY PIPELINE */}
       <section className="py-24 px-6 bg-brand-void relative" id="quality" >
@@ -347,7 +432,7 @@ export default function Home() {
             <p className="text-white/50 max-w-2xl mx-auto">{t('trust_earned_sub')}</p>
           </div>
           <motion.div
-            whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.6 }}
+            whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} viewport={{ once: true, amount: 0.05 }} transition={{ duration: 0.6 }}
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
           >
             <div className="glass-panel p-8 border-brand-gold/20 flex flex-col gap-4">
@@ -388,13 +473,13 @@ export default function Home() {
       </section >
 
       {/* WHY AURA */}
-      <section className="py-24 px-6 bg-black border-t border-white/5" >
+      <section className="py-24 px-6 border-t border-white/5" >
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-light mb-4 text-white">{t('why_title')} <span className="text-brand-gold font-medium">{t('why_subtitle')}</span></h2>
           </div>
           <motion.div
-            whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.6 }}
+            whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} viewport={{ once: true, amount: 0.05 }} transition={{ duration: 0.6 }}
             className="grid grid-cols-1 md:grid-cols-2 gap-6"
           >
             {[1, 2, 3, 4].map((num) => (
@@ -413,7 +498,7 @@ export default function Home() {
       </section >
 
       {/* PRODUCT SPECIFICATIONS */}
-      <section className="py-16 px-6 bg-[#0a0a0a] border-t border-white/5" >
+      <section className="py-16 px-6 border-t border-white/5" >
         <div className="max-w-3xl mx-auto">
           <h2 className="text-xl font-medium text-white mb-8 flex items-center gap-3">
             <Thermometer className="w-5 h-5 text-brand-gold" />
@@ -510,7 +595,7 @@ export default function Home() {
                       <span className="font-medium text-white/90">{t(`faq_q${num}`)}</span>
                       <ChevronDown className={`w-5 h-5 text-brand-gold shrink-0 ml-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
-                    <div className={`px-6 text-white/60 text-sm leading-relaxed transition-all duration-300 ease-in-out ${isOpen ? 'max-h-60 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className={`px-6 text-white/60 text-sm leading-relaxed transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[800px] pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
                       {t(`faq_a${num}`)}
                     </div>
                   </div>
@@ -534,7 +619,7 @@ export default function Home() {
                       <span className="font-medium text-white/90">{t(`faq_q${num}`)}</span>
                       <ChevronDown className={`w-5 h-5 text-brand-gold shrink-0 ml-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
-                    <div className={`px-6 text-white/60 text-sm leading-relaxed transition-all duration-300 ease-in-out ${isOpen ? 'max-h-60 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className={`px-6 text-white/60 text-sm leading-relaxed transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[800px] pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
                       {t(`faq_a${num}`)}
                     </div>
                   </div>
@@ -551,7 +636,7 @@ export default function Home() {
       </section >
 
       {/* FOOTER - MIAMI STYLE (Rec 3) */}
-      < footer className="border-t border-white/5 py-12 px-6 bg-[#050505]" >
+      < footer className="border-t border-white/5 py-12 px-6 bg-brand-void" >
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 text-sm text-white/40 mb-12">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 mb-2">
@@ -644,13 +729,20 @@ export default function Home() {
 
       {/* STICKY MOBILE PURCHASE BAR */}
       {showStickyBar && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-brand-void/95 backdrop-blur-xl border-t border-brand-gold/20 px-5 py-3 flex items-center gap-3 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]">
-          <div className="flex flex-col shrink-0">
-            <span className="text-[11px] text-white/40 uppercase tracking-wider leading-none mb-0.5">{t('hero_cta_starting')}</span>
-            <span className="text-xl font-semibold text-brand-gold leading-none">97€</span>
+        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-brand-void/95 backdrop-blur-xl border-t border-brand-gold/20 px-4 py-3 flex items-center gap-3 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]">
+          {/* Prezzo */}
+          <div className="flex flex-col shrink-0 min-w-0">
+            <div className="flex items-baseline gap-1">
+              <span className="text-[10px] text-white/40 leading-none mr-0.5">{t('hero_cta_starting')}</span>
+              <span className="text-lg font-bold text-brand-gold leading-none">97€</span>
+            </div>
+            <div className="flex items-center gap-1 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0"></span>
+              <span className="text-[10px] text-red-400 leading-none whitespace-nowrap">{t('inventory_high_demand')} 47 {t('inventory_kits_remaining')}</span>
+            </div>
           </div>
           <PremiumButton
-            className="flex-1 !py-3 !text-sm"
+            className="flex-1 !py-2.5 !text-sm"
             onClick={() => window.location.href = `/${locale}/order`}
           >
             <span className="flex items-center justify-center gap-2">

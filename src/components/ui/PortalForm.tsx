@@ -83,7 +83,7 @@ export function PortalForm() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder={t('portal_email_placeholder')}
-                                className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-brand-gold/50 transition-colors"
+                                className="bg-white/[0.07] border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/35 focus:outline-none focus:border-brand-gold/60 focus:bg-white/10 transition-colors"
                                 required
                             />
                         </div>
@@ -94,7 +94,7 @@ export function PortalForm() {
                                 value={reference}
                                 onChange={(e) => setReference(e.target.value)}
                                 placeholder={t('portal_ref_placeholder')}
-                                className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-brand-gold/50 transition-colors font-mono"
+                                className="bg-white/[0.07] border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/35 focus:outline-none focus:border-brand-gold/60 focus:bg-white/10 transition-colors font-mono"
                                 required
                             />
                         </div>

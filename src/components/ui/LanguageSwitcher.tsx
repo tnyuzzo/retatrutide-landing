@@ -28,16 +28,16 @@ export function LanguageSwitcher() {
     };
 
     const languages = [
-        { code: 'en', label: 'EN' },
-        { code: 'it', label: 'IT' },
-        { code: 'fr', label: 'FR' },
-        { code: 'de', label: 'DE' },
-        { code: 'es', label: 'ES' },
-        { code: 'pt', label: 'PT' },
-        { code: 'pl', label: 'PL' },
-        { code: 'ru', label: 'RU' },
-        { code: 'uk', label: 'UK' },
-        { code: 'ar', label: 'AR' }
+        { code: 'en', label: 'EN', flag: '🇬🇧' },
+        { code: 'it', label: 'IT', flag: '🇮🇹' },
+        { code: 'fr', label: 'FR', flag: '🇫🇷' },
+        { code: 'de', label: 'DE', flag: '🇩🇪' },
+        { code: 'es', label: 'ES', flag: '🇪🇸' },
+        { code: 'pt', label: 'PT', flag: '🇵🇹' },
+        { code: 'pl', label: 'PL', flag: '🇵🇱' },
+        { code: 'ru', label: 'RU', flag: '🇷🇺' },
+        { code: 'uk', label: 'UK', flag: '🇺🇦' },
+        { code: 'ar', label: 'AR', flag: '🇸🇦' },
     ];
 
     return (
@@ -48,12 +48,13 @@ export function LanguageSwitcher() {
                     <span
                         key={lang.code}
                         onClick={() => handleLocaleChange(lang.code)}
-                        className={`cursor-pointer transition-colors uppercase ${locale === lang.code
+                        className={`cursor-pointer transition-colors uppercase flex items-center gap-1 ${locale === lang.code
                             ? 'text-brand-gold font-medium'
                             : 'text-white/40 hover:text-white'
                             }`}
                     >
-                        {lang.label}
+                        <span>{lang.flag}</span>
+                        <span>{lang.label}</span>
                     </span>
                 ))}
             </div>
@@ -62,15 +63,17 @@ export function LanguageSwitcher() {
             <div className="lg:hidden flex items-center">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-1 text-xs tracking-widest uppercase text-brand-gold font-medium bg-brand-gold/10 px-4 py-3 rounded-full border border-brand-gold/30 hover:bg-brand-gold/20 transition-colors min-h-[44px]"
+                    className="flex items-center gap-1.5 text-xs tracking-widest uppercase text-brand-gold font-medium hover:text-brand-gold-light transition-colors min-h-[44px] px-1"
                 >
-                    {locale} <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <span className="text-base leading-none">{languages.find(l => l.code === locale)?.flag}</span>
+                    <span>{locale.toUpperCase()}</span>
+                    <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {isOpen && (
                     <>
                     <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} aria-hidden="true" />
-                    <div className="absolute right-0 top-full mt-2 bg-brand-void/98 backdrop-blur-xl border border-brand-gold/20 rounded-xl p-4 flex flex-col gap-4 shadow-2xl z-50 min-w-[80px]">
+                    <div className="absolute right-0 top-full mt-2 bg-brand-void/98 backdrop-blur-xl border border-brand-gold/20 rounded-xl p-4 flex flex-col gap-3 shadow-2xl z-50 min-w-[100px]">
                         {languages.map((lang) => (
                             <span
                                 key={lang.code}
@@ -78,12 +81,13 @@ export function LanguageSwitcher() {
                                     handleLocaleChange(lang.code);
                                     setIsOpen(false);
                                 }}
-                                className={`cursor-pointer transition-colors text-xs tracking-widest uppercase text-right ${locale === lang.code
+                                className={`cursor-pointer transition-colors text-xs tracking-widest uppercase flex items-center gap-2 ${locale === lang.code
                                     ? 'text-brand-gold font-medium'
                                     : 'text-white/50 hover:text-white'
                                     }`}
                             >
-                                {lang.label}
+                                <span className="text-base leading-none">{lang.flag}</span>
+                                <span>{lang.label}</span>
                             </span>
                         ))}
                     </div>

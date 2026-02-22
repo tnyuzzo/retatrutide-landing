@@ -227,6 +227,20 @@ export default function CalculatorPage() {
                     </div>
                 </div>
 
+                {/* Order CTA */}
+                <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-brand-gold/5 border border-brand-gold/20">
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                        <span className="text-xs text-brand-gold font-medium uppercase tracking-widest">Retatrutide 10mg</span>
+                        <span className="text-white/60 text-xs leading-relaxed">{t("calc_order_cta_desc")}</span>
+                    </div>
+                    <Link
+                        href={`/${locale}/order`}
+                        className="shrink-0 flex items-center gap-1.5 bg-brand-gold text-brand-void text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-white transition-colors whitespace-nowrap"
+                    >
+                        {t("calc_order_cta")} →
+                    </Link>
+                </div>
+
                 {/* Disclaimer */}
                 <div className="text-center text-[10px] text-white/25 leading-relaxed pb-8">
                     {t("calc_disclaimer")}

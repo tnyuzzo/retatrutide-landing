@@ -7,7 +7,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { OrderStructuredData } from "@/components/seo/OrderStructuredData";
 
-const BASE_PRICE = 12; // TODO: restore to 197 after testing
+const BASE_PRICE = 197;
 
 const DISCOUNT_TIERS = [
     { min: 1, discount: 0 },
@@ -642,23 +642,45 @@ export default function OrderPage() {
             </div>
 
             {/* MOBILE STICKY CHECKOUT BAR */}
-            <div className="fixed bottom-0 left-0 w-full px-6 py-4 sm:pb-4 bg-brand-void/95 backdrop-blur-xl border-t border-brand-gold/20 z-50 lg:hidden flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)] transition-transform duration-300 transform translate-y-0">
-                <div className="flex flex-col">
-                    <span className="text-[10px] text-white/50 uppercase tracking-widest">{t('order_total')}</span>
-                    <span className="text-xl font-medium text-brand-gold">{totalPrice}€</span>
+            <div className="fixed bottom-0 left-0 w-full bg-brand-void/97 backdrop-blur-xl border-t border-brand-gold/20 z-50 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.6)]">
+                {/* Crypto selector row */}
+                <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
+                    <span className="text-[10px] text-white/40 uppercase tracking-wider shrink-0">{t('order_payment_method')}:</span>
+                    <select
+                        value={selectedCrypto}
+                        onChange={(e) => setSelectedCrypto(e.target.value)}
+                        className="flex-1 h-7 bg-brand-void border border-brand-gold/30 text-white text-[11px] rounded-md px-2 appearance-none focus:outline-none focus:border-brand-gold cursor-pointer font-medium"
+                    >
+                        <option value="BTC">Bitcoin (BTC)</option>
+                        <option value="ETH">Ethereum (ETH)</option>
+                        <option value="XMR">Monero (XMR)</option>
+                        <option value="SOL">Solana (SOL)</option>
+                        <option value="USDT">USDT (TRC20)</option>
+                        <option value="USDC">USDC (ERC20)</option>
+                    </select>
                 </div>
-                <PremiumButton
-                    className="px-6 py-2.5"
-                    onClick={() => {
-                        handleCheckout();
-                        setTimeout(() => {
-                            const err = document.getElementById('form-error');
-                            if (err) err.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 100);
-                    }}
-                >
-                    {isProcessing ? t('order_processing') : t('order_cta')}
-                </PremiumButton>
+                {/* Price + CTA row */}
+                <div className="flex items-center justify-between gap-3 px-4 pb-4 pt-1.5">
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-[10px] text-white/50 uppercase tracking-widest">{t('order_total')}</span>
+                        <span className="text-xl font-medium text-brand-gold leading-tight">{totalPrice}€</span>
+                        {discount > 0 && (
+                            <span className="text-[10px] text-green-400 leading-none">{t('order_bulk_discount')} -{discount}%</span>
+                        )}
+                    </div>
+                    <PremiumButton
+                        className="px-6 py-2.5 shrink-0"
+                        onClick={() => {
+                            handleCheckout();
+                            setTimeout(() => {
+                                const err = document.getElementById('form-error');
+                                if (err) err.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 100);
+                        }}
+                    >
+                        {isProcessing ? t('order_processing') : t('order_cta')}
+                    </PremiumButton>
+                </div>
             </div>
 
             {/* SEO: Structured Data */}
