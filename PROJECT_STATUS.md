@@ -7,7 +7,7 @@
 
 ## Current State
 
-- **Last deploy**: 2026-02-22 (commit `f06294c`)
+- **Last deploy**: 2026-02-22 (commit `0a0e765`)
 - **Branch**: main (up to date with origin/main)
 - **Build**: 81 static pages, zero errors
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
@@ -494,15 +494,21 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
-- [2026-02-22] **Mobile UX Sitewide Audit & Fix**: Risoluzione bug di overflow orizzontale critico su `order`, `home` e `calculator` trasformando il `LanguageSwitcher` in un Dropdown Menu responsivo. Aumentata la Tap Area (min-h-48px) dei bottoni di conversione sul calcolatore peptidi e maggiorato il `px-6` sulle fasce Sticky bottom (`order/page.tsx`). 
-- [2026-02-22] Mobile Conversion Rate Optimization: UX Checkout in `order/page.tsx` (form autofill group, sticky toolbar, large tap targets, payment trust signals)
-- [2026-02-22] Prototipazione Label "Triple G" (Design 2D completato e in attesa di file print/HTML finale)
+- [2026-02-22] **2° round fix mobile da device reale** (commit `153e6a6`, `0a0e765`):
+  - `page.tsx`: nav più sottile (py-2 mobile/py-4 desktop), logo `whitespace-nowrap`, "Portale Clienti" → icona `User` circolare
+  - Hero badge su una riga (`whitespace-nowrap`), hero `pt-20` mobile
+  - Shipping card timeline: `flex-wrap` invece di `overflow-x-auto`
+  - `LiveInventoryBadge`: layout compatto su una riga, rimosso timestamp
+  - `calculator/page.tsx`: redesign above-fold — sezioni 1+2 fuse, inputs sempre grid-cols-2, siringa visibile anche su mobile (h-10 mobile/h-16 desktop)
+  - `order/page.tsx`: `overflow-x-hidden` su main → eliminato scroll orizzontale
+- [2026-02-22] **Mobile UX Sitewide Audit & Fix (1° round)**: 13 fix tra bug, touch targets, sticky bar, language dropdown, spec table layout
+- [2026-02-22] Mobile Conversion Rate Optimization: UX Checkout in `order/page.tsx`
 - [2026-02-22] SEO full implementation (metadata, structured data, sitemap, robots, hreflang, 200 translation keys)
 - [2026-02-22] CLAUDE.md + PROJECT_STATUS.md creati
 
 ## In Progress
 
-- Task UX Mobile conclusi con successo totale. Nessun bug appeso al momento. Il ramo d'esecuzione attuale è pronto per aggredire gli step di "TODO / Planned".
+- Nessun task in corso. Tutti i fix mobile completati e pushati.
 
 ## TODO / Planned
 
