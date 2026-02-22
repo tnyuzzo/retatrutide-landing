@@ -170,7 +170,7 @@
     "verified_buyer": "مشترٍ موثق",
     "trust_earned": "ثقة",
     "trust_earned_gold": "مكتسبة",
-    "trust_earned_sub": "تقييم 4.9/5 من أكثر من 7,496 باحث حول العالم.",
+    "trust_earned_sub": "تقييم 4.9/5 من أكثر من {count} باحث حول العالم.",
     "portal_title": "تتبع طلبك",
     "portal_subtitle": "أدخل بريدك الإلكتروني ورقم المرجع للتحقق من حالة طقم البحث الخاص بك.",
     "portal_email_label": "البريد الإلكتروني",

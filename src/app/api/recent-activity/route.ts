@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 export const dynamic = 'force-dynamic';
 
 // Cache for 5 minutes to reduce DB load
-let cache: { data: ActivityItem[]; ts: number } | null = null;
+let cache: { data: ActivityItem[]; totalOrders: number; ts: number } | null = null;
 const CACHE_TTL = 5 * 60 * 1000;
 
 export interface ActivityItem {
@@ -28,21 +28,28 @@ function getTimeAgoKey(createdAt: string): string {
 export async function GET() {
     // Return cached if fresh
     if (cache && Date.now() - cache.ts < CACHE_TTL) {
-        return NextResponse.json({ activities: cache.data });
+        return NextResponse.json({ activities: cache.data, totalOrders: cache.totalOrders });
     }
 
     try {
         const supabase = getSupabaseAdmin();
-        const { data: orders } = await supabase
-            .from('orders')
-            .select('shipping_address, created_at, items')
-            .in('status', ['paid', 'shipped', 'delivered'])
-            .order('created_at', { ascending: false })
-            .limit(8);
 
-        if (!orders || orders.length === 0) {
-            return NextResponse.json({ activities: [] });
-        }
+        // Fetch recent orders + total count in parallel
+        const [ordersResult, countResult] = await Promise.all([
+            supabase
+                .from('orders')
+                .select('shipping_address, created_at, items')
+                .in('status', ['paid', 'shipped', 'delivered'])
+                .order('created_at', { ascending: false })
+                .limit(8),
+            supabase
+                .from('orders')
+                .select('id', { count: 'exact', head: true })
+                .neq('status', 'cancelled'),
+        ]);
+
+        const orders = ordersResult.data || [];
+        const totalOrders = countResult.count || 0;
 
         const activities: ActivityItem[] = orders
             .map((order): ActivityItem | null => {
@@ -71,10 +78,10 @@ export async function GET() {
             })
             .filter((a): a is ActivityItem => a !== null);
 
-        cache = { data: activities, ts: Date.now() };
-        return NextResponse.json({ activities });
+        cache = { data: activities, totalOrders, ts: Date.now() };
+        return NextResponse.json({ activities, totalOrders });
     } catch {
         // On error, return empty — do NOT show fake data
-        return NextResponse.json({ activities: [] });
+        return NextResponse.json({ activities: [], totalOrders: 0 });
     }
 }

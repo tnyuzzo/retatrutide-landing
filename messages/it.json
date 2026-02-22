@@ -170,7 +170,7 @@
     "verified_buyer": "Acquirente Verificato",
     "trust_earned": "Fiducia",
     "trust_earned_gold": "Garantita",
-    "trust_earned_sub": "Valutato 4.9/5 da oltre 7.496 Ricercatori nel Mondo.",
+    "trust_earned_sub": "Valutato 4.9/5 da oltre {count} Ricercatori nel Mondo.",
     "portal_title": "Traccia il tuo Ordine",
     "portal_subtitle": "Inserisci la tua email e l'ID di riferimento per verificare lo stato del tuo kit.",
     "portal_email_label": "Indirizzo Email",

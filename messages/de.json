@@ -170,7 +170,7 @@
     "verified_buyer": "Verifizierter Käufer",
     "trust_earned": "Vertrauen",
     "trust_earned_gold": "Verdient",
-    "trust_earned_sub": "Bewertet mit 4,9/5 von über 7.496 Forschern weltweit.",
+    "trust_earned_sub": "Bewertet mit 4,9/5 von über {count} Forschern weltweit.",
     "portal_title": "Ihre Bestellung verfolgen",
     "portal_subtitle": "Geben Sie Ihre E-Mail und Referenz-ID ein, um den Status Ihres Forschungssets zu überprüfen.",
     "portal_email_label": "E-Mail-Adresse",

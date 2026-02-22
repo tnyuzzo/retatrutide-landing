@@ -170,7 +170,7 @@
     "verified_buyer": "Acheteur Vérifié",
     "trust_earned": "Confiance",
     "trust_earned_gold": "Méritée",
-    "trust_earned_sub": "Noté 4,9/5 par plus de 7 496 chercheurs dans le monde.",
+    "trust_earned_sub": "Noté 4,9/5 par plus de {count} chercheurs dans le monde.",
     "portal_title": "Suivre votre commande",
     "portal_subtitle": "Entrez votre e-mail et votre numéro de référence pour vérifier le statut de votre kit de recherche.",
     "portal_email_label": "Adresse e-mail",

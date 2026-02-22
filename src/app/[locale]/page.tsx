@@ -18,6 +18,7 @@ export default function Home() {
   const [showCoaModal, setShowCoaModal] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [tickerIndex, setTickerIndex] = useState(0);
+  const [orderCount, setOrderCount] = useState<number | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setShowStickyBar(window.scrollY > 400);
@@ -28,6 +29,13 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => setTickerIndex(prev => (prev + 1) % 4), 2500);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/recent-activity')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.totalOrders > 0) setOrderCount(data.totalOrders); })
+      .catch(() => {/* fallback to static */});
   }, []);
 
   return (
@@ -429,7 +437,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-5xl font-light mb-4 text-white">{t('trust_earned')} <span className="text-brand-gold font-medium">{t('trust_earned_gold')}</span></h2>
-            <p className="text-white/50 max-w-2xl mx-auto">{t('trust_earned_sub')}</p>
+            <p className="text-white/50 max-w-2xl mx-auto">
+              {t('trust_earned_sub', { count: (orderCount ?? 7496).toLocaleString() })}
+            </p>
           </div>
 
           {/* Trust micro-badges */}

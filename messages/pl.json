@@ -170,7 +170,7 @@
     "verified_buyer": "Zweryfikowany Kupujący",
     "trust_earned": "Zaufanie",
     "trust_earned_gold": "Zasłużone",
-    "trust_earned_sub": "Ocena 4,9/5 od ponad 7 496 badaczy na całym świecie.",
+    "trust_earned_sub": "Ocena 4,9/5 od ponad {count} badaczy na całym świecie.",
     "portal_title": "Śledź swoje zamówienie",
     "portal_subtitle": "Wprowadź swój adres e-mail i numer referencyjny, aby sprawdzić status swojego zestawu badawczego.",
     "portal_email_label": "Adres e-mail",

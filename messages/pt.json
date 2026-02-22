@@ -170,7 +170,7 @@
     "verified_buyer": "Comprador Verificado",
     "trust_earned": "Confiança",
     "trust_earned_gold": "Merecida",
-    "trust_earned_sub": "Avaliado com 4,9/5 por mais de 7.496 pesquisadores em todo o mundo.",
+    "trust_earned_sub": "Avaliado com 4,9/5 por mais de {count} pesquisadores em todo o mundo.",
     "portal_title": "Rastrear o seu pedido",
     "portal_subtitle": "Insira o seu email e ID de referência para verificar o estado do seu kit de pesquisa.",
     "portal_email_label": "Endereço de Email",

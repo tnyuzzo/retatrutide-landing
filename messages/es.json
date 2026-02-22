@@ -170,7 +170,7 @@
     "verified_buyer": "Comprador Verificado",
     "trust_earned": "Confianza",
     "trust_earned_gold": "Ganada",
-    "trust_earned_sub": "Valorado con 4,9/5 por más de 7.496 investigadores en todo el mundo.",
+    "trust_earned_sub": "Valorado con 4,9/5 por más de {count} investigadores en todo el mundo.",
     "portal_title": "Rastrear tu pedido",
     "portal_subtitle": "Introduce tu correo electrónico y tu ID de referencia para comprobar el estado de tu kit de investigación.",
     "portal_email_label": "Dirección de correo electrónico",

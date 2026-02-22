@@ -170,7 +170,7 @@
     "verified_buyer": "Verified Buyer",
     "trust_earned": "Trust",
     "trust_earned_gold": "Earned",
-    "trust_earned_sub": "Rated 4.9/5 by 7,496+ Researchers Worldwide.",
+    "trust_earned_sub": "Rated 4.9/5 by {count}+ Researchers Worldwide.",
     "portal_title": "Track Your Order",
     "portal_subtitle": "Enter your email and reference ID to check the status of your research kit.",
     "portal_email_label": "Email Address",
