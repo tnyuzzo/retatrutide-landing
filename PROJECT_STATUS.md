@@ -494,6 +494,8 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-22] Mobile Conversion Rate Optimization: UX Checkout in `order/page.tsx` (form autofill group, sticky toolbar, large tap targets, payment trust signals)
+- [2026-02-22] Prototipazione Label "Triple G" (Design 2D completato e in attesa di file print/HTML finale)
 - [2026-02-22] SEO full implementation (metadata, structured data, sitemap, robots, hreflang, 200 translation keys)
 - [2026-02-22] CLAUDE.md + PROJECT_STATUS.md creati
 

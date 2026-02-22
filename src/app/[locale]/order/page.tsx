@@ -53,7 +53,7 @@ const ISO_TO_COUNTRY: Record<string, string> = {
     'SI': 'Slovenia', 'ES': 'Spain', 'SE': 'Sweden',
 };
 
-const EU_COUNTRY_CODES = ['at','be','bg','hr','cy','cz','dk','ee','fi','fr','de','gr','hu','ie','it','lv','lt','lu','mt','nl','pl','pt','ro','sk','si','es','se'];
+const EU_COUNTRY_CODES = ['at', 'be', 'bg', 'hr', 'cy', 'cz', 'dk', 'ee', 'fi', 'fr', 'de', 'gr', 'hu', 'ie', 'it', 'lv', 'lt', 'lu', 'mt', 'nl', 'pl', 'pt', 'ro', 'sk', 'si', 'es', 'se'];
 
 const COUNTRY_TO_ISO: Record<string, string> = Object.fromEntries(
     Object.entries(ISO_TO_COUNTRY).map(([iso, name]) => [name, iso.toLowerCase()])
@@ -326,7 +326,7 @@ export default function OrderPage() {
                         <div className="px-6 py-4 border-b border-white/10 bg-white/5">
                             <h3 className="text-sm font-medium uppercase tracking-widest text-brand-gold">{t('order_volume_discounts')}</h3>
                         </div>
-                        <div className="divide-y divide-white/5">
+                        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {DISCOUNT_TIERS.map((tier, i) => {
                                 const nextTier = DISCOUNT_TIERS[i + 1];
                                 const isActive = discount === tier.discount;
@@ -337,31 +337,32 @@ export default function OrderPage() {
                                     <div
                                         key={tier.min}
                                         onClick={() => setQuantity(tier.min)}
-                                        className={`flex items-center justify-between px-6 py-3.5 cursor-pointer transition-all ${isActive
-                                                ? 'bg-brand-gold/10 border-l-2 border-brand-gold'
-                                                : 'hover:bg-white/5 border-l-2 border-transparent'
+                                        className={`relative flex flex-col p-4 rounded-xl border transition-all cursor-pointer overflow-hidden ${isActive
+                                            ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_rgba(212,175,55,0.15)]'
+                                            : 'bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/10'
                                             }`}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <span className={`text-sm font-medium ${isActive ? 'text-white' : 'text-white/60'}`}>
+                                        {isActive && <div className="absolute top-0 left-0 w-full h-1 bg-brand-gold"></div>}
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className={`text-sm font-medium ${isActive ? 'text-white' : 'text-white/70'}`}>
                                                 {tier.min === 1 ? `1–2 ${t('order_pieces')}` :
                                                     nextTier ? `${tier.min}–${nextTier.min - 1} ${t('order_pieces')}` :
                                                         `${tier.min}+ ${t('order_pieces')}`}
                                             </span>
-                                            {isNextTarget && nextTier && (
-                                                <span className="text-[10px] text-brand-gold bg-brand-gold/10 px-2 py-0.5 rounded-full">
-                                                    +{nextTier.min - quantity} → -{nextTier.discount}%
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-4">
                                             {tier.discount > 0 ? (
-                                                <span className={`text-sm font-medium ${isActive ? 'text-green-400' : 'text-green-400/60'}`}>-{tier.discount}%</span>
+                                                <span className={`text-sm font-bold ${isActive ? 'text-green-400' : 'text-green-400/70'}`}>-{tier.discount}%</span>
                                             ) : (
                                                 <span className="text-sm text-white/30">—</span>
                                             )}
-                                            <span className={`text-sm font-mono ${isActive ? 'text-white' : 'text-white/50'}`}>{tierPrice}€/{t('order_piece_short')}</span>
                                         </div>
+                                        <div className="flex items-end justify-between">
+                                            <span className={`text-[1.3rem] leading-none font-light ${isActive ? 'text-brand-gold' : 'text-white/60'}`}>{tierPrice}€<span className="text-xs text-white/40">/{t('order_piece_short')}</span></span>
+                                        </div>
+                                        {isNextTarget && nextTier && (
+                                            <div className="mt-3 text-[10px] text-brand-gold bg-brand-gold/10 px-2 py-1.5 rounded text-center">
+                                                +{nextTier.min - quantity} → -{nextTier.discount}%
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -375,108 +376,125 @@ export default function OrderPage() {
                             <h3 className="text-sm font-medium uppercase tracking-widest text-brand-gold">{t('order_shipping_details')}</h3>
                         </div>
                         <div className="p-6 flex flex-col gap-4">
-                            {/* Email */}
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                <input
-                                    type="email"
-                                    placeholder={t('order_field_email')}
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
-                                />
+                            {/* Contact Box (Group 1) */}
+                            <div className="flex flex-col gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/5">
+                                <span className="text-[10px] uppercase tracking-widest text-brand-gold font-medium mb-1">Contact</span>
+                                {/* Email */}
+                                <div className="relative">
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                    <input
+                                        type="email"
+                                        autoComplete="email"
+                                        placeholder={t('order_field_email')}
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                    />
+                                </div>
+
+                                {/* Full Name */}
+                                <div className="relative">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                    <input
+                                        type="text"
+                                        autoComplete="name"
+                                        placeholder={t('order_field_name')}
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                    />
+                                </div>
+
+                                {/* Phone with country code */}
+                                <div className="flex gap-2">
+                                    <div className="relative w-[88px] shrink-0">
+                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                        <select
+                                            autoComplete="tel-country-code"
+                                            value={phoneCountryCode}
+                                            onChange={(e) => setPhoneCountryCode(e.target.value)}
+                                            className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-9 pr-1 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
+                                        >
+                                            {Object.entries(COUNTRY_PHONE_PREFIXES).map(([name, prefix]) => (
+                                                <option key={name} value={prefix} className="bg-brand-void">{prefix}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <input
+                                        type="tel"
+                                        autoComplete="tel-national"
+                                        placeholder={t('order_field_phone')}
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        className="flex-1 h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                    />
+                                </div>
                             </div>
 
-                            {/* Full Name */}
-                            <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                <input
-                                    type="text"
-                                    placeholder={t('order_field_name')}
-                                    value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
-                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
-                                />
-                            </div>
-
-                            {/* Country (first, so autocomplete filters by selected country) */}
-                            <div className="relative">
-                                <select
-                                    value={country}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setCountry(val);
-                                        const prefix = COUNTRY_PHONE_PREFIXES[val];
-                                        if (prefix) setPhoneCountryCode(prefix);
-                                    }}
-                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
-                                >
-                                    <option value="" className="bg-brand-void">{t('order_field_country')}</option>
-                                    {EU_COUNTRIES.map(c => (
-                                        <option key={c} value={c} className="bg-brand-void">{c}</option>
-                                    ))}
-                                </select>
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 text-xs">▼</div>
-                            </div>
-
-                            {/* Address Line 1 (with Google Places autocomplete) */}
-                            <input
-                                ref={addressInputRef}
-                                type="text"
-                                placeholder={t('order_field_address1')}
-                                value={addressLine1}
-                                onChange={(e) => setAddressLine1(e.target.value)}
-                                className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
-                            />
-
-                            {/* Address Line 2 (optional) */}
-                            <input
-                                type="text"
-                                placeholder={t('order_field_address2')}
-                                value={addressLine2}
-                                onChange={(e) => setAddressLine2(e.target.value)}
-                                className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
-                            />
-
-                            {/* City + Postal Code */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <input
-                                    type="text"
-                                    placeholder={t('order_field_city')}
-                                    value={city}
-                                    onChange={(e) => setCity(e.target.value)}
-                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
-                                />
-                                <input
-                                    type="text"
-                                    placeholder={t('order_field_postal')}
-                                    value={postalCode}
-                                    onChange={(e) => setPostalCode(e.target.value)}
-                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
-                                />
-                            </div>
-
-                            {/* Phone with country code */}
-                            <div className="flex gap-2">
-                                <div className="relative w-[88px] shrink-0">
-                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                            {/* Shipping Box (Group 2) */}
+                            <div className="flex flex-col gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/5">
+                                <span className="text-[10px] uppercase tracking-widest text-brand-gold font-medium mb-1">Destination</span>
+                                {/* Country */}
+                                <div className="relative">
                                     <select
-                                        value={phoneCountryCode}
-                                        onChange={(e) => setPhoneCountryCode(e.target.value)}
-                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-9 pr-1 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
+                                        autoComplete="country-name"
+                                        value={country}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setCountry(val);
+                                            const prefix = COUNTRY_PHONE_PREFIXES[val];
+                                            if (prefix) setPhoneCountryCode(prefix);
+                                        }}
+                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
                                     >
-                                        {Object.entries(COUNTRY_PHONE_PREFIXES).map(([name, prefix]) => (
-                                            <option key={name} value={prefix} className="bg-brand-void">{prefix}</option>
+                                        <option value="" className="bg-brand-void">{t('order_field_country')}</option>
+                                        {EU_COUNTRIES.map(c => (
+                                            <option key={c} value={c} className="bg-brand-void">{c}</option>
                                         ))}
                                     </select>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 text-xs">▼</div>
                                 </div>
+
+                                {/* Address Line 1 */}
                                 <input
-                                    type="tel"
-                                    placeholder={t('order_field_phone')}
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                    className="flex-1 h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                    ref={addressInputRef}
+                                    type="text"
+                                    autoComplete="shipping street-address"
+                                    placeholder={t('order_field_address1')}
+                                    value={addressLine1}
+                                    onChange={(e) => setAddressLine1(e.target.value)}
+                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
                                 />
+
+                                {/* Address Line 2 */}
+                                <input
+                                    type="text"
+                                    autoComplete="shipping address-line2"
+                                    placeholder={t('order_field_address2')}
+                                    value={addressLine2}
+                                    onChange={(e) => setAddressLine2(e.target.value)}
+                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                />
+
+                                {/* City + Postal Code */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        autoComplete="shipping address-level2"
+                                        placeholder={t('order_field_city')}
+                                        value={city}
+                                        onChange={(e) => setCity(e.target.value)}
+                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                    />
+                                    <input
+                                        type="text"
+                                        autoComplete="shipping postal-code"
+                                        placeholder={t('order_field_postal')}
+                                        value={postalCode}
+                                        onChange={(e) => setPostalCode(e.target.value)}
+                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                    />
+                                </div>
                             </div>
                             <p className="text-xs text-white/40 px-1">{t('order_privacy_note')}</p>
                         </div>
@@ -596,7 +614,7 @@ export default function OrderPage() {
 
                         {/* ERROR */}
                         {formError && (
-                            <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                            <div id="form-error" className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 animate-fade-in">
                                 {formError}
                             </div>
                         )}
@@ -611,11 +629,36 @@ export default function OrderPage() {
                             </span>
                         </PremiumButton>
 
-                        <div className="flex items-center justify-center gap-4 opacity-50 grayscale mt-2">
-                            <span className="text-[10px] tracking-widest uppercase">{t('order_secured_by')}</span>
+                        {/* TRUST SIGNALS UNDER PAY BUTTON (UX Improvement) */}
+                        <div className="flex flex-col items-center justify-center gap-2 mt-4 text-center">
+                            <div className="flex items-center gap-2 text-green-400">
+                                <Shield className="w-4 h-4" />
+                                <span className="text-[11px] font-medium tracking-wide">100% Secure & Anonymous Crypto Checkout</span>
+                            </div>
+                            <span className="text-[10px] text-white/40 max-w-xs leading-relaxed">Your transaction is fully encrypted. The next screen will guide you step-by-step through the payment.</span>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* MOBILE STICKY CHECKOUT BAR */}
+            <div className="fixed bottom-0 left-0 w-full p-4 bg-brand-void/95 backdrop-blur-xl border-t border-brand-gold/20 z-50 lg:hidden flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)] transition-transform duration-300 transform translate-y-0">
+                <div className="flex flex-col">
+                    <span className="text-[10px] text-white/50 uppercase tracking-widest">{t('order_total')}</span>
+                    <span className="text-xl font-medium text-brand-gold">{totalPrice}€</span>
+                </div>
+                <PremiumButton
+                    className="px-6 py-2.5"
+                    onClick={() => {
+                        handleCheckout();
+                        setTimeout(() => {
+                            const err = document.getElementById('form-error');
+                            if (err) err.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                    }}
+                >
+                    {isProcessing ? t('order_processing') : t('order_cta')}
+                </PremiumButton>
             </div>
 
             {/* SEO: Structured Data */}
