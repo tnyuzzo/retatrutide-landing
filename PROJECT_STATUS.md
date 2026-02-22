@@ -7,7 +7,7 @@
 
 ## Current State
 
-- **Last deploy**: 2026-02-22 (commit `8f5760c`)
+- **Last deploy**: 2026-02-22 (commit `3617079`)
 - **Branch**: main (up to date with origin/main)
 - **Build**: 81 static pages + 18 API routes, zero errors
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
@@ -494,6 +494,11 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-22] **Piano 1.2 + 1.4 — Checkout countdown + Hero mobile timeline** (commit `3617079`):
+  - `CheckoutCountdown` (nuovo client component): countdown live da `created_at + 24h`; 3 stati colore (bianco→ambra <1h→rosso <15min); tabular-nums per smooth update; si ferma a 0
+  - `checkout/[id]/page.tsx`: countdown integrato tra CopyAddressButton e spinner di attesa
+  - `page.tsx`: mini shipping timeline mobile-only (`lg:hidden`) sotto LiveInventoryBadge — icona Truck + 3 step `whitespace-nowrap`, truncate sull'ultimo
+  - `messages` (10 locali): +3 chiavi countdown (`checkout_valid_for`, `checkout_expires_in`, `checkout_expired_label`)
 - [2026-02-22] **CRO Tier 2.2 — Dynamic order counter** (commit `8f5760c`):
   - `/api/recent-activity`: aggiunto `totalOrders` (COUNT parallelo dal DB) nella response e nel cache
   - `page.tsx`: state `orderCount` + useEffect fetch; `trust_earned_sub` usa `{count}` interpolazione con fallback 7496
@@ -523,7 +528,7 @@ supabase/migrations/                # 4 SQL migration files
 
 ## In Progress
 
-- Nessun task in corso. Tutti i Tier CRO (0/1/2/3 + 2.2 dynamic counter) completati e pushati.
+- Nessun task in corso. **Piano CRO completo** — tutti gli item del piano implementati e pushati.
 
 ## TODO / Planned
 
