@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triple G - 2D Label Preview (Option 7)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            background-color: #f3f4f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            color: #111827;
+        }
+
+        .helper-text {
+            margin-bottom: 40px;
+            text-align: center;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .scale-container {
+            transform: scale(4.5);
+            /* Scale up to be very clear on screen */
+            transform-origin: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* MEASUREMENTS: 38.1mm x 21.2mm */
+        .label-2d {
+            width: 38.1mm;
+            height: 21.2mm;
+            background-color: #ffffff;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ----- LEFT SIDE (82%) ----- */
+        .label-main {
+            width: 82%;
+            height: 100%;
+            padding: 1.5mm 1.5mm 1.2mm 2mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .aura-logo {
+            display: flex;
+            align-items: center;
+            gap: 1.2mm;
+        }
+
+        .logo-circle {
+            width: 2.8mm;
+            height: 2.8mm;
+            border-radius: 50%;
+            border: 0.25mm solid #0c1a35;
+            /* Navy elegant */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .logo-dot {
+            width: 0.9mm;
+            height: 0.9mm;
+            background-color: #0c1a35;
+            border-radius: 50%;
+        }
+
+        .brand-name {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 4.5pt;
+            letter-spacing: 0.5px;
+            color: #0c1a35;
+            text-transform: uppercase;
+        }
+
+        .product-area {
+            margin-top: -1mm;
+        }
+
+        /* TRIPLE G */
+        .product-name {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 8.5pt;
+            font-weight: 700;
+            color: #0c1a35;
+            letter-spacing: -0.2px;
+            line-height: 1;
+        }
+
+        .product-dose {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 5pt;
+            font-weight: 500;
+            color: #4b5563;
+            letter-spacing: 0.5px;
+            margin-top: 0.5mm;
+        }
+
+        .specs {
+            font-family: 'Inter', sans-serif;
+            font-size: 3.2pt;
+            color: #4b5563;
+            line-height: 1.2;
+        }
+
+        /* ----- DIVIDER (Faux Gold Gradient Accent) ----- */
+        .gold-divider {
+            width: 0.8mm;
+            height: 100%;
+            /* Finto oro riflettente */
+            background: linear-gradient(180deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+        }
+
+        /* ----- RIGHT SIDE (16%) ----- */
+        .label-sidebar {
+            width: 17%;
+            height: 100%;
+            background-color: #ffffff;
+            /* Sfondo bianco come in Opzione 7 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .vertical-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 3pt;
+            font-weight: 500;
+            color: #0c1a35;
+            white-space: nowrap;
+            /* Da Opzione 7 l'immagine mostra il testo che sale dal basso all'alto (rotate -90deg) */
+            transform: rotate(-90deg);
+            transform-origin: center center;
+            text-align: center;
+            letter-spacing: 0.2px;
+        }
+
+        .vertical-text strong {
+            font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.2pt;
+        }
+
+        .stripe-separator {
+            display: inline-block;
+            width: 2mm;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="helper-text">
+        <strong>Anteprima Piana 2D (Reale Opzione 7)</strong><br>
+        Misure: <strong>38.1 mm &times; 21.2 mm</strong> (Ingrandita 4.5x)<br>
+        Fondo bianco pulito | Logo e nome a sx | Fascia testo ruotato a dx + Linea Oro divisoria.
+    </div>
+
+    <div class="scale-container">
+        <div class="label-2d">
+
+            <!-- Sinistra (82%) -->
+            <div class="label-main">
+                <div class="aura-logo">
+                    <div class="logo-circle">
+                        <div class="logo-dot"></div>
+                    </div>
+                    <span class="brand-name">Aura Peptides</span>
+                </div>
+
+                <div class="product-area">
+                    <div class="product-name">TRIPLE G</div>
+                    <div class="product-dose">10 MG</div>
+                </div>
+
+                <div class="specs">
+                    Reagent Grade<br>HPLC Purity &ge;99.8%
+                </div>
+            </div>
+
+            <!-- Divider Grafico "Finto Oro" -->
+            <div class="gold-divider"></div>
+
+            <!-- Destra (16%) Verticale -->
+            <div class="label-sidebar">
+                <div class="vertical-text">
+                    BATCH: <strong>AP-TG01</strong> <span class="stripe-separator"></span> EXP: <strong>12/2026</strong>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>
