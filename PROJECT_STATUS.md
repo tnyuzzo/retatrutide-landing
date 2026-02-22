@@ -7,12 +7,12 @@
 
 ## Current State
 
-- **Last deploy**: 2026-02-22 (commit `84d845c`)
+- **Last deploy**: 2026-02-22 (commit `67b21f9`)
 - **Branch**: main (up to date with origin/main)
-- **Build**: 81 static pages, zero errors
+- **Build**: 81 static pages + 18 API routes, zero errors
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
 - **Domain**: aurapep.eu (Vercel, auto-deploy on push to main)
-- **Untracked files**: `CLAUDE.md`, `PROJECT_STATUS.md`, `addShipKeys.js`
+- **Untracked files**: `addShipKeys.js`
 
 ---
 
@@ -494,6 +494,11 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-22] **CRO & UX Mobile Audit — Tier 2** (commit `67b21f9`):
+  - **`/api/recent-activity`** (nuovo file): endpoint che fetcha gli ultimi 8 ordini `paid/shipped/delivered` dal DB Supabase, anonimizza (first name + last initial + city), calcola `timeAgoKey` i18n-compatible, cache 5 min in-memory. Ritorna `[]` su errore → nessun fake fallback (GDPR/EU Directive 2005/29/EC compliant)
+  - **`RecentSalesPopup`**: riscritto completamente per usare dati reali. Se API ritorna vuoto, la popup non appare mai. Mobile: `bottom-24` per non sovrapporsi alla sticky bar
+  - **`page.tsx` testimonials**: `bg-[#0a0a0a]` → `bg-brand-void` (sezione era invisibile); aggiunti 3 trust micro-badge pill (HPLC ≥99.8% Verified, EU Direct Shipping, Janoshik Tested→apre COA modal); rimosso `<div className="mb-16">` accidentale che causava blank space
+  - **i18n**: +1 chiave `trust_badge_view_report` su 10 locali
 - [2026-02-22] **CRO & UX Mobile Audit — Tier 0/1/3** (commit `84d845c`):
   - **Tier 0 — Bug critici**: `BASE_PRICE 12 → 197` (revenue fix); rimosso `bg-black`/`bg-[#0a0a0a]` da sezioni "Why Aura", Specs, Footer (erano invisibili su dark theme); `bg-[#050505]` → `bg-brand-void` nel footer; PortalForm input contrast fix; sticky bar landing redesign con 197€ + stock urgency
   - **Tier 1 — Conversion friction**: FAQ `max-h-60` → `max-h-[800px]`; order sticky bar mobile con crypto selector inline + discount badge; checkout gestione `expired`/`cancelled` con pagina dedicata e CTA "Crea nuovo ordine"; nuovo componente `CopyAddressButton` con clipboard API + fallback mobile; `LiveInventoryBadge` timestamp rimosso
@@ -514,15 +519,13 @@ supabase/migrations/                # 4 SQL migration files
 
 ## In Progress
 
-- Nessun task in corso. Tutti i fix CRO completati e pushati.
+- Nessun task in corso. Tutti i 4 Tier CRO completati e pushati.
 
 ## TODO / Planned
 
-- [ ] **Tier 2 CRO**: `RecentSalesPopup` → sostituire fake data con `/api/recent-activity` (ultimi 3 ordini `paid`/`shipped` anonimizzati dal DB)
-- [ ] **Tier 2 CRO**: Sezione "Fiducia Garantita" → contatore dinamico ordini + link COA PDF + micro-badge HPLC Verified / EU Shipping / Janoshik Tested
 - [ ] Configurare wallet XRP (attualmente placeholder `CRYPTAPI_XRP_WALLET`)
-- [ ] Commit e push di CLAUDE.md, PROJECT_STATUS.md, addShipKeys.js (untracked)
 - [ ] Valutare ottimizzazioni SEO aggiuntive (content marketing, blog, backlinks)
+- [ ] **Tier 2 opzionale**: Sezione "Fiducia Garantita" → contatore dinamico ordini via API (non implementato — i trust badge in testimonials coprono già il trust need)
 
 ---
 
