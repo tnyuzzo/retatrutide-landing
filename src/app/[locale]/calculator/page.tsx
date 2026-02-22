@@ -173,10 +173,10 @@ export default function CalculatorPage() {
                         </div>
                     </div>
 
-                    {/* Syringe visual (desktop only) */}
-                    <div className="relative w-full max-w-md mx-auto mb-4 select-none hidden sm:block">
+                    {/* Syringe visual */}
+                    <div className="relative w-full max-w-md mx-auto mb-3 md:mb-4 select-none">
                         <div className="relative">
-                            <div className="h-16 border-2 border-white/30 rounded-r-lg rounded-l-md bg-black/50 relative flex items-center overflow-hidden">
+                            <div className="h-10 md:h-16 border-2 border-white/30 rounded-r-lg rounded-l-md bg-black/50 relative flex items-center overflow-hidden">
                                 <div
                                     className={`h-full transition-all duration-500 ease-out ${isOverFlow ? "bg-red-500/50" : "bg-brand-gold/30"}`}
                                     style={{ width: `${fillPercent}%` }}
@@ -186,28 +186,28 @@ export default function CalculatorPage() {
                                     style={{ left: `${fillPercent}%` }}
                                 ></div>
                             </div>
-                            <div className="relative w-full h-9 mt-0.5">
+                            <div className="relative w-full h-7 md:h-9 mt-0.5">
                                 {[...Array(totalTicks)].map((_, i) => {
                                     const unit = i * 5;
                                     const isMajor = unit % 10 === 0;
                                     const pos = (unit / maxUnits) * 100;
                                     return (
                                         <div key={i} className="absolute flex flex-col items-center" style={{ left: `${pos}%`, transform: "translateX(-50%)" }}>
-                                            <div className={`${isMajor ? "h-3.5 w-0.5 bg-white/70" : "h-2.5 w-px bg-white/40"}`}></div>
-                                            <span className={`font-mono mt-0.5 ${isMajor ? "text-[11px] text-white/70 font-medium" : "text-[9px] text-white/40"}`}>{unit}</span>
+                                            <div className={`${isMajor ? "h-2.5 md:h-3.5 w-0.5 bg-white/70" : "h-1.5 md:h-2.5 w-px bg-white/40"}`}></div>
+                                            <span className={`font-mono mt-0.5 ${isMajor ? "text-[9px] md:text-[11px] text-white/70 font-medium" : "hidden md:block text-[9px] text-white/40"}`}>{unit}</span>
                                         </div>
                                     );
                                 })}
                             </div>
                         </div>
-                        <div className="text-center mt-3 text-sm">
+                        <div className="text-center mt-2 text-xs md:text-sm">
                             {isOverFlow ? (
                                 <span className="text-red-400 flex items-center justify-center gap-2">
-                                    <AlertTriangle className="w-4 h-4" /> {t("calc_overflow")}
+                                    <AlertTriangle className="w-3 h-3 md:w-4 md:h-4" /> {t("calc_overflow")}
                                 </span>
                             ) : (
                                 <span className="text-white/60">
-                                    {t("calc_draw_to")} <span className="text-brand-gold text-lg font-medium">{unitsToDraw.toFixed(1)}</span> {t("calc_units")}
+                                    {t("calc_draw_to")} <span className="text-brand-gold text-base md:text-lg font-medium">{unitsToDraw.toFixed(1)}</span> {t("calc_units")}
                                 </span>
                             )}
                         </div>
