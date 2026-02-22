@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Shield, ShieldCheck, Zap, Lock, Truck, FlaskConical, Navigation, ChevronDown, Package, MessageCircle, Beaker, ArrowRight, Thermometer, CheckCircle2 } from "lucide-react";
+import { Shield, ShieldCheck, Zap, Lock, Truck, FlaskConical, Navigation, ChevronDown, Package, MessageCircle, Beaker, ArrowRight, Thermometer, CheckCircle2, User } from "lucide-react";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
@@ -28,13 +28,13 @@ export default function Home() {
     <main className="min-h-screen bg-brand-void text-white overflow-hidden font-sans">
 
       {/* HEADER / NAV */}
-      <nav className="fixed top-0 w-full z-50 glass-panel !rounded-none !border-t-0 !border-l-0 !border-r-0 border-b-white/5 py-4 px-6 md:px-12 flex justify-between items-center">
+      <nav className="fixed top-0 w-full z-50 glass-panel !rounded-none !border-t-0 !border-l-0 !border-r-0 border-b-white/5 py-2 md:py-4 px-6 md:px-12 flex justify-between items-center">
         <div className="flex items-center gap-2">
           {/* Logo Icon */}
-          <div className="w-8 h-8 rounded-full border border-brand-gold flex items-center justify-center">
-            <div className="w-3 h-3 bg-brand-gold rounded-full gold-glow"></div>
+          <div className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-brand-gold flex items-center justify-center shrink-0">
+            <div className="w-2.5 h-2.5 md:w-3 md:h-3 bg-brand-gold rounded-full gold-glow"></div>
           </div>
-          <span className="text-xl font-medium tracking-widest uppercase">
+          <span className="text-base md:text-xl font-medium tracking-widest uppercase whitespace-nowrap">
             {t('title')}
           </span>
         </div>
@@ -43,16 +43,20 @@ export default function Home() {
           <a href="#lab" className="hover:text-brand-gold transition-colors">{t('nav_lab')}</a>
           <a href={`/${locale}/order`} className="hover:text-brand-gold transition-colors">{t('nav_order')}</a>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 md:gap-6">
           <LanguageSwitcher />
-          <PremiumButton variant="outline" className="scale-90 hidden md:flex" onClick={() => window.location.href = `/${locale}/portal`}>
-            {t('nav_portal')}
-          </PremiumButton>
+          <a
+            href={`/${locale}/portal`}
+            className="hidden md:flex items-center justify-center w-9 h-9 rounded-full border border-white/20 hover:border-brand-gold/50 text-white/50 hover:text-brand-gold transition-colors"
+            aria-label={t('nav_portal')}
+          >
+            <User className="w-4 h-4" />
+          </a>
         </div>
       </nav>
 
       {/* HERO SECTION */}
-      <section className="relative min-h-screen flex items-center justify-center pt-24 pb-12 px-6">
+      <section className="relative min-h-screen flex items-center justify-center pt-20 md:pt-24 pb-12 px-6">
         {/* Background Effects */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-gold/10 blur-[120px] rounded-full pointer-events-none radial-glow"></div>
 
@@ -64,8 +68,8 @@ export default function Home() {
             transition={{ duration: 1, ease: "easeOut" }}
             className="flex flex-col gap-6"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-brand-gold/30 bg-brand-gold/5 w-fit">
-              <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse"></span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-brand-gold/30 bg-brand-gold/5 w-fit whitespace-nowrap">
+              <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse shrink-0"></span>
               <span className="text-sm uppercase tracking-[0.2em] text-brand-gold">{t('hero_badge')}</span>
             </div>
 
@@ -103,7 +107,7 @@ export default function Home() {
                 <div className="flex flex-col gap-1">
                   <span><strong className="text-white">{t('shipping_promise')}</strong> {t('shipping_condition')}</span>
                   {/* Rec 2: Visual Timeline */}
-                  <div className="flex items-center gap-2 text-xs text-white/60 font-medium whitespace-nowrap overflow-x-auto pb-1 mt-1">
+                  <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs text-white/60 font-medium mt-1">
                     <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> {t('timeline_today')}</div>
                     <span className="text-white/20">👉</span>
                     <div>{t('timeline_tomorrow')}</div>

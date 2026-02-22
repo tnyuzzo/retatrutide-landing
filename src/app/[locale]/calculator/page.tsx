@@ -43,46 +43,49 @@ export default function CalculatorPage() {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
 
             {/* Nav */}
-            <div className="w-full max-w-2xl flex justify-between items-center mb-8 z-10">
+            <div className="w-full max-w-2xl flex justify-between items-center mb-3 md:mb-6 z-10">
                 <Link href={`/${locale}`} className="flex items-center gap-2 text-white/50 hover:text-brand-gold transition-colors text-sm">
                     <ArrowLeft className="w-4 h-4" /> {t("nav_home")}
                 </Link>
                 <LanguageSwitcher />
             </div>
 
-            <div className="z-10 max-w-2xl w-full flex flex-col gap-8">
+            <div className="z-10 max-w-2xl w-full flex flex-col gap-3 md:gap-6">
                 {/* Header */}
-                <div className="text-center">
-                    <div className="w-14 h-14 rounded-full bg-brand-gold/10 flex items-center justify-center mx-auto mb-4">
-                        <Syringe className="w-6 h-6 text-brand-gold" />
+                <div className="flex items-center gap-3 md:flex-col md:text-center md:gap-0">
+                    <div className="w-9 h-9 md:w-14 md:h-14 rounded-full bg-brand-gold/10 flex items-center justify-center shrink-0 md:mx-auto md:mb-4">
+                        <Syringe className="w-4 h-4 md:w-6 md:h-6 text-brand-gold" />
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-light">{t("calc_title")}</h1>
-                    <p className="text-white/50 text-sm mt-2">{t("calc_subtitle")}</p>
+                    <div>
+                        <h1 className="text-xl md:text-4xl font-light">{t("calc_title")}</h1>
+                        <p className="text-white/50 text-xs md:text-sm md:mt-2 hidden md:block">{t("calc_subtitle")}</p>
+                    </div>
                 </div>
 
-                {/* Section 1: Reconstitution */}
-                <div className="glass-panel p-6 md:p-8 rounded-2xl border border-white/10">
-                    <h2 className="flex items-center gap-2 text-sm font-medium uppercase tracking-widest text-brand-gold mb-6">
-                        <FlaskConical className="w-4 h-4" />
+                {/* Section 1+2: Inputs combinati */}
+                <div className="glass-panel p-4 md:p-8 rounded-2xl border border-white/10">
+                    {/* Row: Ricostituzione */}
+                    <h2 className="flex items-center gap-2 text-xs md:text-sm font-medium uppercase tracking-widest text-brand-gold mb-3 md:mb-6">
+                        <FlaskConical className="w-3 h-3 md:w-4 md:h-4" />
                         {t("calc_section_mix")}
                     </h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-2 gap-3 md:gap-6">
                         <div>
-                            <label className="block text-xs text-white/50 mb-2">{t("calc_peptide_amount")}</label>
+                            <label className="block text-[10px] md:text-xs text-white/50 mb-1.5 md:mb-2">{t("calc_peptide_amount")}</label>
                             <div className="relative">
                                 <input
                                     type="number"
                                     value={peptideAmountMg}
                                     onChange={(e) => setPeptideAmountMg(e.target.value)}
                                     min="0"
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-lg font-light text-white focus:border-brand-gold focus:outline-none pr-14"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 md:px-4 md:py-3 text-base md:text-lg font-light text-white focus:border-brand-gold focus:outline-none pr-10 md:pr-14"
                                 />
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 font-medium">mg</span>
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs md:text-sm font-medium">mg</span>
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs text-white/50 mb-2">{t("calc_water_amount")}</label>
+                            <label className="block text-[10px] md:text-xs text-white/50 mb-1.5 md:mb-2">{t("calc_water_amount")}</label>
                             <div className="relative">
                                 <input
                                     type="number"
@@ -90,66 +93,67 @@ export default function CalculatorPage() {
                                     onChange={(e) => setWaterAmountMl(e.target.value)}
                                     min="0"
                                     step="0.1"
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-lg font-light text-white focus:border-brand-gold focus:outline-none pr-14"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 md:px-4 md:py-3 text-base md:text-lg font-light text-white focus:border-brand-gold focus:outline-none pr-10 md:pr-14"
                                 />
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 font-medium">ml</span>
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs md:text-sm font-medium">ml</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-4 flex items-center gap-2 text-xs text-white/40 bg-white/5 p-3 rounded-lg">
-                        <Info className="w-4 h-4 shrink-0" />
+                    <div className="mt-3 flex items-center gap-2 text-xs text-white/40 bg-white/5 p-2.5 rounded-lg">
+                        <Info className="w-3 h-3 shrink-0" />
                         <span>{t("calc_concentration")}: <strong className="text-brand-gold">{concentration.toLocaleString()} mcg/ml</strong></span>
                     </div>
-                </div>
 
-                {/* Section 2: Dosage */}
-                <div className="glass-panel p-6 md:p-8 rounded-2xl border border-white/10">
-                    <h2 className="flex items-center gap-2 text-sm font-medium uppercase tracking-widest text-brand-gold mb-6">
-                        <Droplet className="w-4 h-4" />
+                    {/* Divider */}
+                    <div className="h-px w-full bg-white/10 my-3 md:my-6"></div>
+
+                    {/* Dosaggio */}
+                    <h2 className="flex items-center gap-2 text-xs md:text-sm font-medium uppercase tracking-widest text-brand-gold mb-3 md:mb-6">
+                        <Droplet className="w-3 h-3 md:w-4 md:h-4" />
                         {t("calc_section_dose")}
                     </h2>
 
                     <div>
-                        <label className="block text-xs text-white/50 mb-2">{t("calc_desired_dose")}</label>
+                        <label className="block text-[10px] md:text-xs text-white/50 mb-1.5 md:mb-2">{t("calc_desired_dose")}</label>
                         <div className="relative">
                             <input
                                 type="number"
                                 value={desiredDoseMcg}
                                 onChange={(e) => setDesiredDoseMcg(e.target.value)}
                                 min="0"
-                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-lg font-light text-white focus:border-brand-gold focus:outline-none pr-16"
+                                className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 md:px-4 md:py-3 text-base md:text-lg font-light text-white focus:border-brand-gold focus:outline-none pr-14"
                             />
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 font-medium">mcg</span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs md:text-sm font-medium">mcg</span>
                         </div>
                     </div>
 
                     {/* Quick buttons */}
-                    <div className="grid grid-cols-4 gap-2 mt-4">
+                    <div className="grid grid-cols-4 gap-1.5 md:gap-2 mt-3">
                         {[250, 500, 750, 1000, 1250, 1500, 1750, 2000].map((val) => (
                             <button
                                 key={val}
                                 onClick={() => setDesiredDoseMcg(String(val))}
-                                className={`px-1 py-3.5 min-h-[48px] text-[11px] sm:text-xs font-medium rounded-lg border transition-all ${parseFloat(desiredDoseMcg) === val
+                                className={`px-1 py-2.5 min-h-[44px] text-[10px] md:text-xs font-medium rounded-lg border transition-all ${parseFloat(desiredDoseMcg) === val
                                         ? "bg-brand-gold/20 border-brand-gold text-brand-gold shadow-[0_0_10px_rgba(212,175,55,0.15)]"
                                         : "bg-black/20 border-white/10 text-white/50 hover:border-brand-gold/50 hover:text-white"
                                     }`}
                             >
-                                {val} mcg
+                                {val}
                             </button>
                         ))}
                     </div>
                 </div>
 
                 {/* Section 3: Result */}
-                <div className="glass-panel p-6 md:p-8 rounded-2xl border border-brand-gold/20">
+                <div className="glass-panel p-4 md:p-8 rounded-2xl border border-brand-gold/20">
                     {/* Syringe size selector */}
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                        <h2 className="flex items-center gap-2 text-sm font-medium uppercase tracking-widest text-brand-gold">
-                            <Settings className="w-4 h-4" />
+                    <div className="flex justify-between items-center gap-3 mb-3 md:mb-6">
+                        <h2 className="flex items-center gap-2 text-xs md:text-sm font-medium uppercase tracking-widest text-brand-gold">
+                            <Settings className="w-3 h-3 md:w-4 md:h-4" />
                             {t("calc_result")}
                         </h2>
-                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <div className="flex gap-1.5 md:gap-2">
                             {[
                                 { val: 0.3, label: "0.3ml" },
                                 { val: 0.5, label: "0.5ml" },
@@ -158,34 +162,30 @@ export default function CalculatorPage() {
                                 <button
                                     key={opt.val}
                                     onClick={() => setSyringeSize(opt.val)}
-                                    className={`flex-1 sm:flex-none px-3 py-3 min-h-[44px] text-xs font-medium rounded-lg border transition-all ${syringeSize === opt.val
+                                    className={`px-2.5 py-2 min-h-[40px] text-[10px] md:text-xs font-medium rounded-lg border transition-all ${syringeSize === opt.val
                                             ? "bg-brand-gold/20 border-brand-gold text-brand-gold"
                                             : "bg-black/20 border-white/10 text-white/40 hover:border-brand-gold/50"
                                         }`}
                                 >
-                                    {opt.label} ({opt.val * 100}u)
+                                    {opt.label}
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Syringe visual */}
-                    <div className="relative w-full max-w-md mx-auto mb-6 select-none hidden sm:block">
+                    {/* Syringe visual (desktop only) */}
+                    <div className="relative w-full max-w-md mx-auto mb-4 select-none hidden sm:block">
                         <div className="relative">
-                            {/* Syringe body */}
                             <div className="h-16 border-2 border-white/30 rounded-r-lg rounded-l-md bg-black/50 relative flex items-center overflow-hidden">
-                                {/* Liquid */}
                                 <div
                                     className={`h-full transition-all duration-500 ease-out ${isOverFlow ? "bg-red-500/50" : "bg-brand-gold/30"}`}
                                     style={{ width: `${fillPercent}%` }}
                                 ></div>
-                                {/* Plunger */}
                                 <div
                                     className="absolute h-full w-1 bg-white/70 transition-all duration-500 ease-out"
                                     style={{ left: `${fillPercent}%` }}
                                 ></div>
                             </div>
-                            {/* Tick marks below syringe */}
                             <div className="relative w-full h-9 mt-0.5">
                                 {[...Array(totalTicks)].map((_, i) => {
                                     const unit = i * 5;
@@ -200,7 +200,6 @@ export default function CalculatorPage() {
                                 })}
                             </div>
                         </div>
-
                         <div className="text-center mt-3 text-sm">
                             {isOverFlow ? (
                                 <span className="text-red-400 flex items-center justify-center gap-2">
@@ -212,21 +211,18 @@ export default function CalculatorPage() {
                                 </span>
                             )}
                         </div>
-                        <div className="text-center text-[10px] text-white/30 mt-1">
-                            {t("calc_syringe_based", { size: String(syringeSize), units: String(maxUnits) })}
-                        </div>
                     </div>
 
                     {/* Results grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="bg-brand-gold/10 p-5 rounded-xl text-center">
-                            <div className="text-4xl font-light text-brand-gold">{unitsToDraw.toFixed(1)}</div>
-                            <div className="text-xs font-medium text-brand-gold/60 uppercase tracking-widest mt-1">{t("calc_units")} (IU)</div>
+                    <div className="grid grid-cols-2 gap-3 md:gap-4">
+                        <div className="bg-brand-gold/10 p-4 md:p-5 rounded-xl text-center">
+                            <div className="text-3xl md:text-4xl font-light text-brand-gold">{unitsToDraw.toFixed(1)}</div>
+                            <div className="text-[10px] md:text-xs font-medium text-brand-gold/60 uppercase tracking-widest mt-1">{t("calc_units")} (IU)</div>
                             {isOverFlow && <div className="text-red-400 text-xs mt-2 flex items-center justify-center gap-1"><AlertTriangle className="w-3 h-3" /> {t("calc_overflow")}</div>}
                         </div>
-                        <div className="bg-white/5 p-5 rounded-xl text-center">
-                            <div className="text-4xl font-light text-white">{volumeToDrawMl.toFixed(3)}</div>
-                            <div className="text-xs font-medium text-white/40 uppercase tracking-widest mt-1">{t("calc_milliliters")} (ml)</div>
+                        <div className="bg-white/5 p-4 md:p-5 rounded-xl text-center">
+                            <div className="text-3xl md:text-4xl font-light text-white">{volumeToDrawMl.toFixed(3)}</div>
+                            <div className="text-[10px] md:text-xs font-medium text-white/40 uppercase tracking-widest mt-1">{t("calc_milliliters")} (ml)</div>
                         </div>
                     </div>
                 </div>

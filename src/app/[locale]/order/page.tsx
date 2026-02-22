@@ -236,7 +236,7 @@ export default function OrderPage() {
     };
 
     return (
-        <main className="min-h-screen bg-brand-void text-white font-sans flex flex-col">
+        <main className="min-h-screen bg-brand-void text-white font-sans flex flex-col overflow-x-hidden">
             {/* HEADER */}
             <header className="w-full py-6 px-6 md:px-12 flex justify-between items-center border-b border-white/5 bg-brand-void/50 backdrop-blur-md sticky top-0 z-50">
                 <button onClick={() => window.location.href = `/${locale}`} className="flex items-center gap-2 text-white/50 hover:text-white transition-colors">
