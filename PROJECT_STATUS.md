@@ -494,6 +494,7 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-22] **Mobile UX Sitewide Audit & Fix**: Risoluzione bug di overflow orizzontale critico su `order`, `home` e `calculator` trasformando il `LanguageSwitcher` in un Dropdown Menu responsivo. Aumentata la Tap Area (min-h-48px) dei bottoni di conversione sul calcolatore peptidi e maggiorato il `px-6` sulle fasce Sticky bottom (`order/page.tsx`). 
 - [2026-02-22] Mobile Conversion Rate Optimization: UX Checkout in `order/page.tsx` (form autofill group, sticky toolbar, large tap targets, payment trust signals)
 - [2026-02-22] Prototipazione Label "Triple G" (Design 2D completato e in attesa di file print/HTML finale)
 - [2026-02-22] SEO full implementation (metadata, structured data, sitemap, robots, hreflang, 200 translation keys)
@@ -501,7 +502,7 @@ supabase/migrations/                # 4 SQL migration files
 
 ## In Progress
 
-- (niente al momento)
+- Task UX Mobile conclusi con successo totale. Nessun bug appeso al momento. Il ramo d'esecuzione attuale è pronto per aggredire gli step di "TODO / Planned".
 
 ## TODO / Planned
 

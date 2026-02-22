@@ -130,11 +130,10 @@ export default function CalculatorPage() {
                             <button
                                 key={val}
                                 onClick={() => setDesiredDoseMcg(String(val))}
-                                className={`px-2 py-2.5 text-xs font-medium rounded-lg border transition-all ${
-                                    parseFloat(desiredDoseMcg) === val
-                                        ? "bg-brand-gold/20 border-brand-gold text-brand-gold"
+                                className={`px-1 py-3.5 min-h-[48px] text-[11px] sm:text-xs font-medium rounded-lg border transition-all ${parseFloat(desiredDoseMcg) === val
+                                        ? "bg-brand-gold/20 border-brand-gold text-brand-gold shadow-[0_0_10px_rgba(212,175,55,0.15)]"
                                         : "bg-black/20 border-white/10 text-white/50 hover:border-brand-gold/50 hover:text-white"
-                                }`}
+                                    }`}
                             >
                                 {val} mcg
                             </button>
@@ -150,7 +149,7 @@ export default function CalculatorPage() {
                             <Settings className="w-4 h-4" />
                             {t("calc_result")}
                         </h2>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                             {[
                                 { val: 0.3, label: "0.3ml" },
                                 { val: 0.5, label: "0.5ml" },
@@ -159,11 +158,10 @@ export default function CalculatorPage() {
                                 <button
                                     key={opt.val}
                                     onClick={() => setSyringeSize(opt.val)}
-                                    className={`px-3 py-2 text-xs font-medium rounded-lg border transition-all ${
-                                        syringeSize === opt.val
+                                    className={`flex-1 sm:flex-none px-3 py-3 min-h-[44px] text-xs font-medium rounded-lg border transition-all ${syringeSize === opt.val
                                             ? "bg-brand-gold/20 border-brand-gold text-brand-gold"
                                             : "bg-black/20 border-white/10 text-white/40 hover:border-brand-gold/50"
-                                    }`}
+                                        }`}
                                 >
                                     {opt.label} ({opt.val * 100}u)
                                 </button>
@@ -172,7 +170,7 @@ export default function CalculatorPage() {
                     </div>
 
                     {/* Syringe visual */}
-                    <div className="relative w-full max-w-md mx-auto mb-6 select-none">
+                    <div className="relative w-full max-w-md mx-auto mb-6 select-none hidden sm:block">
                         <div className="relative">
                             {/* Syringe body */}
                             <div className="h-16 border-2 border-white/30 rounded-r-lg rounded-l-md bg-black/50 relative flex items-center overflow-hidden">
@@ -220,14 +218,15 @@ export default function CalculatorPage() {
                     </div>
 
                     {/* Results grid */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="bg-brand-gold/10 p-5 rounded-xl text-center">
-                            <div className="text-3xl font-light text-brand-gold">{unitsToDraw.toFixed(1)}</div>
-                            <div className="text-[10px] font-medium text-brand-gold/60 uppercase tracking-widest mt-1">{t("calc_units")} (IU)</div>
+                            <div className="text-4xl font-light text-brand-gold">{unitsToDraw.toFixed(1)}</div>
+                            <div className="text-xs font-medium text-brand-gold/60 uppercase tracking-widest mt-1">{t("calc_units")} (IU)</div>
+                            {isOverFlow && <div className="text-red-400 text-xs mt-2 flex items-center justify-center gap-1"><AlertTriangle className="w-3 h-3" /> {t("calc_overflow")}</div>}
                         </div>
                         <div className="bg-white/5 p-5 rounded-xl text-center">
-                            <div className="text-3xl font-light text-white">{volumeToDrawMl.toFixed(3)}</div>
-                            <div className="text-[10px] font-medium text-white/40 uppercase tracking-widest mt-1">{t("calc_milliliters")} (ml)</div>
+                            <div className="text-4xl font-light text-white">{volumeToDrawMl.toFixed(3)}</div>
+                            <div className="text-xs font-medium text-white/40 uppercase tracking-widest mt-1">{t("calc_milliliters")} (ml)</div>
                         </div>
                     </div>
                 </div>

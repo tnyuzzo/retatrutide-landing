@@ -642,7 +642,7 @@ export default function OrderPage() {
             </div>
 
             {/* MOBILE STICKY CHECKOUT BAR */}
-            <div className="fixed bottom-0 left-0 w-full p-4 bg-brand-void/95 backdrop-blur-xl border-t border-brand-gold/20 z-50 lg:hidden flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)] transition-transform duration-300 transform translate-y-0">
+            <div className="fixed bottom-0 left-0 w-full px-6 py-4 sm:pb-4 bg-brand-void/95 backdrop-blur-xl border-t border-brand-gold/20 z-50 lg:hidden flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.5)] transition-transform duration-300 transform translate-y-0">
                 <div className="flex flex-col">
                     <span className="text-[10px] text-white/50 uppercase tracking-widest">{t('order_total')}</span>
                     <span className="text-xl font-medium text-brand-gold">{totalPrice}€</span>
