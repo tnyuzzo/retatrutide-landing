@@ -352,7 +352,8 @@
     "checkout_copy_address": "نسخ",
     "checkout_copy_address_done": "تم النسخ!",
     "calc_order_cta": "اطلب مجموعتك",
-    "calc_order_cta_desc": "محسوب لـ Retatrutide 10mg — اطلب الآن."
+    "calc_order_cta_desc": "محسوب لـ Retatrutide 10mg — اطلب الآن.",
+    "trust_badge_view_report": "عرض التقرير"
   },
   "inventory_high_demand": "طلب مرتفع: فقط",
   "inventory_kits_remaining": "قوارير متبقية"

@@ -352,7 +352,8 @@
     "checkout_copy_address": "Copiar",
     "checkout_copy_address_done": "Copiado!",
     "calc_order_cta": "Encomendar o Kit",
-    "calc_order_cta_desc": "Calculado para Retatrutide 10mg — encomendar agora."
+    "calc_order_cta_desc": "Calculado para Retatrutide 10mg — encomendar agora.",
+    "trust_badge_view_report": "Ver Relatório"
   },
   "inventory_high_demand": "Alta Procura: apenas",
   "inventory_kits_remaining": "frascos restantes"

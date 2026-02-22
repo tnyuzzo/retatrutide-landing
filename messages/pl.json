@@ -352,7 +352,8 @@
     "checkout_copy_address": "Kopiuj",
     "checkout_copy_address_done": "Skopiowano!",
     "calc_order_cta": "Zamów Zestaw",
-    "calc_order_cta_desc": "Obliczone dla Retatrutydu 10mg — zamów teraz."
+    "calc_order_cta_desc": "Obliczone dla Retatrutydu 10mg — zamów teraz.",
+    "trust_badge_view_report": "Zobacz Raport"
   },
   "inventory_high_demand": "Duże Zapotrzebowanie: tylko",
   "inventory_kits_remaining": "fiolek pozostało"

@@ -39,7 +39,7 @@ Aggiorna **entrambi** i file:
 - Next.js renders `hrefLang` (camelCase) in HTML — grep for `hrefLang` not `hreflang`
 - `title: { absolute: title }` in child layouts to avoid double "| Aura Peptides" from root template
 - Translation keys for SEO: `seo_{page}_{field}` pattern (e.g. `seo_home_title`, `seo_calc_description`)
-- `BASE_PRICE = 12` in `order/page.tsx` for testing — TODO: restore to 197 for production
+- `BASE_PRICE = 197` in `order/page.tsx` — PRODUZIONE. Non abbassare per testing senza ripristinare.
 - Admin UI strings are hardcoded in Italian — public pages use i18n
 - `src/lib/supabase-admin.ts` uses lazy singleton (Proxy) — import won't fail even if env vars missing, but calls will
 - CryptAPI webhook uses GET method (not POST) — `src/app/api/webhooks/cryptapi/route.ts`
@@ -56,3 +56,9 @@ Aggiorna **entrambi** i file:
 - Email: `src/lib/email-templates.ts` — branded HTML templates, dark theme with gold accent
 - DB access: `supabaseAdmin` (server, service role) vs `supabaseBrowser` (client, anon key)
 - New public page checklist: layout.tsx + structured data component + 10 message files + sitemap.ts entry
+- Checkout page è server component — per funzionalità client (copy, countdown) usare sub-componenti client
+  in `src/components/ui/` e passare le translated strings come props dal server component
+- Sezioni con background esplicito (bg-black, bg-[#...]) su dark theme → quasi sempre invisibili.
+  Sempre preferire `bg-brand-void` o rimuovere il bg e lasciare che erediti dal body
+- `whileInView` Framer Motion: usare `viewport={{ once: true, amount: 0.05 }}` per mobile
+  (evita grandi aree bianche — le card sono full-width e il default threshold non triggerizza bene)

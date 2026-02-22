@@ -7,7 +7,7 @@
 
 ## Current State
 
-- **Last deploy**: 2026-02-22 (commit `0a0e765`)
+- **Last deploy**: 2026-02-22 (commit `84d845c`)
 - **Branch**: main (up to date with origin/main)
 - **Build**: 81 static pages, zero errors
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
@@ -494,6 +494,12 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-22] **CRO & UX Mobile Audit — Tier 0/1/3** (commit `84d845c`):
+  - **Tier 0 — Bug critici**: `BASE_PRICE 12 → 197` (revenue fix); rimosso `bg-black`/`bg-[#0a0a0a]` da sezioni "Why Aura", Specs, Footer (erano invisibili su dark theme); `bg-[#050505]` → `bg-brand-void` nel footer; PortalForm input contrast fix; sticky bar landing redesign con 197€ + stock urgency
+  - **Tier 1 — Conversion friction**: FAQ `max-h-60` → `max-h-[800px]`; order sticky bar mobile con crypto selector inline + discount badge; checkout gestione `expired`/`cancelled` con pagina dedicata e CTA "Crea nuovo ordine"; nuovo componente `CopyAddressButton` con clipboard API + fallback mobile; `LiveInventoryBadge` timestamp rimosso
+  - **Tier 3 — Polish**: `whileInView viewport` aggiornato a `amount: 0.05` su 5 motion.div; hero subtitle `line-clamp-2` → `line-clamp-3`; calculator CTA "Ordina il tuo Kit →" dopo risultati
+  - **i18n**: +8 chiavi checkout (expired/cancelled/copy) + 2 chiavi calculator (10 lingue ciascuna)
+  - **Nuovo file**: `src/components/ui/CopyAddressButton.tsx`
 - [2026-02-22] **2° round fix mobile da device reale** (commit `153e6a6`, `0a0e765`):
   - `page.tsx`: nav più sottile (py-2 mobile/py-4 desktop), logo `whitespace-nowrap`, "Portale Clienti" → icona `User` circolare
   - Hero badge su una riga (`whitespace-nowrap`), hero `pt-20` mobile
@@ -508,13 +514,14 @@ supabase/migrations/                # 4 SQL migration files
 
 ## In Progress
 
-- Nessun task in corso. Tutti i fix mobile completati e pushati.
+- Nessun task in corso. Tutti i fix CRO completati e pushati.
 
 ## TODO / Planned
 
-- [ ] **CRITICO**: `BASE_PRICE = 12` → `197` in `src/app/[locale]/order/page.tsx:10`
-- [ ] Configurare wallet XRP (attualmente placeholder)
-- [ ] Commit e push di CLAUDE.md, PROJECT_STATUS.md, addShipKeys.js
+- [ ] **Tier 2 CRO**: `RecentSalesPopup` → sostituire fake data con `/api/recent-activity` (ultimi 3 ordini `paid`/`shipped` anonimizzati dal DB)
+- [ ] **Tier 2 CRO**: Sezione "Fiducia Garantita" → contatore dinamico ordini + link COA PDF + micro-badge HPLC Verified / EU Shipping / Janoshik Tested
+- [ ] Configurare wallet XRP (attualmente placeholder `CRYPTAPI_XRP_WALLET`)
+- [ ] Commit e push di CLAUDE.md, PROJECT_STATUS.md, addShipKeys.js (untracked)
 - [ ] Valutare ottimizzazioni SEO aggiuntive (content marketing, blog, backlinks)
 
 ---

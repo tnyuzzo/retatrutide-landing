@@ -424,12 +424,31 @@ export default function Home() {
       </section >
 
       {/* TESTIMONIALS (Rec 4) */}
-      <section className="py-24 px-6 bg-[#0a0a0a] border-t border-white/5 relative overflow-hidden" id="testimonials" >
+      <section className="py-24 px-6 bg-brand-void border-t border-white/5 relative overflow-hidden" id="testimonials" >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
             <h2 className="text-3xl md:text-5xl font-light mb-4 text-white">{t('trust_earned')} <span className="text-brand-gold font-medium">{t('trust_earned_gold')}</span></h2>
             <p className="text-white/50 max-w-2xl mx-auto">{t('trust_earned_sub')}</p>
+          </div>
+
+          {/* Trust micro-badges */}
+          <div className="flex flex-wrap justify-center gap-3 mb-12">
+            <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full text-xs text-white/70 font-medium">
+              <span className="w-2 h-2 rounded-full bg-brand-gold shrink-0"></span>
+              HPLC ≥99.8% Verified
+            </div>
+            <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full text-xs text-white/70 font-medium">
+              <span className="w-2 h-2 rounded-full bg-green-400 shrink-0"></span>
+              EU Direct Shipping
+            </div>
+            <button
+              onClick={() => setShowCoaModal(true)}
+              className="flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/30 px-4 py-2 rounded-full text-xs text-brand-gold font-medium hover:bg-brand-gold/20 transition-colors"
+            >
+              <FlaskConical className="w-3.5 h-3.5" />
+              Janoshik Tested — {t('trust_badge_view_report')}
+            </button>
           </div>
           <motion.div
             whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} viewport={{ once: true, amount: 0.05 }} transition={{ duration: 0.6 }}

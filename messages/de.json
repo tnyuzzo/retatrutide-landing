@@ -352,7 +352,8 @@
     "checkout_copy_address": "Kopieren",
     "checkout_copy_address_done": "Kopiert!",
     "calc_order_cta": "Kit Bestellen",
-    "calc_order_cta_desc": "Berechnet für Retatrutid 10mg — jetzt bestellen."
+    "calc_order_cta_desc": "Berechnet für Retatrutid 10mg — jetzt bestellen.",
+    "trust_badge_view_report": "Bericht ansehen"
   },
   "inventory_high_demand": "Hohe Nachfrage: nur",
   "inventory_kits_remaining": "Fläschchen übrig"
