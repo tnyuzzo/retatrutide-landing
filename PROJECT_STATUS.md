@@ -7,7 +7,7 @@
 
 ## Current State
 
-- **Last deploy**: 2026-02-22 (commit `67b21f9`)
+- **Last deploy**: 2026-02-22 (commit `8f5760c`)
 - **Branch**: main (up to date with origin/main)
 - **Build**: 81 static pages + 18 API routes, zero errors
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
@@ -494,6 +494,10 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-22] **CRO Tier 2.2 — Dynamic order counter** (commit `8f5760c`):
+  - `/api/recent-activity`: aggiunto `totalOrders` (COUNT parallelo dal DB) nella response e nel cache
+  - `page.tsx`: state `orderCount` + useEffect fetch; `trust_earned_sub` usa `{count}` interpolazione con fallback 7496
+  - `messages` (10 locali): numero statico → `{count}` placeholder
 - [2026-02-22] **CRO & UX Mobile Audit — Tier 2** (commit `67b21f9`):
   - **`/api/recent-activity`** (nuovo file): endpoint che fetcha gli ultimi 8 ordini `paid/shipped/delivered` dal DB Supabase, anonimizza (first name + last initial + city), calcola `timeAgoKey` i18n-compatible, cache 5 min in-memory. Ritorna `[]` su errore → nessun fake fallback (GDPR/EU Directive 2005/29/EC compliant)
   - **`RecentSalesPopup`**: riscritto completamente per usare dati reali. Se API ritorna vuoto, la popup non appare mai. Mobile: `bottom-24` per non sovrapporsi alla sticky bar
@@ -519,7 +523,7 @@ supabase/migrations/                # 4 SQL migration files
 
 ## In Progress
 
-- Nessun task in corso. Tutti i 4 Tier CRO completati e pushati.
+- Nessun task in corso. Tutti i Tier CRO (0/1/2/3 + 2.2 dynamic counter) completati e pushati.
 
 ## TODO / Planned
 
