@@ -62,13 +62,15 @@ export function LanguageSwitcher() {
             <div className="lg:hidden flex items-center">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-1 text-xs tracking-widest uppercase text-brand-gold font-medium bg-brand-gold/10 px-3 py-1.5 rounded-full border border-brand-gold/30 hover:bg-brand-gold/20 transition-colors"
+                    className="flex items-center gap-1 text-xs tracking-widest uppercase text-brand-gold font-medium bg-brand-gold/10 px-4 py-3 rounded-full border border-brand-gold/30 hover:bg-brand-gold/20 transition-colors min-h-[44px]"
                 >
                     {locale} <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {isOpen && (
-                    <div className="absolute right-0 top-full mt-4 bg-brand-void/95 backdrop-blur-xl border border-brand-gold/20 rounded-xl p-4 flex flex-col gap-4 shadow-2xl z-50 min-w-[80px]">
+                    <>
+                    <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} aria-hidden="true" />
+                    <div className="absolute right-0 top-full mt-2 bg-brand-void/98 backdrop-blur-xl border border-brand-gold/20 rounded-xl p-4 flex flex-col gap-4 shadow-2xl z-50 min-w-[80px]">
                         {languages.map((lang) => (
                             <span
                                 key={lang.code}
@@ -85,6 +87,7 @@ export function LanguageSwitcher() {
                             </span>
                         ))}
                     </div>
+                    </>
                 )}
             </div>
         </div>

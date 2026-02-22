@@ -3,10 +3,30 @@
 > Per il contesto completo del progetto (business model, API, DB, design, ecc.) leggi `PROJECT_STATUS.md`.
 > Questo file è specifico per Claude Code — gotchas, pattern, e cose che non funzionano come ci si aspetta.
 
-## Multi-AI Workflow
-- Il progetto è sviluppato in alternanza con Gemini 3.1 Pro
-- `PROJECT_STATUS.md` è la fonte di verità condivisa — aggiornalo a fine sessione
-- A inizio sessione, leggi sempre PROJECT_STATUS.md per il contesto aggiornato
+## Multi-AI Workflow & Salvataggio Progressi
+Il progetto è sviluppato in alternanza con Gemini 3.1 Pro. `PROJECT_STATUS.md` è la fonte di verità condivisa.
+
+### Inizio sessione
+1. Leggi `PROJECT_STATUS.md` per il contesto aggiornato (stato, TODO, cosa ha fatto l'altro AI)
+2. Leggi questo file (`CLAUDE.md`) per gotchas e pattern specifici Claude
+
+### Durante la sessione
+- Se scopri un nuovo gotcha o pattern, aggiungilo a questo file nella sezione appropriata
+- Se cambi architettura o crei nuovi file critici, aggiorna "Do NOT Touch" in PROJECT_STATUS.md
+
+### Fine sessione (OBBLIGATORIO prima di chiudere)
+Aggiorna **entrambi** i file:
+
+**`PROJECT_STATUS.md`** — sezioni dinamiche:
+- "Recently Completed": aggiungi `[data] descrizione` per ogni task completato
+- "In Progress": cosa resta aperto o in corso
+- "TODO / Planned": aggiungi nuovi task scoperti, spunta quelli completati
+- "Current State": aggiorna ultimo commit/deploy se hai pushato
+
+**`CLAUDE.md`** (questo file) — solo se necessario:
+- Nuovi gotchas scoperti → sezione "Gotchas"
+- Nuovi pattern riutilizzabili → sezione "Key Patterns"
+- Nuove info sullo stack → sezione "Stack" o "Build"
 
 ## Stack
 - Next.js 16 App Router + Turbopack, React 19, next-intl 4.8, Supabase, Resend, Tailwind 4

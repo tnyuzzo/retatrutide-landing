@@ -6,7 +6,7 @@ import { Shield, ShieldCheck, Zap, Lock, Truck, FlaskConical, Navigation, Chevro
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LiveInventoryBadge } from "@/components/ui/LiveInventoryBadge";
 import { RecentSalesPopup } from "@/components/ui/RecentSalesPopup";
 import { HomeStructuredData } from "@/components/seo/HomeStructuredData";
@@ -16,6 +16,13 @@ export default function Home() {
   const locale = useLocale();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showCoaModal, setShowCoaModal] = useState(false);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setShowStickyBar(window.scrollY > 400);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <main className="min-h-screen bg-brand-void text-white overflow-hidden font-sans">
@@ -34,7 +41,7 @@ export default function Home() {
         <div className="hidden md:flex gap-8 text-sm tracking-widest text-white/70 uppercase">
           <a href="#science" className="hover:text-brand-gold transition-colors">{t('nav_science')}</a>
           <a href="#lab" className="hover:text-brand-gold transition-colors">{t('nav_lab')}</a>
-          <a href="#order" className="hover:text-brand-gold transition-colors">{t('nav_order')}</a>
+          <a href={`/${locale}/order`} className="hover:text-brand-gold transition-colors">{t('nav_order')}</a>
         </div>
         <div className="flex items-center gap-6">
           <LanguageSwitcher />
@@ -59,7 +66,7 @@ export default function Home() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-brand-gold/30 bg-brand-gold/5 w-fit">
               <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse"></span>
-              <span className="text-xs uppercase tracking-[0.2em] text-brand-gold">{t('hero_badge')}</span>
+              <span className="text-sm uppercase tracking-[0.2em] text-brand-gold">{t('hero_badge')}</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-extralight leading-tight">
@@ -110,7 +117,7 @@ export default function Home() {
 
               {/* Rec 1: COA Link */}
               <div>
-                <button onClick={() => setShowCoaModal(true)} className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors group">
+                <button onClick={() => setShowCoaModal(true)} className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors group min-h-[44px] py-2">
                   <FlaskConical className="w-4 h-4 text-brand-gold group-hover:scale-110 transition-transform" />
                   <span className="underline decoration-brand-gold/30 underline-offset-4 group-hover:decoration-brand-gold transition-colors">{t('btn_lab_report')}</span>
                 </button>
@@ -174,7 +181,7 @@ export default function Home() {
               </div>
 
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-end p-8 text-center border border-brand-gold/10 rounded-xl m-2 bg-black/20 backdrop-blur-md pointer-events-none transition-all duration-700 group-hover:bg-black/10">
-                <h3 className="text-3xl font-light tracking-wide text-white">Retatrutide <span className="text-brand-gold font-medium">10mg</span></h3>
+                <h2 className="text-3xl font-light tracking-wide text-white">Retatrutide <span className="text-brand-gold font-medium">10mg</span></h2>
                 <p className="text-brand-gold/70 text-sm mt-2 font-mono">CAS: 2381089-83-2</p>
                 <p className="text-white/40 text-xs mt-4 transition-colors duration-700 group-hover:text-white/60">{t('vial_purity')}</p>
               </div>
@@ -319,7 +326,7 @@ export default function Home() {
           </div>
 
           <div className="mt-12 text-center">
-            <button onClick={() => setShowCoaModal(true)} className="inline-flex items-center gap-2 text-sm text-brand-gold hover:text-brand-gold-light transition-colors underline underline-offset-4 decoration-brand-gold/30">
+            <button onClick={() => setShowCoaModal(true)} className="inline-flex items-center gap-2 text-sm text-brand-gold hover:text-brand-gold-light transition-colors underline underline-offset-4 decoration-brand-gold/30 min-h-[44px] py-2 px-3">
               <FlaskConical className="w-4 h-4" />
               {t('btn_view_coa')}
             </button>
@@ -404,10 +411,10 @@ export default function Home() {
       {/* PRODUCT SPECIFICATIONS */}
       <section className="py-16 px-6 bg-[#0a0a0a] border-t border-white/5" >
         <div className="max-w-3xl mx-auto">
-          <h3 className="text-xl font-medium text-white mb-8 flex items-center gap-3">
+          <h2 className="text-xl font-medium text-white mb-8 flex items-center gap-3">
             <Thermometer className="w-5 h-5 text-brand-gold" />
             {t('specs_title')}
-          </h3>
+          </h2>
           <div className="glass-panel border-white/5 overflow-hidden">
             {[
               { label: t('specs_format'), value: t('specs_format_val') },
@@ -417,9 +424,9 @@ export default function Home() {
               { label: t('specs_solvent'), value: t('specs_solvent_val') },
               { label: t('specs_cas'), value: t('specs_cas_val') },
             ].map((row, i) => (
-              <div key={i} className={`flex justify-between items-center px-6 py-4 ${i < 5 ? 'border-b border-white/5' : ''}`}>
+              <div key={i} className={`flex flex-col sm:flex-row sm:justify-between sm:items-center px-6 py-4 gap-1 ${i < 5 ? 'border-b border-white/5' : ''}`}>
                 <span className="text-sm text-white/50">{row.label}</span>
-                <span className="text-sm text-white font-medium font-mono">{row.value}</span>
+                <span className="text-sm text-white font-medium font-mono sm:text-right">{row.value}</span>
               </div>
             ))}
           </div>
@@ -452,7 +459,7 @@ export default function Home() {
                 <ShieldCheck className="w-7 h-7 text-green-400" />
               </div>
               <div className="flex flex-col gap-3">
-                <h3 className="text-xl font-semibold text-white">{t('buyer_protection_title')}</h3>
+                <h2 className="text-xl font-semibold text-white">{t('buyer_protection_title')}</h2>
                 <p className="text-white/60 text-sm leading-relaxed">{t('buyer_protection_desc')}</p>
                 <div className="flex flex-col gap-2 mt-2">
                   <div className="flex items-center gap-2 text-sm text-green-400">
@@ -630,6 +637,24 @@ export default function Home() {
           </div>
         )
       }
+
+      {/* STICKY MOBILE PURCHASE BAR */}
+      {showStickyBar && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-brand-void/95 backdrop-blur-xl border-t border-brand-gold/20 px-5 py-3 flex items-center gap-3 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]">
+          <div className="flex flex-col shrink-0">
+            <span className="text-[11px] text-white/40 uppercase tracking-wider leading-none mb-0.5">{t('hero_cta_starting')}</span>
+            <span className="text-xl font-semibold text-brand-gold leading-none">97€</span>
+          </div>
+          <PremiumButton
+            className="flex-1 !py-3 !text-sm"
+            onClick={() => window.location.href = `/${locale}/order`}
+          >
+            <span className="flex items-center justify-center gap-2">
+              {t('hero_cta_hook')} <ArrowRight className="w-4 h-4" />
+            </span>
+          </PremiumButton>
+        </div>
+      )}
 
       {/* DYNAMIC TRUST: RECENT SALES POPUP */}
       <RecentSalesPopup />
