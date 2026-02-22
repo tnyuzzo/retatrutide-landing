@@ -3,11 +3,6 @@ import { PortalForm } from "@/components/ui/PortalForm";
 import { ArrowLeft, Navigation, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
-export const metadata = {
-    title: "Track Your Order | Aura Peptides",
-    description: "Securely track your premium research peptide order.",
-};
-
 export default async function PortalPage(props: {
     params: Promise<{ locale: string }>;
 }) {

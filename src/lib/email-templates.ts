@@ -140,6 +140,70 @@ export function lowStockAlertEmail(params: LowStockAlertParams) {
     };
 }
 
+interface WarehouseNewOrderParams {
+    orderId: string;
+    kitsToShip: number;
+    customerName: string;
+    customerPhone: string;
+    shippingAddress: Record<string, string>;
+}
+
+interface RefundConfirmationParams {
+    referenceId: string;
+    fiatAmount: number;
+    refundAmount: number;
+    isPartial: boolean;
+}
+
+export function warehouseNewOrderEmail(params: WarehouseNewOrderParams) {
+    const { orderId, kitsToShip, customerName, customerPhone, shippingAddress } = params;
+    return {
+        subject: `📦 NUOVO ORDINE DA SPEDIRE: #${orderId} — ${kitsToShip} kit`,
+        html: baseWrapper(`
+            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;color:${BRAND_GOLD};">Nuovo Ordine da Spedire</h2>
+            <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
+                <div style="font-size:48px;font-weight:700;color:${BRAND_GOLD};">${kitsToShip}</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:2px;">kit da spedire</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Destinatario</div>
+                <div style="font-size:14px;color:rgba(255,255,255,0.8);">
+                    <strong>${customerName}</strong><br>
+                    Tel: ${customerPhone}
+                </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Indirizzo</div>
+                <pre style="font-size:12px;color:rgba(255,255,255,0.7);margin:0;white-space:pre-wrap;">${JSON.stringify(shippingAddress, null, 2)}</pre>
+            </div>
+            <div style="text-align:center;margin-top:16px;">
+                <a href="${process.env.NEXT_PUBLIC_SITE_URL || ''}/admin" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:12px 28px;border-radius:8px;text-decoration:none;">Apri Dashboard</a>
+            </div>
+        `),
+    };
+}
+
+export function refundConfirmationEmail(params: RefundConfirmationParams) {
+    const { referenceId, fiatAmount, refundAmount, isPartial } = params;
+    return {
+        subject: `💸 Rimborso ${isPartial ? 'Parziale ' : ''}Confermato — Ordine ${referenceId.slice(-8).toUpperCase()}`,
+        html: baseWrapper(`
+            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">Rimborso ${isPartial ? 'Parziale ' : ''}Confermato</h2>
+            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
+                Il rimborso per il tuo ordine <strong style="color:white;">${referenceId.slice(-8).toUpperCase()}</strong> è stato elaborato.
+            </p>
+            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Importo Rimborsato</div>
+                <div style="font-size:28px;font-weight:600;color:${BRAND_GOLD};">€${refundAmount.toFixed(2)}</div>
+                ${isPartial ? `<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">su €${fiatAmount.toFixed(2)} totali</div>` : ''}
+            </div>
+            <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;">
+                Il rimborso crypto verrà inviato al tuo wallet. Per qualsiasi domanda rispondi direttamente a questa email.
+            </p>
+        `),
+    };
+}
+
 export function orderConfirmationCustomerEmail(params: { referenceId: string; fiatAmount: number }) {
     return {
         subject: `✅ Pagamento Ricevuto — Ordine ${params.referenceId.slice(-8).toUpperCase()}`,

@@ -1,11 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { verifyAuth, requireRole, AuthError } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 const REVENUE_STATUSES = ['paid', 'processing', 'shipped', 'delivered'];
 
 export async function GET(req: NextRequest) {
     try {
-        const { role, supabase } = await verifyAuth(req);
+        const { role } = await verifyAuth(req);
         requireRole(role, ['super_admin', 'manager']);
 
         const now = new Date();
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
         const endOfLastMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
 
         const revenueQuery = (gte: string | null, lt: string | null) => {
-            let q = supabase.from('orders').select('fiat_amount').in('status', REVENUE_STATUSES);
+            let q = supabaseAdmin.from('orders').select('fiat_amount').in('status', REVENUE_STATUSES);
             if (gte) q = q.gte('created_at', gte);
             if (lt) q = q.lt('created_at', lt);
             return q;
@@ -37,6 +38,8 @@ export async function GET(req: NextRequest) {
             ordersToShipResult,
             inventoryResult,
             recentOrdersResult,
+            shippingCostsResult,
+            customersResult,
         ] = await Promise.all([
             revenueQuery(null, null),
             revenueQuery(startOfToday, null),
@@ -44,19 +47,25 @@ export async function GET(req: NextRequest) {
             revenueQuery(startOfMonth, null),
             revenueQuery(startOfLastMonth, endOfLastMonth),
 
-            supabase.from('orders').select('id', { count: 'exact', head: true }),
-            supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startOfToday),
-            supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek),
-            supabase.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startOfMonth),
+            supabaseAdmin.from('orders').select('id', { count: 'exact', head: true }),
+            supabaseAdmin.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startOfToday),
+            supabaseAdmin.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startOfWeek),
+            supabaseAdmin.from('orders').select('id', { count: 'exact', head: true }).gte('created_at', startOfMonth),
 
-            supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'paid'),
+            supabaseAdmin.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'paid'),
 
-            supabase.from('inventory').select('quantity').eq('sku', 'RET-KIT-1').single(),
+            supabaseAdmin.from('inventory').select('quantity').eq('sku', 'RET-KIT-1').single(),
 
-            supabase.from('orders')
-                .select('id, reference_id, created_at, fiat_amount, status, email, crypto_currency')
+            supabaseAdmin.from('orders')
+                .select('id, reference_id, order_number, created_at, fiat_amount, status, email, crypto_currency')
                 .order('created_at', { ascending: false })
                 .limit(5),
+
+            // Shipping costs
+            supabaseAdmin.from('orders').select('shipping_cost').in('status', ['shipped', 'delivered']).not('shipping_cost', 'is', null),
+
+            // Total unique customers
+            supabaseAdmin.from('customers').select('id', { count: 'exact', head: true }),
         ]);
 
         const sum = (result: { data: Record<string, number>[] | null }, field: string) =>
@@ -64,9 +73,13 @@ export async function GET(req: NextRequest) {
 
         const stockQuantity = inventoryResult.data?.quantity ?? 0;
 
+        const totalRevenue = sum(revenueTotalResult, 'fiat_amount');
+        const totalPaidOrders = (revenueTotalResult.data || []).length;
+        const totalShippingCosts = sum(shippingCostsResult, 'shipping_cost');
+
         return NextResponse.json({
             revenue: {
-                total: sum(revenueTotalResult, 'fiat_amount'),
+                total: totalRevenue,
                 today: sum(revenueTodayResult, 'fiat_amount'),
                 this_week: sum(revenueWeekResult, 'fiat_amount'),
                 this_month: sum(revenueMonthResult, 'fiat_amount'),
@@ -83,6 +96,9 @@ export async function GET(req: NextRequest) {
                 stock_quantity: stockQuantity,
                 low_stock: stockQuantity < 20,
             },
+            shipping_costs: totalShippingCosts,
+            customers_total: customersResult.count || 0,
+            avg_order_value: totalPaidOrders > 0 ? Math.round(totalRevenue / totalPaidOrders) : 0,
             recent_orders: recentOrdersResult.data || [],
         });
     } catch (err) {

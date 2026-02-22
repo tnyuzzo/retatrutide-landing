@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, setRequestLocale } from 'next-intl/server';
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
+import { getAlternateLanguages, getCanonicalUrl } from '@/lib/seo';
 import "../globals.css";
 
 const geistSans = Geist({
@@ -16,10 +17,58 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Aura Peptides | Premium Research GLP-1",
-  description: "The Gold Standard for Retatrutide in Europe.",
-};
+const BASE_URL = 'https://aurapep.eu';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'Index' });
+
+  const canonical = getCanonicalUrl(locale, '');
+  const alternateLanguages = getAlternateLanguages('');
+
+  return {
+    metadataBase: new URL(BASE_URL),
+    title: {
+      default: t('seo_home_title'),
+      template: `%s | Aura Peptides`,
+    },
+    description: t('seo_home_description'),
+    alternates: {
+      canonical,
+      languages: alternateLanguages,
+    },
+    openGraph: {
+      title: t('seo_home_og_title'),
+      description: t('seo_home_og_description'),
+      url: canonical,
+      siteName: 'Aura Peptides',
+      locale: locale === 'uk' ? 'uk_UA' : locale,
+      type: 'website',
+      images: [
+        {
+          url: '/images/retatrutide_hero_gold.png',
+          width: 1200,
+          height: 630,
+          alt: 'Retatrutide 10mg - Aura Peptides Europe',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('seo_home_og_title'),
+      description: t('seo_home_og_description'),
+      images: ['/images/retatrutide_hero_gold.png'],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -34,7 +83,7 @@ export default async function RootLayout({
 }>) {
   const { locale } = await params;
 
-  if (!routing.locales.includes(locale as "en" | "it" | "fr" | "de" | "es" | "pt" | "pl" | "ru" | "uk")) {
+  if (!routing.locales.includes(locale as "en" | "it" | "fr" | "de" | "es" | "pt" | "pl" | "ru" | "uk" | "ar")) {
     notFound();
   }
 
@@ -42,7 +91,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

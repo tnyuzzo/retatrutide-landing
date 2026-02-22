@@ -4,7 +4,10 @@ import { Resend } from 'resend';
 import {
     orderConfirmationAdminEmail,
     orderConfirmationCustomerEmail,
+    warehouseNewOrderEmail,
+    lowStockAlertEmail,
 } from '@/lib/email-templates';
+import { sendSMS } from '@/lib/clicksend';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
 const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
@@ -139,10 +142,42 @@ export async function GET(req: Request) {
                 console.error("Webhook: Failed to decrement inventory:", invErr);
             }
 
-            // 4. Send Emails via Resend
+            // 4. Customer upsert
+            try {
+                if (order.email) {
+                    const normalizedEmail = order.email.toLowerCase().trim();
+                    const customerName = order.shipping_address?.full_name || '';
+                    const customerPhone = order.shipping_address?.phone || null;
+
+                    const { data: existingCustomer } = await supabaseAdmin
+                        .from('customers')
+                        .select('id')
+                        .eq('email', normalizedEmail)
+                        .maybeSingle();
+
+                    if (existingCustomer) {
+                        const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+                        if (customerName) updates.full_name = customerName;
+                        if (customerPhone) updates.phone = customerPhone;
+                        await supabaseAdmin.from('customers').update(updates).eq('id', existingCustomer.id);
+                    } else {
+                        await supabaseAdmin.from('customers').insert({
+                            email: normalizedEmail,
+                            full_name: customerName,
+                            phone: customerPhone,
+                        });
+                    }
+                }
+            } catch (custErr) {
+                console.error("Webhook: Failed to upsert customer:", custErr);
+            }
+
+            // 5. Send Emails via Resend
+            const notificationPromises: Promise<unknown>[] = [];
+
             if (process.env.RESEND_API_KEY) {
                 try {
-                    // Admin notification — use proper template
+                    // Admin notification
                     const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
                     if (adminEmail) {
                         const { subject, html } = orderConfirmationAdminEmail({
@@ -155,29 +190,76 @@ export async function GET(req: Request) {
                             email: order.email || undefined,
                         });
 
-                        await resend.emails.send({
-                            from: EMAIL_FROM,
-                            replyTo: EMAIL_REPLY_TO,
-                            to: adminEmail,
-                            subject,
-                            html,
-                        });
+                        notificationPromises.push(
+                            resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to: adminEmail, subject, html })
+                                .catch((err) => console.error('Webhook: Failed to send admin email:', err))
+                        );
                     }
 
-                    // Customer confirmation — use proper template
+                    // Customer confirmation email
                     if (order.email && order.email.includes('@')) {
                         const { subject, html } = orderConfirmationCustomerEmail({
                             referenceId: order_id,
                             fiatAmount: order.fiat_amount || 0,
                         });
 
-                        await resend.emails.send({
-                            from: EMAIL_FROM,
-                            replyTo: EMAIL_REPLY_TO,
-                            to: order.email,
-                            subject,
-                            html,
+                        notificationPromises.push(
+                            resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to: order.email, subject, html })
+                                .catch((err) => console.error('Webhook: Failed to send customer email:', err))
+                        );
+                    }
+
+                    // Low stock alert
+                    const { data: currentInv } = await supabaseAdmin
+                        .from('inventory').select('quantity').eq('sku', 'RET-KIT-1').single();
+                    if (currentInv && currentInv.quantity < 20 && adminEmail) {
+                        const { subject, html } = lowStockAlertEmail({
+                            sku: 'RET-KIT-1',
+                            currentQuantity: currentInv.quantity,
+                            threshold: 20,
                         });
+                        notificationPromises.push(
+                            resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to: adminEmail, subject, html })
+                                .catch((err) => console.error('Webhook: Failed to send low stock alert:', err))
+                        );
+                    }
+
+                    // Warehouse email notifications
+                    const { data: warehouseMembers } = await supabaseAdmin
+                        .from('profiles')
+                        .select('email, full_name, phone')
+                        .eq('role', 'warehouse')
+                        .eq('is_active', true);
+
+                    const shippingAddress = order.shipping_address || {};
+                    const totalKits = order.items?.reduce((s: number, i: { quantity?: number }) => s + (i.quantity || 1), 0) || 1;
+
+                    if (warehouseMembers?.length) {
+                        for (const wh of warehouseMembers) {
+                            if (wh.email) {
+                                const { subject, html } = warehouseNewOrderEmail({
+                                    orderId: order_id.slice(-8).toUpperCase(),
+                                    kitsToShip: totalKits,
+                                    customerName: shippingAddress.full_name || 'N/A',
+                                    customerPhone: shippingAddress.phone || 'N/A',
+                                    shippingAddress,
+                                });
+                                notificationPromises.push(
+                                    resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to: wh.email, subject, html })
+                                        .catch((err) => console.error(`Webhook: Failed to send warehouse email to ${wh.email}:`, err))
+                                );
+                            }
+                            // Warehouse SMS
+                            if (wh.phone) {
+                                const shortAddr = [shippingAddress.address_line_1, shippingAddress.city, shippingAddress.postal_code, shippingAddress.country].filter(Boolean).join(', ');
+                                notificationPromises.push(
+                                    sendSMS({
+                                        to: wh.phone,
+                                        body: `NUOVO ORDINE CRYPTO #${order_id.slice(-8).toUpperCase()}\n${totalKits} kit da spedire\nCliente: ${shippingAddress.full_name || 'N/A'}\nTel: ${shippingAddress.phone || 'N/A'}\nIndirizzo: ${shortAddr}`,
+                                    }).catch((err) => console.error(`Webhook: Failed to send warehouse SMS to ${wh.phone}:`, err))
+                                );
+                            }
+                        }
                     }
                 } catch (emailErr) {
                     console.error("Webhook: Failed to send emails:", emailErr);
@@ -185,6 +267,18 @@ export async function GET(req: Request) {
             } else {
                 console.log("Webhook: RESEND_API_KEY missing. Skipped emails.");
             }
+
+            // 6. Customer SMS confirmation
+            if (order.shipping_address?.phone) {
+                notificationPromises.push(
+                    sendSMS({
+                        to: order.shipping_address.phone,
+                        body: `Aura Peptides: il tuo pagamento è confermato! Ordine #${order_id.slice(-8).toUpperCase()}. Il kit è in preparazione e riceverai il tracking appena spedito.`,
+                    }).catch((err) => console.error('Webhook: Failed to send customer SMS:', err))
+                );
+            }
+
+            await Promise.allSettled(notificationPromises);
         }
 
         return new NextResponse('*ok*', { status: 200 });

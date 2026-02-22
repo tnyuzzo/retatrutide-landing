@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Lock, Shield, ChevronRight, Minus, Plus, MapPin, User, Mail, Phone } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { ArrowLeft, Lock, Shield, ChevronRight, Minus, Plus, MapPin, User, Mail, Phone, Ban, Eye, CreditCard, ExternalLink } from "lucide-react";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { OrderStructuredData } from "@/components/seo/OrderStructuredData";
 
-const BASE_PRICE = 197;
+const BASE_PRICE = 12; // TODO: restore to 197 after testing
 
 const DISCOUNT_TIERS = [
     { min: 1, discount: 0 },
@@ -32,11 +33,37 @@ const EU_COUNTRIES = [
     "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"
 ];
 
+const COUNTRY_PHONE_PREFIXES: Record<string, string> = {
+    "Austria": "+43", "Belgium": "+32", "Bulgaria": "+359", "Croatia": "+385",
+    "Cyprus": "+357", "Czech Republic": "+420", "Denmark": "+45", "Estonia": "+372",
+    "Finland": "+358", "France": "+33", "Germany": "+49", "Greece": "+30",
+    "Hungary": "+36", "Ireland": "+353", "Italy": "+39", "Latvia": "+371",
+    "Lithuania": "+370", "Luxembourg": "+352", "Malta": "+356", "Netherlands": "+31",
+    "Poland": "+48", "Portugal": "+351", "Romania": "+40", "Slovakia": "+421",
+    "Slovenia": "+386", "Spain": "+34", "Sweden": "+46",
+};
+
+const ISO_TO_COUNTRY: Record<string, string> = {
+    'AT': 'Austria', 'BE': 'Belgium', 'BG': 'Bulgaria', 'HR': 'Croatia',
+    'CY': 'Cyprus', 'CZ': 'Czech Republic', 'DK': 'Denmark', 'EE': 'Estonia',
+    'FI': 'Finland', 'FR': 'France', 'DE': 'Germany', 'GR': 'Greece',
+    'HU': 'Hungary', 'IE': 'Ireland', 'IT': 'Italy', 'LV': 'Latvia',
+    'LT': 'Lithuania', 'LU': 'Luxembourg', 'MT': 'Malta', 'NL': 'Netherlands',
+    'PL': 'Poland', 'PT': 'Portugal', 'RO': 'Romania', 'SK': 'Slovakia',
+    'SI': 'Slovenia', 'ES': 'Spain', 'SE': 'Sweden',
+};
+
+const EU_COUNTRY_CODES = ['at','be','bg','hr','cy','cz','dk','ee','fi','fr','de','gr','hu','ie','it','lv','lt','lu','mt','nl','pl','pt','ro','sk','si','es','se'];
+
+const COUNTRY_TO_ISO: Record<string, string> = Object.fromEntries(
+    Object.entries(ISO_TO_COUNTRY).map(([iso, name]) => [name, iso.toLowerCase()])
+);
+
 export default function OrderPage() {
     const t = useTranslations('Index');
     const locale = useLocale();
     const [quantity, setQuantity] = useState(1);
-    const [selectedCrypto, setSelectedCrypto] = useState("BTC");
+    const [selectedCrypto, setSelectedCrypto] = useState("USDT");
     const [isProcessing, setIsProcessing] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
 
@@ -49,6 +76,85 @@ export default function OrderPage() {
     const [postalCode, setPostalCode] = useState("");
     const [country, setCountry] = useState("");
     const [phone, setPhone] = useState("");
+    const [phoneCountryCode, setPhoneCountryCode] = useState("+39");
+    const addressInputRef = useRef<HTMLInputElement>(null);
+    const autocompleteRef = useRef<any>(null);
+
+    // Google Places Autocomplete (graceful degradation if API key missing or blocked)
+    useEffect(() => {
+        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        if (!apiKey || typeof window === 'undefined') return;
+
+        const initAutocomplete = () => {
+            const g = (window as /* eslint-disable-line */ any).google;
+            if (!g?.maps?.places || !addressInputRef.current) return;
+
+            const autocomplete = new g.maps.places.Autocomplete(addressInputRef.current, {
+                types: ['address'],
+                componentRestrictions: { country: EU_COUNTRY_CODES },
+                fields: ['address_components'],
+            });
+            autocompleteRef.current = autocomplete;
+
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+                if (!place.address_components) return;
+
+                let street = '', streetNumber = '', newCity = '', newPostalCode = '', countryIso = '';
+                for (const comp of place.address_components) {
+                    const type = comp.types[0];
+                    if (type === 'street_number') streetNumber = comp.long_name;
+                    else if (type === 'route') street = comp.long_name;
+                    else if (type === 'locality' || type === 'administrative_area_level_3') newCity = newCity || comp.long_name;
+                    else if (type === 'postal_code') newPostalCode = comp.long_name;
+                    else if (type === 'country') countryIso = comp.short_name;
+                }
+
+                const fullStreet = streetNumber ? `${street} ${streetNumber}` : street;
+                if (fullStreet) setAddressLine1(fullStreet);
+                if (newCity) setCity(newCity);
+                if (newPostalCode) setPostalCode(newPostalCode);
+                if (countryIso) {
+                    const countryName = ISO_TO_COUNTRY[countryIso];
+                    if (countryName) {
+                        setCountry(countryName);
+                        const prefix = COUNTRY_PHONE_PREFIXES[countryName];
+                        if (prefix) setPhoneCountryCode(prefix);
+                    }
+                }
+            });
+        };
+
+        if ((window as /* eslint-disable-line */ any).google?.maps?.places) {
+            initAutocomplete();
+        } else if (!document.getElementById('google-maps-script')) {
+            const script = document.createElement('script');
+            script.id = 'google-maps-script';
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+            script.async = true;
+            script.defer = true;
+            script.addEventListener('load', initAutocomplete);
+            document.head.appendChild(script);
+
+            // Dark theme for autocomplete dropdown
+            const style = document.createElement('style');
+            style.textContent = `.pac-container{background:#0a0a14;border:1px solid rgba(255,255,255,0.1);border-radius:12px;margin-top:4px;box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:9999}.pac-item{color:rgba(255,255,255,0.7);border-top:1px solid rgba(255,255,255,0.05);padding:8px 12px;cursor:pointer;font-size:14px}.pac-item:hover{background:rgba(255,255,255,0.1)}.pac-item-query{color:#d4af37}.pac-icon{display:none}`;
+            document.head.appendChild(style);
+        }
+    }, []);
+
+    // Update autocomplete restrictions when country changes
+    useEffect(() => {
+        if (!autocompleteRef.current) return;
+        if (country) {
+            const iso = COUNTRY_TO_ISO[country];
+            if (iso) {
+                autocompleteRef.current.setComponentRestrictions({ country: [iso] });
+            }
+        } else {
+            autocompleteRef.current.setComponentRestrictions({ country: EU_COUNTRY_CODES });
+        }
+    }, [country]);
 
     const discount = getDiscount(quantity);
     const unitPrice = Math.round(BASE_PRICE * (1 - discount / 100));
@@ -80,6 +186,11 @@ export default function OrderPage() {
             setFormError(t('order_error_country'));
             return false;
         }
+        const phoneDigits = phone.replace(/\D/g, '');
+        if (!phone || phoneDigits.length < 6) {
+            setFormError(t('order_error_phone'));
+            return false;
+        }
         setFormError(null);
         return true;
     };
@@ -103,7 +214,7 @@ export default function OrderPage() {
                         city,
                         postal_code: postalCode,
                         country,
-                        phone,
+                        phone: `${phoneCountryCode} ${phone}`,
                     },
                     quantity,
                     crypto_currency: selectedCrypto
@@ -156,6 +267,7 @@ export default function OrderPage() {
                             <div className="flex flex-col gap-1">
                                 <span className="text-sm text-white/50 uppercase tracking-widest">{t('order_quantity')}</span>
                                 <span className="text-white/40 text-xs">Retatrutide 10mg</span>
+                                <span className="text-green-400/70 text-xs">+ {t('order_free_bac_water')}</span>
                             </div>
                             <div className="flex items-center gap-4">
                                 <button
@@ -287,8 +399,29 @@ export default function OrderPage() {
                                 />
                             </div>
 
-                            {/* Address Line 1 */}
+                            {/* Country (first, so autocomplete filters by selected country) */}
+                            <div className="relative">
+                                <select
+                                    value={country}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setCountry(val);
+                                        const prefix = COUNTRY_PHONE_PREFIXES[val];
+                                        if (prefix) setPhoneCountryCode(prefix);
+                                    }}
+                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
+                                >
+                                    <option value="" className="bg-brand-void">{t('order_field_country')}</option>
+                                    {EU_COUNTRIES.map(c => (
+                                        <option key={c} value={c} className="bg-brand-void">{c}</option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 text-xs">▼</div>
+                            </div>
+
+                            {/* Address Line 1 (with Google Places autocomplete) */}
                             <input
+                                ref={addressInputRef}
                                 type="text"
                                 placeholder={t('order_field_address1')}
                                 value={addressLine1}
@@ -323,32 +456,29 @@ export default function OrderPage() {
                                 />
                             </div>
 
-                            {/* Country */}
-                            <div className="relative">
-                                <select
-                                    value={country}
-                                    onChange={(e) => setCountry(e.target.value)}
-                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
-                                >
-                                    <option value="" className="bg-brand-void">{t('order_field_country')}</option>
-                                    {EU_COUNTRIES.map(c => (
-                                        <option key={c} value={c} className="bg-brand-void">{c}</option>
-                                    ))}
-                                </select>
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 text-xs">▼</div>
-                            </div>
-
-                            {/* Phone (optional) */}
-                            <div className="relative">
-                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                            {/* Phone with country code */}
+                            <div className="flex gap-2">
+                                <div className="relative w-[88px] shrink-0">
+                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                    <select
+                                        value={phoneCountryCode}
+                                        onChange={(e) => setPhoneCountryCode(e.target.value)}
+                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-9 pr-1 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
+                                    >
+                                        {Object.entries(COUNTRY_PHONE_PREFIXES).map(([name, prefix]) => (
+                                            <option key={name} value={prefix} className="bg-brand-void">{prefix}</option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <input
                                     type="tel"
                                     placeholder={t('order_field_phone')}
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
-                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                    className="flex-1 h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
                                 />
                             </div>
+                            <p className="text-xs text-white/40 px-1">{t('order_privacy_note')}</p>
                         </div>
                     </div>
 
@@ -372,6 +502,10 @@ export default function OrderPage() {
                                 <span>{t('order_product')}</span>
                                 <span>Retatrutide 10mg × {quantity}</span>
                             </div>
+                            <div className="flex justify-between text-green-400/80 text-xs">
+                                <span>{t('order_free_bac_water')}</span>
+                                <span>× {quantity}</span>
+                            </div>
                             <div className="flex justify-between text-white/70">
                                 <span>{t('order_unit_price')}</span>
                                 <span>{unitPrice}€ {discount > 0 && <span className="text-white/30 line-through ml-1">{BASE_PRICE}€</span>}</span>
@@ -393,6 +527,38 @@ export default function OrderPage() {
                             <span className="text-lg">{t('order_total')}</span>
                             <div className="flex flex-col items-end">
                                 <span className="text-3xl font-light text-brand-gold">{totalPrice}€</span>
+                            </div>
+                        </div>
+
+                        {/* WHY CRYPTO */}
+                        <div className="mt-6 bg-white/5 rounded-xl p-4 border border-white/10">
+                            <h3 className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-brand-gold mb-3">
+                                <Shield className="w-3.5 h-3.5" />
+                                {t('order_why_crypto')}
+                            </h3>
+                            <div className="flex flex-col gap-2 mb-4">
+                                <div className="flex items-start gap-2">
+                                    <Ban className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                                    <p className="text-[11px] text-white/50">{t('order_why_crypto_1')}</p>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <Eye className="w-3.5 h-3.5 text-brand-gold shrink-0 mt-0.5" />
+                                    <p className="text-[11px] text-white/50">{t('order_why_crypto_2')}</p>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                    <Lock className="w-3.5 h-3.5 text-green-400 shrink-0 mt-0.5" />
+                                    <p className="text-[11px] text-white/50">{t('order_why_crypto_3')}</p>
+                                </div>
+                            </div>
+                            <div className="bg-brand-gold/5 border border-brand-gold/15 rounded-lg p-3">
+                                <p className="text-[11px] text-white/60 mb-1 font-medium">{t('order_no_crypto_title')}</p>
+                                <p className="text-[10px] text-white/40 mb-2">{t('order_no_crypto_desc')}</p>
+                                <a
+                                    href={`/${locale}/crypto-guide`}
+                                    className="inline-flex items-center gap-1 text-[11px] text-brand-gold hover:text-brand-gold/80 font-medium transition-colors"
+                                >
+                                    {t('order_no_crypto_cta')} <ExternalLink className="w-3 h-3" />
+                                </a>
                             </div>
                         </div>
 
@@ -451,6 +617,9 @@ export default function OrderPage() {
                     </div>
                 </div>
             </div>
+
+            {/* SEO: Structured Data */}
+            <OrderStructuredData />
         </main>
     );
 }

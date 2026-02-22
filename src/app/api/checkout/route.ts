@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
+import { generateOrderNumber } from '@/lib/order-number';
 
 // ── Rate Limiting (in-memory, per IP, 5 req/min) ──
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -33,10 +34,10 @@ const checkoutSchema = z.object({
         city: z.string().min(1).max(200),
         postal_code: z.string().min(2).max(20),
         country: z.string().min(2).max(100),
-        phone: z.string().max(30).optional().default(''),
+        phone: z.string().min(6).max(30),
     }),
     quantity: z.coerce.number().int().min(1).max(100).default(1),
-    crypto_currency: z.enum(ALLOWED_CRYPTOS).default('btc'),
+    crypto_currency: z.string().transform(v => v.toLowerCase()).pipe(z.enum(ALLOWED_CRYPTOS)).default('btc'),
 });
 
 // ── Volume Discount Tiers ──
@@ -106,7 +107,7 @@ export async function POST(req: Request) {
         const { email, shipping_address, quantity, crypto_currency } = parsed.data;
 
         // ── Price Calculation (must match frontend tiers) ──
-        const basePrice = 197;
+        const basePrice = 12; // TODO: restore to 197 after testing
         const discountPercent = getDiscount(quantity);
         const unitPrice = Math.round(basePrice * (1 - discountPercent / 100));
         const fiat_amount = unitPrice * quantity;
@@ -157,8 +158,8 @@ export async function POST(req: Request) {
         const cryptapiData = await cryptapiRes.json();
 
         if (cryptapiData.status !== 'success') {
-            console.error("CryptAPI Error:", cryptapiData);
-            return NextResponse.json({ error: 'Failed to generate crypto address' }, { status: 500 });
+            console.error("CryptAPI Error:", JSON.stringify(cryptapiData), "URL:", cryptapiUrl);
+            return NextResponse.json({ error: 'Failed to generate crypto address', debug: cryptapiData }, { status: 500 });
         }
 
         const paymentAddress = cryptapiData.address_in;
@@ -174,7 +175,21 @@ export async function POST(req: Request) {
                 const eurPricePerCoin = parseFloat(infoData.prices.EUR);
                 const exactCryptoAmount = fiat_amount / eurPricePerCoin;
                 // 1% buffer to account for volatility
-                calculatedCryptoAmount = parseFloat((exactCryptoAmount * 1.01).toFixed(8));
+                const CRYPTO_DECIMALS: Record<string, number> = {
+                    btc: 6, eth: 5, xmr: 4, sol: 4,
+                    'trc20/usdt': 2, 'erc20/usdc': 2, 'bep20/xrp': 4,
+                };
+                const decimals = CRYPTO_DECIMALS[cryptapiTicker] ?? 6;
+                calculatedCryptoAmount = parseFloat((exactCryptoAmount * 1.01).toFixed(decimals));
+
+                // Check CryptAPI minimum transaction amount
+                const minTx = parseFloat(infoData.minimum_transaction_coin || '0');
+                if (minTx > 0 && calculatedCryptoAmount < minTx) {
+                    const minFiat = Math.ceil(minTx * eurPricePerCoin);
+                    return NextResponse.json({
+                        error: `Minimum order for ${crypto_currency.toUpperCase()} is ~${minFiat}€. Please increase quantity or choose a different cryptocurrency.`,
+                    }, { status: 400 });
+                }
             } else {
                 throw new Error("Failed to get price info");
             }
@@ -183,12 +198,39 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unable to calculate exchange rate. Please try again.' }, { status: 503 });
         }
 
-        // 3. Insert Order into Supabase (using service role — bypasses RLS)
+        // 3. Generate order number + upsert customer
+        const orderNumber = await generateOrderNumber(supabaseAdmin);
+
+        const normalizedEmail = email.toLowerCase().trim();
+        const customerName = shipping_address.full_name || '';
+        const customerPhone = shipping_address.phone || null;
+
+        const { data: existingCustomer } = await supabaseAdmin
+            .from('customers')
+            .select('id')
+            .eq('email', normalizedEmail)
+            .maybeSingle();
+
+        if (existingCustomer) {
+            const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+            if (customerName) updates.full_name = customerName;
+            if (customerPhone) updates.phone = customerPhone;
+            await supabaseAdmin.from('customers').update(updates).eq('id', existingCustomer.id);
+        } else {
+            await supabaseAdmin.from('customers').insert({
+                email: normalizedEmail,
+                full_name: customerName,
+                phone: customerPhone,
+            });
+        }
+
+        // 4. Insert Order into Supabase (using service role — bypasses RLS)
         const { data: orderData, error: dbError } = await supabaseAdmin
             .from('orders')
             .insert([
                 {
                     reference_id: referenceId,
+                    order_number: orderNumber,
                     status: 'pending',
                     fiat_amount,
                     crypto_currency: crypto_currency.toUpperCase(),
@@ -210,6 +252,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
             success: true,
             reference_id: referenceId,
+            order_number: orderNumber,
             payment_url: paymentAddress,
             crypto_amount: calculatedCryptoAmount,
             order: orderData,

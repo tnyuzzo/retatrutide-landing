@@ -21,7 +21,8 @@ export function LanguageSwitcher() {
         { code: 'pt', label: 'PT' },
         { code: 'pl', label: 'PL' },
         { code: 'ru', label: 'RU' },
-        { code: 'uk', label: 'UK' }
+        { code: 'uk', label: 'UK' },
+        { code: 'ar', label: 'AR' }
     ];
 
     return (

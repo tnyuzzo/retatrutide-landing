@@ -9,6 +9,7 @@ import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useState } from "react";
 import { LiveInventoryBadge } from "@/components/ui/LiveInventoryBadge";
 import { RecentSalesPopup } from "@/components/ui/RecentSalesPopup";
+import { HomeStructuredData } from "@/components/seo/HomeStructuredData";
 
 export default function Home() {
   const t = useTranslations('Index');
@@ -162,7 +163,7 @@ export default function Home() {
                 <div className="relative w-full h-full rounded-xl overflow-hidden">
                   <Image
                     src="/images/retatrutide_hero_gold.png"
-                    alt="retatrutide 10mg"
+                    alt="Retatrutide 10mg premium research peptide vial - 99.8% HPLC verified purity - Aura Peptides Europe"
                     fill
                     className="object-cover mix-blend-screen scale-110 opacity-90 transition-transform duration-1000 group-hover:scale-[1.15]"
                     priority
@@ -437,7 +438,7 @@ export default function Home() {
               <p className="text-white/60 text-sm mt-1">{t('calculator_desc')}</p>
             </div>
           </div>
-          <PremiumButton variant="outline" onClick={() => alert("Calculator Modal will open here.")}>{t('calculator_cta')}</PremiumButton>
+          <a href={`/${locale}/calculator`}><PremiumButton variant="outline">{t('calculator_cta')}</PremiumButton></a>
         </div>
       </section >
 
@@ -600,7 +601,7 @@ export default function Home() {
                   </div>
                   <Image
                     src="/assets/janoshik-coa-retatrutide-10mg.png"
-                    alt="Janoshik Lab Report"
+                    alt="Janoshik Certificate of Analysis - Retatrutide 10mg purity verification 99.86% HPLC tested"
                     width={800}
                     height={1000}
                     className="w-full h-auto object-cover opacity-80"
@@ -632,6 +633,9 @@ export default function Home() {
 
       {/* DYNAMIC TRUST: RECENT SALES POPUP */}
       <RecentSalesPopup />
+
+      {/* SEO: Structured Data */}
+      <HomeStructuredData />
 
     </main>
   );
