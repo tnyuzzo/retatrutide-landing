@@ -353,7 +353,10 @@
     "checkout_copy_address_done": "Скопійовано!",
     "calc_order_cta": "Замовити набір",
     "calc_order_cta_desc": "Розраховано для Ретатрутиду 10мг — замовте зараз.",
-    "trust_badge_view_report": "Переглянути звіт"
+    "trust_badge_view_report": "Переглянути звіт",
+    "checkout_valid_for": "Дійсний",
+    "checkout_expires_in": "Закінчується через",
+    "checkout_expired_label": "Замовлення закінчилось"
   },
   "inventory_high_demand": "Великий попит: лише",
   "inventory_kits_remaining": "флаконів залишилось"

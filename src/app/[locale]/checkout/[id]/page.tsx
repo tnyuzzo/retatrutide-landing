@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Lock, CheckCircle, ArrowLeft, Shield, Package, MapPin, CreditCard, AlertCircle, XCircle } from "lucide-react";
 import { CheckoutPoller } from "@/components/ui/CheckoutPoller";
 import { CopyAddressButton } from "@/components/ui/CopyAddressButton";
+import { CheckoutCountdown } from "@/components/ui/CheckoutCountdown";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -174,7 +175,15 @@ export default async function CheckoutPage(props: {
                     labelCopied={t('checkout_copy_address_done')}
                 />
 
-                <div className="flex items-center gap-3 mt-4 mb-6">
+                {/* Countdown timer — urgency signal */}
+                <CheckoutCountdown
+                    createdAt={order.created_at}
+                    labelValid={t('checkout_valid_for')}
+                    labelExpires={t('checkout_expires_in')}
+                    labelExpired={t('checkout_expired_label')}
+                />
+
+                <div className="flex items-center gap-3 mb-6">
                     <div className="w-4 h-4 rounded-full border-2 border-brand-gold/50 border-t-brand-gold animate-spin"></div>
                     <p className="text-xs text-brand-gold/80">{t('checkout_waiting')}</p>
                 </div>

@@ -150,6 +150,16 @@ export default function Home() {
                 <LiveInventoryBadge />
               </div>
 
+              {/* Mobile-only: compact shipping timeline */}
+              <div className="lg:hidden flex items-center gap-1.5 text-[11px] text-white/50 font-medium w-full px-1 overflow-hidden">
+                <Truck className="w-3.5 h-3.5 text-brand-gold shrink-0" />
+                <span className="text-white/70 whitespace-nowrap">{t('timeline_today')}</span>
+                <ArrowRight className="w-2.5 h-2.5 text-white/25 shrink-0" />
+                <span className="whitespace-nowrap">{t('timeline_tomorrow')}</span>
+                <ArrowRight className="w-2.5 h-2.5 text-white/25 shrink-0" />
+                <span className="text-brand-gold whitespace-nowrap truncate">{t('timeline_delivered')}</span>
+              </div>
+
               <div className="hidden lg:flex items-center gap-2 text-white/50 text-sm pl-2">
                 <Lock className="w-3 h-3 text-brand-gold" />
                 <span>{t('hero_cta_starting')} <strong className="text-white">97€</strong> {t('hero_cta_per_vial')}</span>

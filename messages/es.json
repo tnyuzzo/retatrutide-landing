@@ -353,7 +353,10 @@
     "checkout_copy_address_done": "¡Copiado!",
     "calc_order_cta": "Pedir tu Kit",
     "calc_order_cta_desc": "Calculado para Retatrutida 10mg — pídelo ahora.",
-    "trust_badge_view_report": "Ver Informe"
+    "trust_badge_view_report": "Ver Informe",
+    "checkout_valid_for": "Válido por",
+    "checkout_expires_in": "Expira en",
+    "checkout_expired_label": "Pedido expirado"
   },
   "inventory_high_demand": "Alta Demanda: solo",
   "inventory_kits_remaining": "viales restantes"
