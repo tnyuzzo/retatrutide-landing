@@ -42,7 +42,7 @@ export default function Home() {
     <main className="min-h-screen bg-brand-void text-white overflow-hidden font-sans">
 
       {/* HEADER / NAV */}
-      <nav className="fixed top-0 w-full z-50 glass-panel !rounded-none !border-t-0 !border-l-0 !border-r-0 border-b-white/5 py-2 md:py-4 px-6 md:px-12 flex justify-between items-center">
+      <nav className="fixed top-0 w-full z-50 glass-panel !rounded-none !border-t-0 !border-l-0 !border-r-0 border-b-white/5 py-2 md:py-4 px-6 md:px-8 lg:px-12 flex justify-between items-center">
         <div className="flex items-center gap-2">
           {/* Logo Icon */}
           <div className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-brand-gold flex items-center justify-center shrink-0">
@@ -52,7 +52,7 @@ export default function Home() {
             {t('title')}
           </span>
         </div>
-        <div className="hidden md:flex gap-8 text-sm tracking-widest text-white/70 uppercase">
+        <div className="hidden md:flex gap-6 lg:gap-8 text-sm tracking-widest text-white/70 uppercase whitespace-nowrap">
           <a href="#science" className="hover:text-brand-gold transition-colors">{t('nav_science')}</a>
           <a href="#lab" className="hover:text-brand-gold transition-colors">{t('nav_lab')}</a>
           <a href={`/${locale}/order`} className="hover:text-brand-gold transition-colors">{t('nav_order')}</a>
@@ -92,7 +92,7 @@ export default function Home() {
               <span className="font-semibold text-gradient-gold">Retatrutide</span>
             </h1>
 
-            <p className="text-xs md:text-lg lg:text-xl text-white/60 font-light max-w-lg leading-relaxed line-clamp-3 lg:line-clamp-none">
+            <p className="text-xs md:text-lg lg:text-xl text-white/60 font-light max-w-lg leading-relaxed line-clamp-3 md:line-clamp-none">
               {t('hero_subtitle')}
             </p>
 
@@ -150,8 +150,8 @@ export default function Home() {
                 <LiveInventoryBadge />
               </div>
 
-              {/* Mobile-only: compact shipping timeline */}
-              <div className="lg:hidden flex items-center gap-1.5 text-[11px] text-white/50 font-medium w-full px-1 overflow-hidden">
+              {/* Mobile-only: compact shipping timeline (hidden at md+ since trust card covers it) */}
+              <div className="md:hidden flex items-center gap-1.5 text-[11px] text-white/50 font-medium w-full px-1 overflow-hidden">
                 <Truck className="w-3.5 h-3.5 text-brand-gold shrink-0" />
                 <span className="text-white/70 whitespace-nowrap">{t('timeline_today')}</span>
                 <ArrowRight className="w-2.5 h-2.5 text-white/25 shrink-0" />
