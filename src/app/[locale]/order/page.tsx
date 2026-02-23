@@ -270,15 +270,17 @@ export default function OrderPage() {
         <main className="min-h-screen bg-brand-void text-white font-sans flex flex-col overflow-x-hidden">
             {/* HEADER */}
             <header className="w-full py-6 px-6 md:px-12 flex justify-between items-center border-b border-white/5 bg-brand-void/50 backdrop-blur-md sticky top-0 z-50">
-                <button onClick={() => window.location.href = `/${locale}`} className="flex items-center gap-2 text-white/50 hover:text-white transition-colors">
-                    <ArrowLeft className="w-4 h-4" /> {t('order_back')}
-                </button>
+                <div className="flex items-center gap-3">
+                    <button onClick={() => window.location.href = `/${locale}`} className="text-white/50 hover:text-white transition-colors">
+                        <ArrowLeft className="w-4 h-4" />
+                    </button>
+                    <div className="flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-green-400" />
+                        <span className="text-xs text-green-400 font-medium tracking-wider uppercase whitespace-nowrap">{t('order_secure')}</span>
+                    </div>
+                </div>
                 <div className="flex items-center gap-4">
                     <LanguageSwitcher />
-                    <div className="flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-green-400" />
-                        <span className="text-xs text-green-400 font-medium tracking-wider uppercase">{t('order_secure')}</span>
-                    </div>
                 </div>
             </header>
 
@@ -498,20 +500,26 @@ export default function OrderPage() {
                                 </div>
 
                                 {/* Phone with country code */}
-                                <div className="flex gap-2">
-                                    <div className="relative w-[108px] shrink-0">
-                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+                                <div className="flex gap-2 w-full items-center">
+                                    {/* Prefix selector — visual overlay trick: display shows only "+39", options show "IT +39" */}
+                                    <div className="relative w-[88px] shrink-0 h-12">
+                                        {/* Visual layer (pointer-events-none) */}
+                                        <div className="absolute inset-0 flex items-center rounded-xl bg-white/5 border border-white/10 pointer-events-none">
+                                            <Phone className="ml-3 w-4 h-4 text-white/30 shrink-0" />
+                                            <span className="ml-2 text-sm text-white flex-1 truncate">{phoneCountryCode}</span>
+                                            <ChevronDown className="mr-2 w-3 h-3 text-white/30 shrink-0" />
+                                        </div>
+                                        {/* Invisible native select on top — opens with full "IT +39" options */}
                                         <select
                                             autoComplete="tel-country-code"
                                             value={phoneCountryCode}
                                             onChange={(e) => setPhoneCountryCode(e.target.value)}
-                                            className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-9 pr-6 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                         >
                                             {Object.entries(COUNTRY_PHONE_PREFIXES).map(([name, prefix]) => (
-                                                <option key={name} value={prefix} className="bg-brand-void">{COUNTRY_TO_ISO[name]?.toUpperCase()} {prefix}</option>
+                                                <option key={name} value={prefix}>{COUNTRY_TO_ISO[name]?.toUpperCase()} {prefix}</option>
                                             ))}
                                         </select>
-                                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30 pointer-events-none" />
                                     </div>
                                     <input
                                         type="tel"
@@ -519,7 +527,7 @@ export default function OrderPage() {
                                         placeholder={t('order_field_phone')}
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
-                                        className="flex-1 h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                        className="flex-1 min-w-0 h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
                                     />
                                 </div>
                             </div>
