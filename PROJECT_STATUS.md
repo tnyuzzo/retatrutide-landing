@@ -7,7 +7,7 @@
 
 ## Current State
 
-- **Last deploy**: 2026-02-22 (commit `3617079`)
+- **Last deploy**: 2026-02-23 (commit `3f32dae`)
 - **Branch**: main (up to date with origin/main)
 - **Build**: 81 static pages + 18 API routes, zero errors
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
@@ -494,6 +494,11 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-23] **Tablet audit & fix (768px)** (commit `3f32dae`):
+  - Nav: `md:px-12` → `md:px-8 lg:px-12` — risolve collisione 673px in 672px (logo+link+right)
+  - Nav links: `gap-8` → `gap-6 lg:gap-8` + `whitespace-nowrap` — "ORDER NOW" non si spezza più a 768px
+  - Hero subtitle: `lg:line-clamp-none` → `md:line-clamp-none` — testo completo visibile a tablet (non più troncato con "...")
+  - Mini shipping timeline: `lg:hidden` → `md:hidden` — elimina duplicato (trust card mostra stessa info a md+)
 - [2026-02-22] **Piano 1.2 + 1.4 — Checkout countdown + Hero mobile timeline** (commit `3617079`):
   - `CheckoutCountdown` (nuovo client component): countdown live da `created_at + 24h`; 3 stati colore (bianco→ambra <1h→rosso <15min); tabular-nums per smooth update; si ferma a 0
   - `checkout/[id]/page.tsx`: countdown integrato tra CopyAddressButton e spinner di attesa
