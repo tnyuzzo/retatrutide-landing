@@ -42,25 +42,8 @@ export function LanguageSwitcher() {
 
     return (
         <div className="relative" ref={dropdownRef}>
-            {/* Desktop View */}
-            <div className="hidden lg:flex gap-3 text-xs tracking-widest">
-                {languages.map((lang) => (
-                    <span
-                        key={lang.code}
-                        onClick={() => handleLocaleChange(lang.code)}
-                        className={`cursor-pointer transition-colors uppercase flex items-center gap-1 ${locale === lang.code
-                            ? 'text-brand-gold font-medium'
-                            : 'text-white/40 hover:text-white'
-                            }`}
-                    >
-                        <span>{lang.flag}</span>
-                        <span>{lang.label}</span>
-                    </span>
-                ))}
-            </div>
-
-            {/* Mobile View (Dropdown) */}
-            <div className="lg:hidden flex items-center">
+            {/* Dropdown (tutti i breakpoint) */}
+            <div className="flex items-center">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className="flex items-center gap-1.5 text-xs tracking-widest uppercase text-brand-gold font-medium hover:text-brand-gold-light transition-colors min-h-[44px] px-1"

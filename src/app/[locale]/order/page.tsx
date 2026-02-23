@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Lock, Shield, ChevronRight, Minus, Plus, MapPin, User, Mail, Phone, Ban, Eye, CreditCard, ExternalLink } from "lucide-react";
+import { ArrowLeft, Lock, Shield, ChevronRight, ChevronDown, Minus, Plus, MapPin, User, Mail, Phone, Ban, Eye, CreditCard, ExternalLink, ArrowRight, CheckCircle2 } from "lucide-react";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
@@ -77,6 +77,7 @@ export default function OrderPage() {
     const [country, setCountry] = useState("");
     const [phone, setPhone] = useState("");
     const [phoneCountryCode, setPhoneCountryCode] = useState("+39");
+    const [isDiscountOpen, setIsDiscountOpen] = useState(false);
     const addressInputRef = useRef<HTMLInputElement>(null);
     const autocompleteRef = useRef<any>(null);
 
@@ -155,6 +156,36 @@ export default function OrderPage() {
             autocompleteRef.current.setComponentRestrictions({ country: EU_COUNTRY_CODES });
         }
     }, [country]);
+
+    // Persistenza form: carica dati salvati al primo render
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem('aura_order_form_v1');
+            if (!saved) return;
+            const d = JSON.parse(saved);
+            if (d.email)           setEmail(d.email);
+            if (d.fullName)        setFullName(d.fullName);
+            if (d.addressLine1)    setAddressLine1(d.addressLine1);
+            if (d.addressLine2)    setAddressLine2(d.addressLine2);
+            if (d.city)            setCity(d.city);
+            if (d.postalCode)      setPostalCode(d.postalCode);
+            if (d.country)         setCountry(d.country);
+            if (d.phone)           setPhone(d.phone);
+            if (d.phoneCountryCode) setPhoneCountryCode(d.phoneCountryCode);
+            if (d.selectedCrypto)  setSelectedCrypto(d.selectedCrypto);
+            if (d.quantity)        setQuantity(d.quantity);
+        } catch {}
+    }, []);
+
+    // Persistenza form: salva ad ogni modifica
+    useEffect(() => {
+        try {
+            localStorage.setItem('aura_order_form_v1', JSON.stringify({
+                email, fullName, addressLine1, addressLine2, city,
+                postalCode, country, phone, phoneCountryCode, selectedCrypto, quantity
+            }));
+        } catch {}
+    }, [email, fullName, addressLine1, addressLine2, city, postalCode, country, phone, phoneCountryCode, selectedCrypto, quantity]);
 
     const discount = getDiscount(quantity);
     const unitPrice = Math.round(BASE_PRICE * (1 - discount / 100));
@@ -323,15 +354,51 @@ export default function OrderPage() {
 
                     {/* DISCOUNT TIERS TABLE */}
                     <div className="glass-panel border-white/10 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-white/10 bg-white/5">
+                        <button
+                            type="button"
+                            onClick={() => setIsDiscountOpen(prev => !prev)}
+                            className="w-full px-6 py-4 border-b border-white/10 bg-white/5 flex items-center justify-between hover:bg-white/10 transition-colors"
+                        >
                             <h3 className="text-sm font-medium uppercase tracking-widest text-brand-gold">{t('order_volume_discounts')}</h3>
-                        </div>
+                            <ChevronDown className={`w-4 h-4 text-brand-gold/60 transition-transform duration-200 ${isDiscountOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {isDiscountOpen && (<>
+                        {/* Upsell banner */}
+                        {(() => {
+                            const nextTierData = DISCOUNT_TIERS.find(tier => tier.min > quantity);
+                            const nextTierPrice = nextTierData ? Math.round(BASE_PRICE * (1 - nextTierData.discount / 100)) : null;
+                            if (nextTierData && nextTierPrice !== null) {
+                                return (
+                                    <div
+                                        className="mx-4 mt-4 flex items-center gap-2 bg-brand-gold/5 border border-brand-gold/20 rounded-xl px-4 py-3 cursor-pointer hover:bg-brand-gold/10 transition-colors"
+                                        onClick={() => setQuantity(nextTierData.min)}
+                                    >
+                                        <ArrowRight className="w-4 h-4 text-brand-gold shrink-0" />
+                                        <span className="text-sm text-white/80">
+                                            {t('order_upsell_msg', { qty: nextTierData.min - quantity, price: nextTierPrice, discount: nextTierData.discount })}
+                                        </span>
+                                    </div>
+                                );
+                            }
+                            return (
+                                <div className="mx-4 mt-4 flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3">
+                                    <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                                    <span className="text-sm text-green-400">
+                                        {t('order_max_discount', { save: savedAmount })}
+                                    </span>
+                                </div>
+                            );
+                        })()}
+
                         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {DISCOUNT_TIERS.map((tier, i) => {
                                 const nextTier = DISCOUNT_TIERS[i + 1];
                                 const isActive = discount === tier.discount;
-                                const isNextTarget = nextTier && quantity < nextTier.min && quantity >= tier.min;
                                 const tierPrice = Math.round(BASE_PRICE * (1 - tier.discount / 100));
+                                const tierSavingPerUnit = Math.round(BASE_PRICE * tier.discount / 100);
+                                const isPopular = tier.min === 3;
+                                const isBestValue = !nextTier;
 
                                 return (
                                     <div
@@ -343,30 +410,55 @@ export default function OrderPage() {
                                             }`}
                                     >
                                         {isActive && <div className="absolute top-0 left-0 w-full h-1 bg-brand-gold"></div>}
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className={`text-sm font-medium ${isActive ? 'text-white' : 'text-white/70'}`}>
+
+                                        {/* Range label + badge + sconto % — tutto inline, nessuna sovrapposizione */}
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <span className={`text-sm font-medium flex-1 ${isActive ? 'text-white' : 'text-white/70'}`}>
                                                 {tier.min === 1 ? `1–2 ${t('order_pieces')}` :
                                                     nextTier ? `${tier.min}–${nextTier.min - 1} ${t('order_pieces')}` :
                                                         `${tier.min}+ ${t('order_pieces')}`}
                                             </span>
+                                            {isPopular && (
+                                                <span className="text-[9px] bg-brand-gold text-black px-1.5 py-0.5 rounded font-bold tracking-wide uppercase shrink-0">
+                                                    {t('order_popular')}
+                                                </span>
+                                            )}
+                                            {isBestValue && !isPopular && (
+                                                <span className="text-[9px] bg-green-500/20 text-green-400 border border-green-500/30 px-1.5 py-0.5 rounded font-bold tracking-wide uppercase shrink-0">
+                                                    {t('order_best_value')}
+                                                </span>
+                                            )}
                                             {tier.discount > 0 ? (
-                                                <span className={`text-sm font-bold ${isActive ? 'text-green-400' : 'text-green-400/70'}`}>-{tier.discount}%</span>
+                                                <span className={`text-sm font-bold shrink-0 ${isActive ? 'text-green-400' : 'text-green-400/70'}`}>-{tier.discount}%</span>
                                             ) : (
-                                                <span className="text-sm text-white/30">—</span>
+                                                <span className="text-sm text-white/30 shrink-0">—</span>
                                             )}
                                         </div>
-                                        <div className="flex items-end justify-between">
-                                            <span className={`text-[1.3rem] leading-none font-light ${isActive ? 'text-brand-gold' : 'text-white/60'}`}>{tierPrice}€<span className="text-xs text-white/40">/{t('order_piece_short')}</span></span>
-                                        </div>
-                                        {isNextTarget && nextTier && (
-                                            <div className="mt-3 text-[10px] text-brand-gold bg-brand-gold/10 px-2 py-1.5 rounded text-center">
-                                                +{nextTier.min - quantity} → -{nextTier.discount}%
+
+                                        {/* Prezzo unitario */}
+                                        <span className={`text-[1.3rem] leading-none font-light ${isActive ? 'text-brand-gold' : 'text-white/60'}`}>
+                                            {tierPrice}€<span className="text-xs text-white/40">/{t('order_piece_short')}</span>
+                                        </span>
+
+                                        {/* Risparmio per unità (card inattive) */}
+                                        {tierSavingPerUnit > 0 && (
+                                            <span className={`text-xs mt-1 ${isActive ? 'text-green-400' : 'text-green-400/60'}`}>
+                                                {t('order_save')} €{tierSavingPerUnit}/{t('order_piece_short')}
+                                            </span>
+                                        )}
+
+                                        {/* Totale (solo card attiva) */}
+                                        {isActive && (
+                                            <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between">
+                                                <span className="text-xs text-white/40">{t('order_total')}</span>
+                                                <span className="text-sm font-medium text-white">€{totalPrice}</span>
                                             </div>
                                         )}
                                     </div>
                                 );
                             })}
                         </div>
+                        </>)}
                     </div>
 
                     {/* SHIPPING FORM */}
@@ -407,18 +499,19 @@ export default function OrderPage() {
 
                                 {/* Phone with country code */}
                                 <div className="flex gap-2">
-                                    <div className="relative w-[88px] shrink-0">
-                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                    <div className="relative w-[108px] shrink-0">
+                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
                                         <select
                                             autoComplete="tel-country-code"
                                             value={phoneCountryCode}
                                             onChange={(e) => setPhoneCountryCode(e.target.value)}
-                                            className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-9 pr-1 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
+                                            className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-9 pr-6 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
                                         >
                                             {Object.entries(COUNTRY_PHONE_PREFIXES).map(([name, prefix]) => (
-                                                <option key={name} value={prefix} className="bg-brand-void">{prefix}</option>
+                                                <option key={name} value={prefix} className="bg-brand-void">{COUNTRY_TO_ISO[name]?.toUpperCase()} {prefix}</option>
                                             ))}
                                         </select>
+                                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30 pointer-events-none" />
                                     </div>
                                     <input
                                         type="tel"

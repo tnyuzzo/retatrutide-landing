@@ -52,9 +52,8 @@ export default function Home() {
             {t('title')}
           </span>
         </div>
-        <div className="hidden md:flex gap-6 lg:gap-8 text-sm tracking-widest text-white/70 uppercase whitespace-nowrap">
-          <a href="#science" className="hover:text-brand-gold transition-colors">{t('nav_science')}</a>
-          <a href="#lab" className="hover:text-brand-gold transition-colors">{t('nav_lab')}</a>
+        <div className="hidden md:flex gap-4 lg:gap-8 text-xs lg:text-sm tracking-widest text-white/70 uppercase whitespace-nowrap">
+          <a href={`/${locale}/calculator`} className="hover:text-brand-gold transition-colors">{t('nav_calculator')}</a>
           <a href={`/${locale}/order`} className="hover:text-brand-gold transition-colors">{t('nav_order')}</a>
         </div>
         <div className="flex items-center gap-3 md:gap-6">

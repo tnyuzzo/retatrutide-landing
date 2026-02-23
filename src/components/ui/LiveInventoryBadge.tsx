@@ -16,7 +16,7 @@ export function LiveInventoryBadge() {
     }, []);
 
     return (
-        <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 px-3 py-2 rounded-lg max-w-full">
+        <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 px-3 py-2 rounded-lg w-fit">
             <AlertTriangle className="w-3.5 h-3.5 text-red-500 animate-pulse shrink-0" />
             <span className="text-xs font-medium text-red-200 leading-tight">
                 {t('inventory_high_demand')} <strong className="text-white">{stock}</strong> {t('inventory_kits_remaining')}
