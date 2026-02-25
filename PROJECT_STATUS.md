@@ -7,9 +7,9 @@
 
 ## Current State
 
-- **Last deploy**: 2026-02-25 (commit `df4fa82`)
+- **Last deploy**: 2026-02-25 (commit `c270906`)
 - **Branch**: main (up to date with origin/main)
-- **Build**: 84 static pages + 19 API routes, zero errors
+- **Build**: 84 static pages + 20 API routes, zero errors
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
 - **Domain**: aurapep.eu (Vercel, auto-deploy on push to main)
 - **Untracked files**: `addShipKeys.js`
@@ -177,7 +177,8 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 | HomeStructuredData | `src/components/seo/` | JSON-LD: Organization, Product, FAQPage, BreadcrumbList |
 | CalculatorStructuredData | `src/components/seo/` | JSON-LD: WebApplication, HowTo, BreadcrumbList |
 | CryptoGuideStructuredData | `src/components/seo/` | JSON-LD: HowTo, FAQPage, BreadcrumbList |
-| OrderStructuredData | `src/components/seo/` | JSON-LD: BreadcrumbList |
+| OrderStructuredData | `src/components/seo/` | JSON-LD: Product, AggregateOffer (6 tier), BreadcrumbList |
+| PortalStructuredData | `src/components/seo/` | JSON-LD: WebApplication, BreadcrumbList |
 | JsonLd | `src/components/seo/` | Componente generico JSON-LD wrapper |
 
 ---
@@ -359,20 +360,24 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 
 ---
 
-## Email System (9 template)
+## Email System (9 template — 5 multilingua)
 
 Tutti definiti in `src/lib/email-templates.ts`. Design: dark theme, gold accent (#D4AF37), HTML responsive.
 From: `Aura Peptides <noreply@aurapep.eu>` — Reply-to: `support@aurapeptides.eu`
+Traduzioni email: `src/lib/email-translations.ts` — ~50 chiavi × 10 lingue, helper `getEmailString(locale, key, vars?)`
 
+**Customer-facing (multilingua, locale da ordine):**
 1. **Order Created** — Email immediata alla creazione ordine con indirizzo crypto, importo, link checkout e istruzioni → customer email
-2. **Admin Order Alert** — "🚨 NUOVO ORDINE PAGATO: {ID} — €{amount}" → admin@aurapeptides.eu
-3. **Customer Confirmation** — Ricevuta ordine post-pagamento con reference number → customer email
-4. **Shipment Notification** — "📦 Il tuo ordine è stato spedito!" + tracking link → customer
-5. **Low Stock Alert** — Stock sotto 20 unità → admin
-6. **Warehouse Notice** — Dettagli ordine per fulfillment → warehouse staff
-7. **Refund Confirmation** — Conferma rimborso con importo → customer
-8. **Underpaid Alert** — Pagamento incompleto con confronto importi → admin
-9. **Cart Recovery** — 3 varianti (1h/12h/48h) con urgenza crescente, indirizzo crypto + link checkout → customer
+2. **Customer Confirmation** — Ricevuta ordine post-pagamento con reference number → customer email
+3. **Shipment Notification** — Ordine spedito + tracking link → customer
+4. **Refund Confirmation** — Conferma rimborso con importo → customer
+5. **Cart Recovery** — 3 varianti (1h/12h/48h) con urgenza crescente → customer
+
+**Admin/Warehouse (italiano, non tradotte):**
+6. **Admin Order Alert** — Notifica nuovo ordine pagato → admin@aurapeptides.eu
+7. **Low Stock Alert** — Stock sotto 20 unità → admin
+8. **Warehouse Notice** — Dettagli ordine per fulfillment → warehouse staff
+9. **Underpaid Alert** — Pagamento incompleto con confronto importi → admin
 
 ---
 
@@ -385,7 +390,8 @@ From: `Aura Peptides <noreply@aurapep.eu>` — Reply-to: `support@aurapeptides.e
 | `src/lib/supabase.ts` | Browser/public Supabase client |
 | `src/lib/supabase-admin.ts` | Server-side admin client (lazy singleton, service role) |
 | `src/lib/supabase-browser.ts` | Client component auth client con session refresh |
-| `src/lib/email-templates.ts` | 6 HTML email template brandizzati |
+| `src/lib/email-templates.ts` | 9 HTML email template (5 multilingua + 4 admin italiano) |
+| `src/lib/email-translations.ts` | Dizionario traduzioni email (~50 chiavi × 10 lingue) + `getEmailString()` |
 | `src/lib/clicksend.ts` | SMS via ClickSend REST API con retry esponenziale |
 | `src/lib/tracking.ts` | 17Track integration: register, get status, save to order |
 | `src/lib/order-number.ts` | Generazione order number random (4-6 chars alfanumerici) |
@@ -506,6 +512,21 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-25] **i18n completo + revisione traduzioni + SEO avanzato** (commit `c270906`):
+  - Email multilingua: 5 template customer-facing tradotte in 10 lingue (`email-translations.ts` con ~50 chiavi × 10 lingue)
+  - Migration `08_order_locale.sql`: colonna `locale` su tabella orders, salvata al checkout
+  - Refactor `email-templates.ts`: tutte le funzioni customer-facing accettano `locale`, admin restano in italiano
+  - Revisione completa traduzioni 8 lingue (390 chiavi × 8 = 3120 chiavi revisionate):
+    - FR: 80+ fix capitalizzazione francese, FAQ espanse, SEO "acheter retatrutide europe"
+    - DE: Checkout→Bestellvorgang, FAQ espanse, Sie-form, SEO "retatrutide kaufen europa"
+    - ES: tu→usted (80+ istanze), wallet→monedero, FAQ espanse, SEO "comprar retatrutide europa"
+    - PT: PT-PT consistency (pedido→encomenda, pesquisa→investigação), FAQ espanse
+    - PL: capitalizzazione polacca, fix JSON typographic quotes, FAQ espanse
+    - RU: TRIPLE-G tradotto, 40+ fix naturalezza frasi, FAQ espanse da 1 riga a paragrafi completi
+    - UK: ВЕРХ→HPLC (7 occorrenze), Russianismi corretti, FAQ espanse
+    - AR: punteggiatura araba (·→ثم), TRIPLE-G tradotto, genere corretto, FAQ espanse
+  - SEO structured data: OrderStructuredData con Product + 6 AggregateOffer; PortalStructuredData (nuovo) con BreadcrumbList + WebApplication; HomeStructuredData fix prezzi (97→197) + AggregateOffer con 6 tier
+  - SEO keyword optimization per tutte le lingue: chiavi transazionali localizzate
 - [2026-02-25] **Admin dashboard upgrade — feature parity con Forever Slim** (commit `df4fa82`):
   - Order Detail Drawer: pannello slide-in da destra con info complete ordine, indirizzo spedizione, tracking, timeline
   - Ship/Refund/Cancel Modali: sostituiscono input inline con dialog modali centrati
@@ -597,14 +618,15 @@ supabase/migrations/                # 4 SQL migration files
 ## In Progress
 
 - **Test pagamento**: BASE_PRICE = 10€ in `order/page.tsx:11` e `checkout/route.ts:110` — **RIPRISTINARE A 197 dopo test**
+- **Migration da eseguire**: `08_order_locale.sql` su Supabase (aggiunge colonna `locale` a orders)
 - **Migration da eseguire**: `06_cart_recovery.sql` su Supabase (aggiunge colonne recovery email tracking)
 - **Migration da eseguire**: `05_leads_table.sql` su Supabase (tabella leads per progressive capture)
 
 ## TODO / Planned
 
 - [ ] Configurare wallet XRP (attualmente placeholder `CRYPTAPI_XRP_WALLET`)
-- [ ] Valutare ottimizzazioni SEO aggiuntive (content marketing, blog, backlinks)
 - [ ] **Ripristinare BASE_PRICE a 197** dopo test pagamento (order/page.tsx:11 + checkout/route.ts:110)
+- [ ] Eseguire le 3 migration SQL pending su Supabase (05, 06, 08)
 
 ---
 
