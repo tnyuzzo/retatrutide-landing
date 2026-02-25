@@ -265,6 +265,116 @@ export function underpaidAlertEmail(params: UnderpaidAlertParams) {
     };
 }
 
+interface CartRecoveryParams {
+    referenceId: string;
+    fiatAmount: number;
+    cryptoCurrency: string;
+    cryptoAmount: number;
+    paymentUrl: string;
+    emailNumber: 1 | 2 | 3;  // 1h, 12h, 48h
+}
+
+export function cartRecoveryEmail(params: CartRecoveryParams) {
+    const { referenceId, fiatAmount, cryptoCurrency, cryptoAmount, paymentUrl, emailNumber } = params;
+    const displayId = referenceId.slice(-8).toUpperCase();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aurapep.eu';
+
+    const subjects: Record<number, string> = {
+        1: `⏳ Il tuo ordine ${displayId} è in attesa di pagamento`,
+        2: `🔔 Non dimenticare il tuo ordine ${displayId} — completa il pagamento`,
+        3: `⚠️ Ultima possibilità: il tuo ordine ${displayId} scade tra poche ore`,
+    };
+
+    const headings: Record<number, string> = {
+        1: 'Il tuo ordine è pronto!',
+        2: 'Completa il tuo acquisto',
+        3: 'Ultima occasione!',
+    };
+
+    const intros: Record<number, string> = {
+        1: `Hai creato l'ordine <strong style="color:white;">${displayId}</strong> ma non abbiamo ancora ricevuto il pagamento. L'indirizzo crypto è ancora attivo — puoi completare il pagamento quando vuoi.`,
+        2: `Il tuo ordine <strong style="color:white;">${displayId}</strong> è ancora in attesa. Hai già tutti i dati per completare il pagamento — ti basta inviare l'importo esatto all'indirizzo qui sotto.`,
+        3: `Il tuo ordine <strong style="color:white;">${displayId}</strong> scadrà tra poche ore. Dopo la scadenza dovrai crearne uno nuovo con un nuovo tasso di cambio. Completa il pagamento adesso per bloccare il prezzo attuale.`,
+    };
+
+    return {
+        subject: subjects[emailNumber],
+        html: baseWrapper(`
+            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">${headings[emailNumber]}</h2>
+            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
+                ${intros[emailNumber]}
+            </p>
+            <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Importo da Inviare</div>
+                <div style="font-size:28px;font-weight:700;color:${BRAND_GOLD};">${cryptoAmount} ${cryptoCurrency}</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;">€${fiatAmount.toFixed(2)}</div>
+            </div>
+            <div style="text-align:center;margin-bottom:24px;">
+                <a href="${siteUrl}/checkout/${referenceId}" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;">Completa il Pagamento</a>
+            </div>
+            ${paymentUrl ? `
+            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Indirizzo ${cryptoCurrency}</div>
+                <code style="display:block;word-break:break-all;font-size:12px;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.05);padding:10px;border-radius:8px;">${escapeHtml(paymentUrl)}</code>
+            </div>` : ''}
+            <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;">
+                Per qualsiasi domanda rispondi direttamente a questa email.
+            </p>
+        `),
+    };
+}
+
+interface OrderCreatedParams {
+    referenceId: string;
+    fiatAmount: number;
+    cryptoCurrency: string;
+    cryptoAmount: number;
+    paymentAddress: string;
+    quantity: number;
+}
+
+export function orderCreatedEmail(params: OrderCreatedParams) {
+    const { referenceId, fiatAmount, cryptoCurrency, cryptoAmount, paymentAddress, quantity } = params;
+    const displayId = referenceId.slice(-8).toUpperCase();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aurapep.eu';
+    const checkoutUrl = `${siteUrl}/checkout/${referenceId}`;
+    const kitLabel = quantity > 1 ? `${quantity} kit` : '1 kit';
+
+    return {
+        subject: `🧪 Ordine ${displayId} creato — completa il pagamento`,
+        html: baseWrapper(`
+            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">Il tuo ordine è pronto!</h2>
+            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
+                Hai ordinato <strong style="color:white;">${kitLabel} Retatrutide 10mg</strong>. Per completare l'acquisto, invia l'importo esatto in ${cryptoCurrency} all'indirizzo qui sotto.
+            </p>
+            <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Importo da Inviare</div>
+                <div style="font-size:28px;font-weight:700;color:${BRAND_GOLD};">${cryptoAmount} ${cryptoCurrency}</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;">€${fiatAmount.toFixed(2)} · Ordine #${displayId}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Indirizzo ${cryptoCurrency}</div>
+                <code style="display:block;word-break:break-all;font-size:13px;color:rgba(255,255,255,0.9);background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;line-height:1.5;">${escapeHtml(paymentAddress)}</code>
+            </div>
+            <div style="text-align:center;margin-bottom:24px;">
+                <a href="${checkoutUrl}" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;">Apri Pagina di Pagamento</a>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px;margin-bottom:16px;">
+                <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:0;line-height:1.6;">
+                    <strong style="color:rgba(255,255,255,0.7);">Come completare il pagamento:</strong><br>
+                    1. Copia l'indirizzo ${cryptoCurrency} qui sopra<br>
+                    2. Apri il tuo wallet o vai su <a href="https://changehero.io" style="color:${BRAND_GOLD};text-decoration:none;">ChangeHero</a> per acquistare crypto con carta<br>
+                    3. Invia esattamente <strong style="color:white;">${cryptoAmount} ${cryptoCurrency}</strong><br>
+                    4. Il pagamento viene confermato automaticamente in pochi minuti
+                </p>
+            </div>
+            <p style="color:rgba(255,255,255,0.35);font-size:11px;text-align:center;">
+                L'ordine è valido 72 ore. Per qualsiasi domanda rispondi a questa email.
+            </p>
+        `),
+    };
+}
+
 export function orderConfirmationCustomerEmail(params: { referenceId: string; fiatAmount: number }) {
     return {
         subject: `✅ Pagamento Ricevuto — Ordine ${params.referenceId.slice(-8).toUpperCase()}`,

@@ -29,7 +29,7 @@ export async function GET(req: Request) {
         return NextResponse.json({ order: null });
     }
 
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const cutoff = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
 
     const { data: order } = await supabaseAdmin
         .from('orders')

@@ -87,11 +87,13 @@ export async function GET(req: Request) {
                 }
             }
 
+            // Atomic update: accept payments on pending OR expired orders
+            // (expired = 72h timeout, but late payment should still be honoured)
             const { data: updatedOrder, error: updateError } = await supabaseAdmin
                 .from('orders')
                 .update(updatePayload)
                 .eq('reference_id', order_id)
-                .eq('status', 'pending')  // ← Atomic: only updates if still pending
+                .in('status', ['pending', 'expired'])
                 .select('id')
                 .single();
 

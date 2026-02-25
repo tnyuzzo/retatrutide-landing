@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
+import { Resend } from 'resend';
 import { generateOrderNumber } from '@/lib/order-number';
+import { orderCreatedEmail } from '@/lib/email-templates';
 
 // ── Rate Limiting (in-memory, per IP, 5 req/min) ──
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -247,6 +249,26 @@ export async function POST(req: Request) {
         if (dbError) {
             console.error("Supabase Insert Error:", dbError);
             return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+        }
+
+        // 5. Send immediate email with payment details (non-blocking)
+        if (process.env.RESEND_API_KEY && email?.includes('@')) {
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            const { subject, html } = orderCreatedEmail({
+                referenceId,
+                fiatAmount: fiat_amount,
+                cryptoCurrency: crypto_currency.toUpperCase(),
+                cryptoAmount: calculatedCryptoAmount,
+                paymentAddress,
+                quantity,
+            });
+            resend.emails.send({
+                from: process.env.RESEND_FROM_EMAIL || 'Aura Peptides <noreply@aurapep.eu>',
+                replyTo: 'support@aurapeptides.eu',
+                to: email,
+                subject,
+                html,
+            }).catch(err => console.error('Checkout: Failed to send order-created email:', err));
         }
 
         return NextResponse.json({

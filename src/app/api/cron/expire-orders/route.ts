@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 /**
- * Cron Job: Expire stale pending orders older than 24 hours.
+ * Cron Job: Expire stale pending orders older than 72 hours.
  * Triggered by Vercel Cron at 3 AM UTC daily.
  * Protected by CRON_SECRET to prevent unauthorized access.
  */
@@ -20,14 +20,14 @@ export async function GET(req: Request) {
     }
 
     try {
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const seventyTwoHoursAgo = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
 
-        // Find all pending orders older than 24h
+        // Find all pending orders older than 72h
         const { data: staleOrders, error: fetchError } = await supabaseAdmin
             .from('orders')
             .select('id, reference_id, created_at')
             .eq('status', 'pending')
-            .lt('created_at', twentyFourHoursAgo);
+            .lt('created_at', seventyTwoHoursAgo);
 
         if (fetchError) {
             console.error('Cron: Failed to fetch stale orders:', fetchError);

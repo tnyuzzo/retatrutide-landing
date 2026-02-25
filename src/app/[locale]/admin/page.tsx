@@ -51,6 +51,7 @@ const StatusBadge = ({ status }: { status: string }) => {
         shipped: { bg: 'bg-brand-gold/10 border-brand-gold/20', text: 'text-brand-gold', icon: <Package className="w-3 h-3" />, label: 'Spedito' },
         delivered: { bg: 'bg-emerald-500/10 border-emerald-500/20', text: 'text-emerald-400', icon: <CheckCircle className="w-3 h-3" />, label: 'Consegnato' },
         pending: { bg: 'bg-white/5 border-white/10', text: 'text-white/50', icon: <Clock className="w-3 h-3" />, label: 'In Attesa' },
+        expired: { bg: 'bg-zinc-500/10 border-zinc-500/20', text: 'text-zinc-400', icon: <Clock className="w-3 h-3" />, label: 'Scaduto' },
         cancelled: { bg: 'bg-red-500/10 border-red-500/20', text: 'text-red-400', icon: <XCircle className="w-3 h-3" />, label: 'Annullato' },
         refunded: { bg: 'bg-orange-500/10 border-orange-500/20', text: 'text-orange-400', icon: <DollarSign className="w-3 h-3" />, label: 'Rimborsato' },
         partially_refunded: { bg: 'bg-orange-500/10 border-orange-500/20', text: 'text-orange-400', icon: <DollarSign className="w-3 h-3" />, label: 'Rimb. Parziale' },
@@ -448,6 +449,7 @@ export default function AdminDashboard() {
                                 <option value="processing">In Lavorazione</option>
                                 <option value="shipped">Spediti</option>
                                 <option value="delivered">Consegnati</option>
+                                <option value="expired">Scaduti</option>
                                 <option value="cancelled">Annullati</option>
                                 <option value="refunded">Rimborsati</option>
                             </select>
