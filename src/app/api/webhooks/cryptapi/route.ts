@@ -6,6 +6,7 @@ import {
     orderConfirmationCustomerEmail,
     warehouseNewOrderEmail,
     lowStockAlertEmail,
+    underpaidAlertEmail,
 } from '@/lib/email-templates';
 import { sendSMS } from '@/lib/clicksend';
 
@@ -42,7 +43,7 @@ export async function GET(req: Request) {
             // 1. Fetch current order
             const { data: order, error: fetchError } = await supabaseAdmin
                 .from('orders')
-                .select('id, status, email, shipping_address, items, fiat_amount, crypto_currency, crypto_amount')
+                .select('id, status, email, shipping_address, items, fiat_amount, crypto_currency, crypto_amount, order_number')
                 .eq('reference_id', order_id)
                 .single();
 
@@ -57,13 +58,24 @@ export async function GET(req: Request) {
                 return new NextResponse('*ok*', { status: 200 });
             }
 
-            // 2. Mark as Paid
+            // 2. Underpayment check (3% tolerance for volatility + CryptAPI fees)
+            const received = value_forwarded_coin ? parseFloat(value_forwarded_coin) : null;
+            const expectedAmount = order.crypto_amount ? parseFloat(String(order.crypto_amount)) : 0;
+            const UNDERPAYMENT_THRESHOLD = 0.97;
+            const isUnderpaid = received !== null && expectedAmount > 0 && received < expectedAmount * UNDERPAYMENT_THRESHOLD;
+
+            // 3. Mark as Paid or Underpaid
             const updatePayload: Record<string, unknown> = {
-                status: 'paid',
+                status: isUnderpaid ? 'underpaid' : 'paid',
                 updated_at: new Date().toISOString(),
             };
-            if (value_forwarded_coin) {
-                updatePayload.crypto_amount = parseFloat(value_forwarded_coin);
+            if (received !== null) {
+                if (isUnderpaid) {
+                    // Keep crypto_amount as expected; store received in notes for admin reference
+                    updatePayload.notes = JSON.stringify({ underpaid_received: received, underpaid_expected: expectedAmount });
+                } else {
+                    updatePayload.crypto_amount = received;
+                }
             }
 
             const { error: updateError } = await supabaseAdmin
@@ -73,6 +85,27 @@ export async function GET(req: Request) {
 
             if (updateError) {
                 console.error("Webhook: DB Update Error:", updateError);
+                return new NextResponse('*ok*', { status: 200 });
+            }
+
+            if (isUnderpaid) {
+                console.log(`Webhook: Order ${order_id} marked as UNDERPAID (received: ${received}, expected: ${expectedAmount})`);
+                // Send admin underpayment alert only
+                const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+                if (adminEmail && process.env.RESEND_API_KEY) {
+                    const { subject, html } = underpaidAlertEmail({
+                        referenceId: order_id,
+                        orderNumber: order.order_number,
+                        fiatAmount: order.fiat_amount || 0,
+                        cryptoCurrency: order.crypto_currency || '',
+                        expectedCryptoAmount: expectedAmount,
+                        receivedCryptoAmount: received || 0,
+                        email: order.email,
+                        shippingAddress: order.shipping_address || {},
+                    });
+                    await resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to: adminEmail, subject, html })
+                        .catch(e => console.error('Webhook: Failed to send underpaid alert:', e));
+                }
                 return new NextResponse('*ok*', { status: 200 });
             }
 

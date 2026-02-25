@@ -204,6 +204,62 @@ export function refundConfirmationEmail(params: RefundConfirmationParams) {
     };
 }
 
+interface UnderpaidAlertParams {
+    referenceId: string;
+    orderNumber?: string;
+    fiatAmount: number;
+    cryptoCurrency: string;
+    expectedCryptoAmount: number;
+    receivedCryptoAmount: number;
+    email?: string | null;
+    shippingAddress: Record<string, string>;
+}
+
+export function underpaidAlertEmail(params: UnderpaidAlertParams) {
+    const { referenceId, orderNumber, fiatAmount, cryptoCurrency, expectedCryptoAmount, receivedCryptoAmount, email, shippingAddress } = params;
+    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
+    const diffPct = ((expectedCryptoAmount - receivedCryptoAmount) / expectedCryptoAmount * 100).toFixed(1);
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+    return {
+        subject: `⚠️ PAGAMENTO INCOMPLETO: ${displayId} — mancano ${diffPct}%`,
+        html: baseWrapper(`
+            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;color:#F97316;">⚠️ Pagamento Incompleto</h2>
+            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;">
+                L'ordine <strong style="color:white;">${displayId}</strong> ha ricevuto un importo inferiore a quello atteso.
+            </p>
+            <div style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:12px;padding:16px;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#F97316;margin-bottom:12px;">Confronto Importi</div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <span style="font-size:13px;color:rgba(255,255,255,0.6);">Atteso</span>
+                    <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);">${expectedCryptoAmount} ${cryptoCurrency}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <span style="font-size:13px;color:rgba(255,255,255,0.6);">Ricevuto</span>
+                    <span style="font-size:13px;font-weight:600;color:#F97316;">${receivedCryptoAmount} ${cryptoCurrency}</span>
+                </div>
+                <div style="text-align:center;padding-top:10px;">
+                    <span style="font-size:15px;font-weight:700;color:#F97316;">Deficit: −${diffPct}%</span>
+                </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Ordine</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.8);">
+                    <strong>Valore:</strong> €${fiatAmount.toFixed(2)}<br>
+                    ${email ? `<strong>Cliente:</strong> ${email}<br>` : ''}
+                    ${shippingAddress?.full_name ? `<strong>Nome:</strong> ${shippingAddress.full_name}` : ''}
+                </div>
+            </div>
+            <p style="color:rgba(255,255,255,0.5);font-size:12px;text-align:center;margin:0 0 16px;line-height:1.5;">
+                L'ordine è in stato <strong>underpaid</strong> — non è stato evaso né è stata inviata la conferma al cliente.<br>
+                Puoi accettarlo dalla dashboard se la differenza è trascurabile.
+            </p>
+            <div style="text-align:center;">
+                <a href="${siteUrl}/admin" style="display:inline-block;background:#F97316;color:white;font-weight:600;padding:12px 28px;border-radius:8px;text-decoration:none;">Gestisci in Dashboard</a>
+            </div>
+        `),
+    };
+}
+
 export function orderConfirmationCustomerEmail(params: { referenceId: string; fiatAmount: number }) {
     return {
         subject: `✅ Pagamento Ricevuto — Ordine ${params.referenceId.slice(-8).toUpperCase()}`,

@@ -2,7 +2,12 @@ import { NextResponse, NextRequest } from 'next/server';
 import { verifyAuth, requireRole, AuthError } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { Resend } from 'resend';
-import { shipmentNotificationEmail } from '@/lib/email-templates';
+import {
+    shipmentNotificationEmail,
+    orderConfirmationCustomerEmail,
+    warehouseNewOrderEmail,
+    lowStockAlertEmail,
+} from '@/lib/email-templates';
 import { sendSMS } from '@/lib/clicksend';
 import { registerTracking } from '@/lib/tracking';
 
@@ -13,6 +18,7 @@ const EMAIL_REPLY_TO = 'support@aurapeptides.eu';
 const STATUS_TRANSITIONS: Record<string, string[]> = {
     pending: ['paid', 'cancelled'],
     paid: ['processing', 'cancelled'],
+    underpaid: ['paid', 'cancelled'],
     processing: ['shipped', 'cancelled'],
     shipped: ['delivered'],
     delivered: [],
@@ -247,6 +253,99 @@ async function handlePost(req: NextRequest) {
             }
         } catch (restoreErr) {
             console.error('Failed to restore inventory on cancellation:', restoreErr);
+        }
+    }
+
+    // Underpaid → Paid: run fulfillment side effects
+    if (new_status === 'paid' && order.status === 'underpaid') {
+        // Decrement inventory
+        try {
+            let totalQty = 1;
+            if (order.items && Array.isArray(order.items)) {
+                totalQty = order.items.reduce((s: number, i: { quantity?: number }) => s + (i.quantity || 1), 0);
+            }
+            for (let attempt = 0; attempt < 3; attempt++) {
+                const { data: inv } = await supabaseAdmin.from('inventory').select('quantity').eq('sku', 'RET-KIT-1').single();
+                if (!inv) break;
+                const newQty = Math.max(0, inv.quantity - totalQty);
+                const { data: invUpdated } = await supabaseAdmin
+                    .from('inventory').update({ quantity: newQty, updated_at: new Date().toISOString() })
+                    .eq('sku', 'RET-KIT-1').eq('quantity', inv.quantity).select().single();
+                if (invUpdated) {
+                    await supabaseAdmin.from('inventory_movements').insert({
+                        sku: 'RET-KIT-1', type: 'remove', quantity: -totalQty,
+                        previous_quantity: inv.quantity, new_quantity: newQty,
+                        reason: `Approvazione pagamento incompleto: ${order.order_number || order.reference_id}`,
+                        performed_by: user.id,
+                        performed_by_name: (await supabaseAdmin.from('profiles').select('full_name').eq('id', user.id).single()).data?.full_name || 'Staff',
+                    });
+                    break;
+                }
+            }
+        } catch (e) { console.error('Failed to decrement inventory on underpaid approval:', e); }
+
+        // Fulfillment notifications
+        if (process.env.RESEND_API_KEY) {
+            const notifyPromises: Promise<unknown>[] = [];
+
+            // Customer confirmation
+            if (order.email?.includes('@')) {
+                const { subject, html } = orderConfirmationCustomerEmail({ referenceId: order.reference_id, fiatAmount: order.fiat_amount || 0 });
+                notifyPromises.push(
+                    resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to: order.email, subject, html })
+                        .catch(e => console.error('Failed to send underpaid approval customer email:', e))
+                );
+            }
+
+            // Low stock alert
+            const { data: currentInv } = await supabaseAdmin.from('inventory').select('quantity').eq('sku', 'RET-KIT-1').single();
+            const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+            if (currentInv && currentInv.quantity < 20 && adminEmail) {
+                const { subject, html } = lowStockAlertEmail({ sku: 'RET-KIT-1', currentQuantity: currentInv.quantity, threshold: 20 });
+                notifyPromises.push(
+                    resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to: adminEmail, subject, html })
+                        .catch(e => console.error('Failed to send low stock alert:', e))
+                );
+            }
+
+            // Warehouse notifications
+            const { data: warehouseMembers } = await supabaseAdmin.from('profiles').select('email, full_name, phone').eq('role', 'warehouse').eq('is_active', true);
+            const shippingAddress = order.shipping_address || {};
+            const totalKits = order.items?.reduce((s: number, i: { quantity?: number }) => s + (i.quantity || 1), 0) || 1;
+            if (warehouseMembers?.length) {
+                for (const wh of warehouseMembers) {
+                    if (wh.email) {
+                        const { subject, html } = warehouseNewOrderEmail({
+                            orderId: order.reference_id.slice(-8).toUpperCase(),
+                            kitsToShip: totalKits,
+                            customerName: shippingAddress.full_name || 'N/A',
+                            customerPhone: shippingAddress.phone || 'N/A',
+                            shippingAddress,
+                        });
+                        notifyPromises.push(
+                            resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to: wh.email, subject, html })
+                                .catch(e => console.error('Failed to send warehouse email:', e))
+                        );
+                    }
+                    if (wh.phone) {
+                        const shortAddr = [shippingAddress.address_line_1, shippingAddress.city, shippingAddress.postal_code, shippingAddress.country].filter(Boolean).join(', ');
+                        notifyPromises.push(
+                            sendSMS({ to: wh.phone, body: `ORDINE APPROVATO (era underpaid) #${order.reference_id.slice(-8).toUpperCase()}\n${totalKits} kit · ${shippingAddress.full_name || 'N/A'}\n${shortAddr}` })
+                                .catch(e => console.error('Failed to send warehouse SMS:', e))
+                        );
+                    }
+                }
+            }
+
+            // Customer SMS
+            if (order.shipping_address?.phone) {
+                notifyPromises.push(
+                    sendSMS({ to: order.shipping_address.phone, body: `Aura Peptides: il tuo pagamento è confermato! Ordine #${order.reference_id.slice(-8).toUpperCase()}. Il kit è in preparazione.` })
+                        .catch(e => console.error('Failed to send customer SMS:', e))
+                );
+            }
+
+            await Promise.allSettled(notifyPromises);
         }
     }
 

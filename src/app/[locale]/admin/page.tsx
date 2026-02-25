@@ -5,11 +5,11 @@ import { supabaseBrowser } from "@/lib/supabase-browser";
 import {
     RefreshCw, Search, CheckCircle, Clock, XCircle, Package,
     TrendingUp, ShoppingCart, BarChart3, Users, Boxes, ChevronDown,
-    UserPlus, Shield, Settings, Trash2, ArrowLeft, DollarSign
+    UserPlus, Shield, Settings, Trash2, ArrowLeft, DollarSign, AlertTriangle
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────
-type OrderStatus = 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded' | 'partially_refunded';
+type OrderStatus = 'pending' | 'paid' | 'underpaid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded' | 'partially_refunded';
 type TabId = 'dashboard' | 'orders' | 'inventory' | 'customers' | 'team' | 'settings';
 
 type Order = {
@@ -46,6 +46,7 @@ const fmt = (n: number) => new Intl.NumberFormat('it-IT', { style: 'currency', c
 const StatusBadge = ({ status }: { status: string }) => {
     const map: Record<string, { bg: string; text: string; icon: React.ReactNode; label: string }> = {
         paid: { bg: 'bg-green-500/10 border-green-500/20', text: 'text-green-400', icon: <CheckCircle className="w-3 h-3" />, label: 'Da Evadere' },
+        underpaid: { bg: 'bg-orange-500/10 border-orange-500/20', text: 'text-orange-400', icon: <AlertTriangle className="w-3 h-3" />, label: 'Inc. Pagamento' },
         processing: { bg: 'bg-blue-500/10 border-blue-500/20', text: 'text-blue-400', icon: <Package className="w-3 h-3" />, label: 'In Lavorazione' },
         shipped: { bg: 'bg-brand-gold/10 border-brand-gold/20', text: 'text-brand-gold', icon: <Package className="w-3 h-3" />, label: 'Spedito' },
         delivered: { bg: 'bg-emerald-500/10 border-emerald-500/20', text: 'text-emerald-400', icon: <CheckCircle className="w-3 h-3" />, label: 'Consegnato' },
@@ -248,6 +249,20 @@ export default function AdminDashboard() {
         setUpdating(p => ({ ...p, [orderId]: false }));
     };
 
+    const acceptUnderpaid = async (orderId: string) => {
+        if (!confirm("Confermi di accettare il pagamento incompleto e procedere con l'evasione dell'ordine?")) return;
+        setUpdating(p => ({ ...p, [orderId]: true }));
+        try {
+            const res = await fetch('/api/admin/orders', {
+                method: 'POST', headers: authHeaders(),
+                body: JSON.stringify({ action: 'update-status', order_id: orderId, new_status: 'paid' }),
+            });
+            if (res.ok) fetchOrders();
+            else { const d = await res.json(); alert(d.error || 'Errore'); }
+        } catch (e) { console.error(e); }
+        setUpdating(p => ({ ...p, [orderId]: false }));
+    };
+
     const updateInventory = async () => {
         if (invQty <= 0) return;
         try {
@@ -429,6 +444,7 @@ export default function AdminDashboard() {
                                 <option value="all">Tutti</option>
                                 <option value="pending">In Attesa</option>
                                 <option value="paid">Da Evadere</option>
+                                <option value="underpaid">Inc. Pagamento</option>
                                 <option value="processing">In Lavorazione</option>
                                 <option value="shipped">Spediti</option>
                                 <option value="delivered">Consegnati</option>
@@ -491,6 +507,29 @@ export default function AdminDashboard() {
                                                             <button onClick={() => shipOrder(order.id)} disabled={!trackingInput[order.id] || updating[order.id]}
                                                                 className="bg-brand-gold/20 text-brand-gold disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-brand-gold/30 transition-colors flex-1">
                                                                 {updating[order.id] ? '...' : 'Evadi'}
+                                                            </button>
+                                                            <button onClick={() => refundOrder(order.id)} disabled={updating[order.id]}
+                                                                className="bg-red-500/10 text-red-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-red-500/20 transition-colors">
+                                                                Rimborsa
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : order.status === 'underpaid' ? (
+                                                    <div className="flex flex-col gap-2">
+                                                        {(() => {
+                                                            let n: { underpaid_received?: number; underpaid_expected?: number } = {};
+                                                            try { n = JSON.parse(order.notes || '{}'); } catch { /* empty */ }
+                                                            return n.underpaid_received ? (
+                                                                <div className="text-xs text-orange-400/80 bg-orange-500/5 border border-orange-500/20 rounded-lg px-2 py-1.5 leading-relaxed">
+                                                                    Atteso: {n.underpaid_expected} {order.crypto_currency}<br />
+                                                                    Ricevuto: {n.underpaid_received} {order.crypto_currency}
+                                                                </div>
+                                                            ) : null;
+                                                        })()}
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => acceptUnderpaid(order.id)} disabled={updating[order.id]}
+                                                                className="bg-orange-500/10 text-orange-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-orange-500/20 transition-colors flex-1">
+                                                                {updating[order.id] ? '...' : 'Accetta'}
                                                             </button>
                                                             <button onClick={() => refundOrder(order.id)} disabled={updating[order.id]}
                                                                 className="bg-red-500/10 text-red-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-red-500/20 transition-colors">
