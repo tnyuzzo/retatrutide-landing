@@ -61,7 +61,7 @@
     "why_title": "Por Qué",
     "why_subtitle": "Aura Peptides",
     "why_item1_title": "Verificado por Terceros",
-    "why_item1_desc": "Cada lote probado por con COA publicado — no una simple afirmación, prueba verificable.",
+    "why_item1_desc": "Cada lote sometido a pruebas independientes de terceros para pureza, esterilidad y metales pesados — estándares de grado farmacéutico.",
     "why_item2_title": "Sin Atajos en la Pureza",
     "why_item2_desc": "Síntesis GMP completa, paneles de esterilidad y screening de endotoxinas. Precios más bajos significan pasos omitidos.",
     "why_item3_title": "Envío desde la UE",
@@ -90,7 +90,7 @@
     "faq_q3": "¿Cómo garantizan mi privacidad?",
     "faq_a3": "Tu seguridad es primordial. Todos los pedidos pasan por pasarelas cifradas offline. Utilizamos embalaje discreto sin referencias externas al contenido.",
     "faq_q4": "¿Cuáles son los tiempos de procesamiento?",
-    "faq_a4": "Los pedidos confirmados antes de las 12:00 PM (CET) se procesan y envían el mismo día hábil. Recibirás un email seguro con el seguimiento tan pronto como el paquete salga de logística.",
+    "faq_a4": "Los pedidos confirmados antes de las 12:00 (CET) se procesan y envían el mismo día laborable. Recibirás una notificación por email en cuanto tu pedido esté en camino.",
     "faq_q5": "¿Puedo cancelar mi pedido?",
     "faq_a5": "Puedes solicitar una cancelación mientras tu pedido no haya sido enviado.",
     "faq_q6": "¿Qué nivel de pureza necesito?",
@@ -384,7 +384,11 @@
     "order_form_contact": "Contacto",
     "order_form_destination": "Destino",
     "order_step_indicator": "Paso 1 de 2 — Introduce tus datos",
-    "shipping_timeline_simple": "Pide hoy → recibe en 3-5 días laborables en toda Europa"
+    "shipping_timeline_simple": "Pide hoy → recibe en 3-5 días laborables en toda Europa",
+    "order_field_first_name": "Nombre",
+    "order_field_last_name": "Apellido",
+    "order_error_first_name": "Introduce tu nombre",
+    "order_error_last_name": "Introduce tu apellido"
   },
   "inventory_high_demand": "Alta Demanda: solo",
   "inventory_kits_remaining": "viales restantes"

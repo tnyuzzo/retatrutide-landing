@@ -61,7 +61,7 @@
     "why_title": "Perché",
     "why_subtitle": "Aura Peptides",
     "why_item1_title": "Verificato da Terzi",
-    "why_item1_desc": "Ogni lotto testato da con COA pubblicato — non una semplice dichiarazione, prova verificabile.",
+    "why_item1_desc": "Ogni lotto sottoposto a test indipendenti di terze parti per purezza, sterilità e metalli pesanti — standard di grado farmaceutico.",
     "why_item2_title": "Nessun Compromesso sulla Purezza",
     "why_item2_desc": "Sintesi GMP completa, pannelli di sterilità e screening endotossine. Prezzi più bassi altrove di solito significano passaggi saltati.",
     "why_item3_title": "Spedizione dall'UE",
@@ -90,7 +90,7 @@
     "faq_q3": "Come garantite la mia privacy?",
     "faq_a3": "La tua sicurezza è fondamentale. Tutti gli ordini passano attraverso gateway crittografati offline. Utilizziamo imballaggi anonimi senza riferimenti esterni al contenuto.",
     "faq_q4": "Quali sono i tempi di elaborazione?",
-    "faq_a4": "Gli ordini confermati entro le 12:00 (CET) vengono elaborati e spediti lo stesso giorno lavorativo. Riceverai un'email con il tracciamento sicuro non appena il pacco lascerà la logistica.",
+    "faq_a4": "Gli ordini confermati entro le 12:00 (CET) vengono elaborati e spediti lo stesso giorno lavorativo. Riceverai una notifica via email non appena il tuo ordine sarà in viaggio.",
     "faq_q5": "Posso annullare il mio ordine?",
     "faq_a5": "Potete richiedere un annullamento finché il vostro ordine non è stato spedito. Dopo l'invio, l'annullamento non è più possibile — ma la Protezione Acquirente copre qualsiasi problema di consegna.",
     "faq_q6": "Quale livello di purezza mi serve per la mia ricerca?",
@@ -384,7 +384,11 @@
     "order_form_contact": "Contatto",
     "order_form_destination": "Destinazione",
     "order_step_indicator": "Passo 1 di 2 — Inserisci i tuoi dati",
-    "shipping_timeline_simple": "Ordina oggi → ricevi entro 3-5 giorni lavorativi in tutta Europa"
+    "shipping_timeline_simple": "Ordina oggi → ricevi entro 3-5 giorni lavorativi in tutta Europa",
+    "order_field_first_name": "Nome",
+    "order_field_last_name": "Cognome",
+    "order_error_first_name": "Inserisci il tuo nome",
+    "order_error_last_name": "Inserisci il tuo cognome"
   },
   "inventory_high_demand": "Alta Richiesta: solo",
   "inventory_kits_remaining": "fiale rimanenti"

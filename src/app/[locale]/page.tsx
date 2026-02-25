@@ -140,8 +140,8 @@ export default function Home() {
                 </span>
               </PremiumButton>
 
-              {/* Mobile: alert sotto il CTA */}
-              <div className="lg:hidden w-full">
+              {/* Mobile/Tablet: alert sotto il CTA */}
+              <div className="lg:hidden w-full flex justify-center">
                 <LiveInventoryBadge />
               </div>
 
@@ -754,7 +754,7 @@ export default function Home() {
             </div>
           </div>
           <PremiumButton
-            className="shrink-0 !py-2.5 !px-6 !text-sm"
+            className="shrink-0 !py-2.5 !px-10 !text-sm"
             onClick={() => window.location.href = `/${locale}/order`}
           >
             <span className="flex items-center gap-2">

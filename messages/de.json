@@ -61,7 +61,7 @@
     "why_title": "Warum",
     "why_subtitle": "Aura Peptides",
     "why_item1_title": "Von Dritten Verifiziert",
-    "why_item1_desc": "Jede Charge von getestet mit veröffentlichtem COA — kein Versprechen, überprüfbarer Beweis.",
+    "why_item1_desc": "Jede Charge wird unabhängig von Dritten auf Reinheit, Sterilität und Schwermetalle getestet — pharmazeutische Standards.",
     "why_item2_title": "Keine Kompromisse bei der Reinheit",
     "why_item2_desc": "Vollständige GMP-Synthese, Sterilitätspanels und Endotoxin-Screening. Niedrigere Preise anderswo bedeuten übersprungene Schritte.",
     "why_item3_title": "Versand aus der EU",
@@ -90,7 +90,7 @@
     "faq_q3": "Wie garantieren Sie meine Privatsphäre?",
     "faq_a3": "Ihre Sicherheit hat oberste Priorität. Alle Bestellungen laufen über offline verschlüsselte Gateways. Wir verwenden diskrete Verpackungen ohne externe Hinweise auf den Inhalt.",
     "faq_q4": "Wie sind die Bearbeitungszeiten?",
-    "faq_a4": "Bestellungen, die vor 12:00 Uhr (MEZ) bestätigt werden, werden am selben Geschäftstag bearbeitet und versendet. Sie erhalten eine sichere Tracking-E-Mail, sobald das Paket die Logistik verlässt.",
+    "faq_a4": "Bestellungen, die vor 12:00 Uhr (MEZ) bestätigt werden, werden am selben Werktag bearbeitet und versendet. Sie erhalten eine E-Mail-Benachrichtigung, sobald Ihre Bestellung unterwegs ist.",
     "faq_q5": "Kann ich meine Bestellung stornieren?",
     "faq_a5": "Sie können eine Stornierung beantragen, solange Ihre Bestellung noch nicht versendet wurde.",
     "faq_q6": "Welchen Reinheitsgrad brauche ich?",
@@ -384,7 +384,11 @@
     "order_form_contact": "Kontakt",
     "order_form_destination": "Zieladresse",
     "order_step_indicator": "Schritt 1 von 2 — Geben Sie Ihre Daten ein",
-    "shipping_timeline_simple": "Heute bestellen → Lieferung in 3-5 Werktagen in ganz Europa"
+    "shipping_timeline_simple": "Heute bestellen → Lieferung in 3-5 Werktagen in ganz Europa",
+    "order_field_first_name": "Vorname",
+    "order_field_last_name": "Nachname",
+    "order_error_first_name": "Bitte Vornamen eingeben",
+    "order_error_last_name": "Bitte Nachnamen eingeben"
   },
   "inventory_high_demand": "Hohe Nachfrage: nur",
   "inventory_kits_remaining": "Fläschchen übrig"

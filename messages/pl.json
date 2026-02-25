@@ -61,7 +61,7 @@
     "why_title": "Dlaczego",
     "why_subtitle": "Aura Peptides",
     "why_item1_title": "Zweryfikowane przez Trzecich",
-    "why_item1_desc": "Każda partia testowana przez z opublikowanym COA.",
+    "why_item1_desc": "Każda partia poddawana niezależnym testom zewnętrznym na czystość, sterylność i metale ciężkie — standardy klasy farmaceutycznej.",
     "why_item2_title": "Bez Skrótów w Czystości",
     "why_item2_desc": "Pełna synteza GMP. Niższe ceny gdzie indziej oznaczają pominięte kroki.",
     "why_item3_title": "Wysyłka z UE",
@@ -90,7 +90,7 @@
     "faq_q3": "Jak gwarantujecie moją prywatność?",
     "faq_a3": "Twoje bezpieczeństwo jest najważniejsze. Wszystkie zamówienia przechodzą przez zaszyfrowane bramki offline. Stosujemy dyskretne opakowanie bez zewnętrznych odniesień do zawartości.",
     "faq_q4": "Jakie są czasy przetwarzania?",
-    "faq_a4": "Zamówienia potwierdzone przed 12:00 (CET) są przetwarzane i wysyłane tego samego dnia roboczego. Otrzymasz bezpieczny email z numerem śledzenia, gdy paczka opuści logistykę.",
+    "faq_a4": "Zamówienia potwierdzone przed 12:00 (CET) są przetwarzane i wysyłane tego samego dnia roboczego. Otrzymasz powiadomienie e-mail, gdy zamówienie będzie w drodze.",
     "faq_q5": "Czy mogę anulować zamówienie?",
     "faq_a5": "Tak, dopóki nie zostało wysłane.",
     "faq_q6": "Jaka czystość mi potrzebna?",
@@ -384,7 +384,11 @@
     "order_form_contact": "Kontakt",
     "order_form_destination": "Miejsce dostawy",
     "order_step_indicator": "Krok 1 z 2 — Wypełnij swoje dane",
-    "shipping_timeline_simple": "Zamów dziś → dostawa w 3-5 dni roboczych w całej Europie"
+    "shipping_timeline_simple": "Zamów dziś → dostawa w 3-5 dni roboczych w całej Europie",
+    "order_field_first_name": "Imię",
+    "order_field_last_name": "Nazwisko",
+    "order_error_first_name": "Wprowadź imię",
+    "order_error_last_name": "Wprowadź nazwisko"
   },
   "inventory_high_demand": "Duże Zapotrzebowanie: tylko",
   "inventory_kits_remaining": "fiolek pozostało"

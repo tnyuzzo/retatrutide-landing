@@ -8,7 +8,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { OrderStructuredData } from "@/components/seo/OrderStructuredData";
 
-const BASE_PRICE = 197;
+const BASE_PRICE = 10; // ⚠️ TESTING — ripristinare a 197 per produzione
 
 const DISCOUNT_TIERS = [
     { min: 1, discount: 0 },
@@ -70,7 +70,8 @@ export default function OrderPage() {
 
     // Shipping form state
     const [email, setEmail] = useState("");
-    const [fullName, setFullName] = useState("");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
     const [addressLine1, setAddressLine1] = useState("");
     const [addressLine2, setAddressLine2] = useState("");
     const [city, setCity] = useState("");
@@ -172,7 +173,14 @@ export default function OrderPage() {
             if (!saved) return;
             const d = JSON.parse(saved);
             if (d.email)           setEmail(d.email);
-            if (d.fullName)        setFullName(d.fullName);
+            if (d.firstName)       setFirstName(d.firstName);
+            if (d.lastName)        setLastName(d.lastName);
+            // Legacy migration
+            if (d.fullName && !d.firstName) {
+                const parts = d.fullName.trim().split(/\s+/);
+                setFirstName(parts[0] || '');
+                setLastName(parts.slice(1).join(' ') || '');
+            }
             if (d.addressLine1)    setAddressLine1(d.addressLine1);
             if (d.addressLine2)    setAddressLine2(d.addressLine2);
             if (d.city)            setCity(d.city);
@@ -189,11 +197,11 @@ export default function OrderPage() {
     useEffect(() => {
         try {
             localStorage.setItem('aura_order_form_v1', JSON.stringify({
-                email, fullName, addressLine1, addressLine2, city,
+                email, firstName, lastName, addressLine1, addressLine2, city,
                 postalCode, country, phone, phoneCountryCode, selectedCrypto, quantity
             }));
         } catch {}
-    }, [email, fullName, addressLine1, addressLine2, city, postalCode, country, phone, phoneCountryCode, selectedCrypto, quantity]);
+    }, [email, firstName, lastName, addressLine1, addressLine2, city, postalCode, country, phone, phoneCountryCode, selectedCrypto, quantity]);
 
     const discount = getDiscount(quantity);
     const unitPrice = Math.round(BASE_PRICE * (1 - discount / 100));
@@ -205,8 +213,12 @@ export default function OrderPage() {
             setFormError(t('order_error_email'));
             return false;
         }
-        if (!fullName || fullName.length < 2) {
-            setFormError(t('order_error_name'));
+        if (!firstName || firstName.length < 2) {
+            setFormError(t('order_error_first_name'));
+            return false;
+        }
+        if (!lastName || lastName.length < 2) {
+            setFormError(t('order_error_last_name'));
             return false;
         }
         if (!addressLine1 || addressLine1.length < 3) {
@@ -265,7 +277,7 @@ export default function OrderPage() {
                 body: JSON.stringify({
                     email,
                     shipping_address: {
-                        full_name: fullName,
+                        full_name: `${firstName} ${lastName}`.trim(),
                         address_line_1: addressLine1,
                         address_line_2: addressLine2,
                         city,
@@ -518,17 +530,29 @@ export default function OrderPage() {
                                     />
                                 </div>
 
-                                {/* Full Name */}
-                                <div className="relative">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                                    <input
-                                        type="text"
-                                        autoComplete="name"
-                                        placeholder={t('order_field_name')}
-                                        value={fullName}
-                                        onChange={(e) => setFullName(e.target.value)}
-                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
-                                    />
+                                {/* First Name + Last Name */}
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="relative">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                        <input
+                                            type="text"
+                                            autoComplete="given-name"
+                                            placeholder={t('order_field_first_name')}
+                                            value={firstName}
+                                            onChange={(e) => setFirstName(e.target.value)}
+                                            className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            autoComplete="family-name"
+                                            placeholder={t('order_field_last_name')}
+                                            value={lastName}
+                                            onChange={(e) => setLastName(e.target.value)}
+                                            className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-4 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Phone with country code */}

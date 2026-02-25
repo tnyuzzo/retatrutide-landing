@@ -61,7 +61,7 @@
     "why_title": "Pourquoi",
     "why_subtitle": "Aura Peptides",
     "why_item1_title": "Vérifié par des Tiers",
-    "why_item1_desc": "Chaque lot testé par avec COA publié — pas une simple affirmation, preuve vérifiable.",
+    "why_item1_desc": "Chaque lot soumis à des tests indépendants de tiers pour la pureté, la stérilité et les métaux lourds — normes de qualité pharmaceutique.",
     "why_item2_title": "Aucun Compromis sur la Pureté",
     "why_item2_desc": "Synthèse GMP complète, panels de stérilité et screening d'endotoxines. Des prix plus bas ailleurs signifient des étapes sautées.",
     "why_item3_title": "Expédition depuis l'UE",
@@ -90,7 +90,7 @@
     "faq_q3": "Comment garantissez-vous ma vie privée?",
     "faq_a3": "Votre sécurité est primordiale. Toutes les commandes passent par des passerelles chiffrées hors ligne. Nous utilisons un emballage discret sans référence externe au contenu.",
     "faq_q4": "Quels sont les délais de traitement?",
-    "faq_a4": "Les commandes confirmées avant 12h00 (CET) sont traitées et expédiées le même jour ouvrable. Vous recevrez un email de suivi sécurisé dès que le colis quitte la logistique.",
+    "faq_a4": "Les commandes confirmées avant 12h00 (CET) sont traitées et expédiées le même jour ouvrable. Vous recevrez une notification par email dès que votre commande sera en route.",
     "faq_q5": "Puis-je annuler ma commande?",
     "faq_a5": "Vous pouvez demander une annulation tant que votre commande n'a pas été expédiée.",
     "faq_q6": "Quel niveau de pureté me faut-il?",
@@ -384,7 +384,11 @@
     "order_form_contact": "Contact",
     "order_form_destination": "Destination",
     "order_step_indicator": "Étape 1 sur 2 — Remplissez vos coordonnées",
-    "shipping_timeline_simple": "Commandez aujourd'hui → recevez sous 3-5 jours ouvrés dans toute l'Europe"
+    "shipping_timeline_simple": "Commandez aujourd'hui → recevez sous 3-5 jours ouvrés dans toute l'Europe",
+    "order_field_first_name": "Prénom",
+    "order_field_last_name": "Nom",
+    "order_error_first_name": "Veuillez entrer votre prénom",
+    "order_error_last_name": "Veuillez entrer votre nom"
   },
   "inventory_high_demand": "Forte Demande : seulement",
   "inventory_kits_remaining": "flacons restants"

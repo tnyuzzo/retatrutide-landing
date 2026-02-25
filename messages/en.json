@@ -61,7 +61,7 @@
     "why_title": "Why",
     "why_subtitle": "Aura Peptides",
     "why_item1_title": "Third-Party Verified",
-    "why_item1_desc": "Every batch tested with published COA — not just a claim, verifiable proof.",
+    "why_item1_desc": "Every batch undergoes independent third-party testing for purity, sterility and heavy metals — pharmaceutical-grade standards.",
     "why_item2_title": "No Shortcuts on Purity",
     "why_item2_desc": "Full GMP synthesis, sterility panels, and endotoxin screening. Lower prices elsewhere usually mean skipped steps.",
     "why_item3_title": "EU-Origin Shipping",
@@ -90,7 +90,7 @@
     "faq_q3": "How do you guarantee my privacy?",
     "faq_a3": "Your security is paramount. All orders pass through offline encrypted gateways. We utilize stealth packaging with no external references to the contents.",
     "faq_q4": "What are the processing times?",
-    "faq_a4": "Orders confirmed before 12:00 PM (CET) are processed and shipped the same business day. You will receive a secure tracking email as soon as the package leaves logistics.",
+    "faq_a4": "Orders confirmed before 12:00 (CET) are processed and shipped the same business day. You will be notified by email as soon as your order is on its way.",
     "faq_q5": "Can I cancel my order?",
     "faq_a5": "You may request a cancellation as long as your order has not been shipped yet. Once a package has been dispatched, cancellation is no longer possible — but our Buyer Protection policy covers any delivery issues.",
     "faq_q6": "What purity level do I need for my research?",
@@ -384,7 +384,11 @@
     "order_form_contact": "Contact",
     "order_form_destination": "Destination",
     "order_step_indicator": "Step 1 of 2 — Fill in your details",
-    "shipping_timeline_simple": "Order today → receive within 3-5 business days across Europe"
+    "shipping_timeline_simple": "Order today → receive within 3-5 business days across Europe",
+    "order_field_first_name": "First name",
+    "order_field_last_name": "Last name",
+    "order_error_first_name": "Please enter your first name",
+    "order_error_last_name": "Please enter your last name"
   },
   "inventory_high_demand": "High Demand: only",
   "inventory_kits_remaining": "vials remaining"

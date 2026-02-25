@@ -61,7 +61,7 @@
     "why_title": "Porquê",
     "why_subtitle": "Aura Peptides",
     "why_item1_title": "Verificado por Terceiros",
-    "why_item1_desc": "Cada lote testado por com COA publicado — prova verificável.",
+    "why_item1_desc": "Cada lote submetido a testes independentes de terceiros para pureza, esterilidade e metais pesados — padrões de grau farmacêutico.",
     "why_item2_title": "Sem Atalhos na Pureza",
     "why_item2_desc": "Síntese GMP completa. Preços mais baixos noutros locais significam passos ignorados.",
     "why_item3_title": "Envio a partir da UE",
@@ -90,7 +90,7 @@
     "faq_q3": "Como garantem a minha privacidade?",
     "faq_a3": "A sua segurança é primordial. Todos os pedidos passam por gateways cifrados offline. Utilizamos embalagem discreta sem referências externas ao conteúdo.",
     "faq_q4": "Quais são os tempos de processamento?",
-    "faq_a4": "Pedidos confirmados antes das 12:00 (CET) são processados e enviados no mesmo dia útil. Receberá um email seguro de rastreio assim que o pacote saia da logística.",
+    "faq_a4": "Encomendas confirmadas antes das 12:00 (CET) são processadas e enviadas no mesmo dia útil. Receberá uma notificação por email assim que a sua encomenda estiver a caminho.",
     "faq_q5": "Posso cancelar a encomenda?",
     "faq_a5": "Sim, enquanto não tiver sido enviada.",
     "faq_q6": "Que nível de pureza preciso?",
@@ -384,7 +384,11 @@
     "order_form_contact": "Contacto",
     "order_form_destination": "Destino",
     "order_step_indicator": "Passo 1 de 2 — Preencha os seus dados",
-    "shipping_timeline_simple": "Encomende hoje → receba em 3-5 dias úteis em toda a Europa"
+    "shipping_timeline_simple": "Encomende hoje → receba em 3-5 dias úteis em toda a Europa",
+    "order_field_first_name": "Nome",
+    "order_field_last_name": "Apelido",
+    "order_error_first_name": "Introduza o seu nome",
+    "order_error_last_name": "Introduza o seu apelido"
   },
   "inventory_high_demand": "Alta Procura: apenas",
   "inventory_kits_remaining": "frascos restantes"
