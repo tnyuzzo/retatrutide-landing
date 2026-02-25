@@ -7,9 +7,9 @@
 
 ## Current State
 
-- **Last deploy**: 2026-02-25 (commit `03f4afa`)
+- **Last deploy**: 2026-02-25 (commit `df4fa82`)
 - **Branch**: main (up to date with origin/main)
-- **Build**: 81 static pages + 19 API routes, zero errors
+- **Build**: 84 static pages + 19 API routes, zero errors
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
 - **Domain**: aurapep.eu (Vercel, auto-deploy on push to main)
 - **Untracked files**: `addShipKeys.js`
@@ -250,7 +250,7 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 ### 6 Tab
 
 1. **Dashboard** — KPI: revenue (today/week/month), total orders, orders to ship, current stock, customers, avg order value, shipping costs
-2. **Orders** — Filtro per status, search, dettagli ordine, fulfill (carrier + tracking + shipping cost), refund
+2. **Orders** — Filtro per status/data/search, order detail drawer (click su riga), modali Ship/Refund/Cancel, paginazione (20/pagina), mobile card layout, CSV export (super_admin), status timeline, tracking events
 3. **Inventory** — Stock corrente RET-KIT-1, add/remove stock, cronologia movimenti
 4. **Customers** — LTV metrics, lista clienti, dettaglio con ordini, repeat purchase rate
 5. **Team** — Invita membri, assegna ruoli, rimuovi accesso, workflow approvazione rimozione
@@ -506,6 +506,18 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-25] **Admin dashboard upgrade — feature parity con Forever Slim** (commit `df4fa82`):
+  - Order Detail Drawer: pannello slide-in da destra con info complete ordine, indirizzo spedizione, tracking, timeline
+  - Ship/Refund/Cancel Modali: sostituiscono input inline con dialog modali centrati
+  - Date Range Filters: `date_from`/`date_to` API params + date picker UI dark theme
+  - Paginazione: 20 ordini/pagina con contatore e navigazione pagine
+  - Mobile Order Cards: layout card responsive per ordini su mobile (<md)
+  - CSV Export: download ordini filtrati come CSV UTF-8 (solo super_admin)
+  - StatusTimeline: timeline verticale con dots gold/gray per lifecycle ordine
+  - Tracking Events: display eventi tracking con timestamp nel drawer
+  - Refactor azioni ordine da input inline a workflow basato su modali
+- [2026-02-25] **Admin dashboard audit fix** (commit `57fdde6`):
+  - Auth fallback to profiles table, RBAC layout blocking, expired order actions, refund inventory fix, BASE_PRICE 197
 - [2026-02-25] **72h order lifecycle + instant payment email + cart recovery** (commit `03f4afa`):
   - Ordini pending ora validi 72h (era 24h) — expire-orders cron + checkout/pending cutoff aggiornati
   - Email immediata alla creazione ordine con indirizzo crypto, importo, link checkout e istruzioni ChangeHero

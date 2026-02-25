@@ -85,10 +85,19 @@ export async function GET(req: Request) {
                 updated_at: new Date().toISOString(),
             };
             if (received !== null) {
+                // Always save the actual amount CryptAPI forwarded to our wallet
+                updatePayload.crypto_amount_received = received;
+
                 if (isUnderpaid) {
                     updatePayload.notes = JSON.stringify({ underpaid_received: received, underpaid_expected: expectedAmount });
-                } else {
-                    updatePayload.crypto_amount = received;
+                }
+                // Note: we no longer overwrite crypto_amount — it stays as the originally requested amount.
+                // crypto_amount_received tracks what actually arrived after CryptAPI's 1% + blockchain fee.
+
+                // Calculate gateway fee in EUR (CryptAPI 1% service + blockchain forwarding fee)
+                if (expectedAmount > 0) {
+                    const feeRatio = Math.max(0, 1 - (received / expectedAmount));
+                    updatePayload.gateway_fee_eur = Math.round((order.fiat_amount || 0) * feeRatio * 100) / 100;
                 }
             }
 

@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
             recentOrdersResult,
             shippingCostsResult,
             customersResult,
+            gatewayFeesResult,
         ] = await Promise.all([
             revenueQuery(null, null),
             revenueQuery(startOfToday, null),
@@ -66,6 +67,9 @@ export async function GET(req: NextRequest) {
 
             // Total unique customers
             supabaseAdmin.from('customers').select('id', { count: 'exact', head: true }),
+
+            // Gateway fees (CryptAPI 1% + blockchain fees)
+            supabaseAdmin.from('orders').select('gateway_fee_eur').in('status', REVENUE_STATUSES).not('gateway_fee_eur', 'is', null),
         ]);
 
         const sum = (result: { data: Record<string, number>[] | null }, field: string) =>
@@ -76,6 +80,7 @@ export async function GET(req: NextRequest) {
         const totalRevenue = sum(revenueTotalResult, 'fiat_amount');
         const totalPaidOrders = (revenueTotalResult.data || []).length;
         const totalShippingCosts = sum(shippingCostsResult, 'shipping_cost');
+        const totalGatewayFees = sum(gatewayFeesResult, 'gateway_fee_eur');
 
         return NextResponse.json({
             revenue: {
@@ -97,6 +102,8 @@ export async function GET(req: NextRequest) {
                 low_stock: stockQuantity < 20,
             },
             shipping_costs: totalShippingCosts,
+            gateway_fees: totalGatewayFees,
+            net_revenue: totalRevenue - totalGatewayFees,
             customers_total: customersResult.count || 0,
             avg_order_value: totalPaidOrders > 0 ? Math.round(totalRevenue / totalPaidOrders) : 0,
             recent_orders: recentOrdersResult.data || [],

@@ -36,8 +36,15 @@ type DashboardData = {
     inventory: { stock_quantity: number; low_stock: boolean };
     recent_orders: Order[];
     shipping_costs?: number;
+    gateway_fees?: number;
+    net_revenue?: number;
     customers_total?: number;
     avg_order_value?: number;
+};
+
+type WalletBalance = {
+    ticker: string; label: string; network: string; address: string;
+    balance: number | null; balanceUsd: number | null; error?: string;
 };
 
 type Customer = {
@@ -602,6 +609,10 @@ export default function AdminDashboard() {
     const [storeSettings, setStoreSettings] = useState<Record<string, any>>({});
     const [settingsMessage, setSettingsMessage] = useState("");
 
+    // Wallet monitor
+    const [wallets, setWallets] = useState<WalletBalance[]>([]);
+    const [walletsLoading, setWalletsLoading] = useState(false);
+
     // Get auth token + resolve role
     useEffect(() => {
         supabaseBrowser.auth.getSession().then(async ({ data: { session } }) => {
@@ -711,6 +722,16 @@ export default function AdminDashboard() {
         } catch (e) { setErrorMsg('Errore di rete nel caricamento impostazioni'); console.error(e); }
     }, [token, authHeaders, handleFetchError]);
 
+    const fetchWallets = useCallback(async () => {
+        if (!token) return;
+        setWalletsLoading(true);
+        try {
+            const res = await fetch('/api/admin/wallets', { headers: authHeaders() });
+            if (res.ok) { const d = await res.json(); setWallets(d.wallets || []); }
+        } catch (e) { console.error('Wallet fetch error:', e); }
+        setWalletsLoading(false);
+    }, [token, authHeaders]);
+
     const fetchOrderDetail = useCallback(async (orderId: string) => {
         setOrderDetailLoading(true);
         try {
@@ -730,8 +751,8 @@ export default function AdminDashboard() {
         if (activeTab === 'inventory') fetchInventory();
         if (activeTab === 'customers') fetchCustomers();
         if (activeTab === 'team') fetchTeam();
-        if (activeTab === 'settings') fetchSettings();
-    }, [activeTab, token, fetchDashboard, fetchOrders, fetchInventory, fetchCustomers, fetchTeam, fetchSettings]);
+        if (activeTab === 'settings') { fetchSettings(); fetchWallets(); }
+    }, [activeTab, token, fetchDashboard, fetchOrders, fetchInventory, fetchCustomers, fetchTeam, fetchSettings, fetchWallets]);
 
     // ── Actions ──────────────────────────────────
     const shipOrder = async (orderId: string, carrier: string, trackingNumber: string, shippingCost?: number) => {
@@ -972,8 +993,8 @@ export default function AdminDashboard() {
             {activeTab === 'dashboard' && dashboard && (
                 <div className="flex flex-col gap-6">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <KpiCard label="Revenue Totale" value={fmt(dashboard.revenue.total)} sub={`Oggi: ${fmt(dashboard.revenue.today)}`} icon={<TrendingUp className="w-4 h-4" />} />
-                        <KpiCard label="Questo Mese" value={fmt(dashboard.revenue.this_month)} sub={`Mese scorso: ${fmt(dashboard.revenue.last_month)}`} icon={<BarChart3 className="w-4 h-4" />} />
+                        <KpiCard label="Revenue Lordo" value={fmt(dashboard.revenue.total)} sub={`Oggi: ${fmt(dashboard.revenue.today)}`} icon={<TrendingUp className="w-4 h-4" />} />
+                        <KpiCard label="Incassato Netto" value={fmt(dashboard.net_revenue ?? dashboard.revenue.total)} sub={dashboard.gateway_fees ? `Fee gateway: ${fmt(dashboard.gateway_fees)}` : 'Nessuna fee registrata'} icon={<DollarSign className="w-4 h-4" />} accent="bg-emerald-500/10 text-emerald-400" />
                         <KpiCard label="Ordini Totali" value={String(dashboard.orders.total)} sub={`Da evadere: ${dashboard.orders.to_ship}`} icon={<ShoppingCart className="w-4 h-4" />} accent="bg-blue-500/10 text-blue-400" />
                         <KpiCard label="Stock RET-KIT-1" value={String(dashboard.inventory.stock_quantity)} sub={dashboard.inventory.low_stock ? 'Scorte basse!' : 'Disponibile'} icon={<Boxes className="w-4 h-4" />} accent={dashboard.inventory.low_stock ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'} />
                     </div>
@@ -981,7 +1002,7 @@ export default function AdminDashboard() {
                         <KpiCard label="Clienti Totali" value={String(dashboard.customers_total || 0)} icon={<Users className="w-4 h-4" />} accent="bg-purple-500/10 text-purple-400" />
                         <KpiCard label="Valore Medio Ordine" value={fmt(dashboard.avg_order_value || 0)} icon={<DollarSign className="w-4 h-4" />} accent="bg-cyan-500/10 text-cyan-400" />
                         <KpiCard label="Costi Spedizione" value={fmt(dashboard.shipping_costs || 0)} icon={<Package className="w-4 h-4" />} accent="bg-amber-500/10 text-amber-400" />
-                        <KpiCard label="Da Spedire" value={String(dashboard.orders.to_ship)} icon={<Package className="w-4 h-4" />} accent={dashboard.orders.to_ship > 0 ? 'bg-amber-500/10 text-amber-400' : 'bg-green-500/10 text-green-400'} />
+                        <KpiCard label="Questo Mese" value={fmt(dashboard.revenue.this_month)} sub={`Mese scorso: ${fmt(dashboard.revenue.last_month)}`} icon={<BarChart3 className="w-4 h-4" />} />
                     </div>
                     {/* Recent Orders */}
                     <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
@@ -1461,6 +1482,53 @@ export default function AdminDashboard() {
                             </button>
                             {settingsMessage && <span className="text-xs text-brand-gold">{settingsMessage}</span>}
                         </div>
+                    </div>
+
+                    {/* ── Wallet Monitor ── */}
+                    <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="text-xs text-white/40 uppercase tracking-wider flex items-center gap-2"><DollarSign className="w-4 h-4" /> Wallet CryptAPI</div>
+                            <button onClick={fetchWallets} disabled={walletsLoading}
+                                className="text-xs text-white/40 hover:text-brand-gold transition-colors flex items-center gap-1">
+                                <RefreshCw className={`w-3 h-3 ${walletsLoading ? 'animate-spin' : ''}`} /> Aggiorna
+                            </button>
+                        </div>
+                        {walletsLoading && wallets.length === 0 ? (
+                            <div className="text-center py-8 text-white/30 text-sm">Caricamento saldi...</div>
+                        ) : wallets.length === 0 ? (
+                            <div className="text-center py-8 text-white/30 text-sm">Clicca &quot;Aggiorna&quot; per caricare i saldi</div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {wallets.map(w => (
+                                    <div key={w.ticker} className="bg-white/[0.02] border border-white/5 rounded-xl p-4 flex flex-col gap-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-medium">{w.label}</span>
+                                                <span className="text-[10px] text-white/30 bg-white/5 px-1.5 py-0.5 rounded">{w.network}</span>
+                                            </div>
+                                            {w.balanceUsd !== null && (
+                                                <span className="text-xs text-brand-gold font-medium">${w.balanceUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                            )}
+                                        </div>
+                                        {w.error ? (
+                                            <span className="text-xs text-white/30 italic">{w.error}</span>
+                                        ) : w.balance !== null ? (
+                                            <span className="text-lg font-semibold tabular-nums">{w.balance < 0.0001 && w.balance > 0 ? w.balance.toExponential(4) : w.balance.toLocaleString('en-US', { maximumFractionDigits: 8 })}</span>
+                                        ) : (
+                                            <span className="text-xs text-white/30">—</span>
+                                        )}
+                                        {w.address && !w.error?.includes('Privacy') && (
+                                            <span className="text-[10px] text-white/20 truncate font-mono">{w.address}</span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {wallets.length > 0 && (
+                            <div className="mt-4 text-[10px] text-white/20 text-center">
+                                Saldi letti direttamente dalle blockchain — aggiornati al momento del refresh
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
