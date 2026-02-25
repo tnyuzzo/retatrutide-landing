@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { PortalForm } from "@/components/ui/PortalForm";
+import { PortalStructuredData } from "@/components/seo/PortalStructuredData";
 import { ArrowLeft, Navigation, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
@@ -11,6 +12,7 @@ export default async function PortalPage(props: {
 
     return (
         <main className="min-h-screen bg-brand-void text-white font-sans flex flex-col relative overflow-hidden">
+            <PortalStructuredData />
             {/* Background Effects */}
             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none translate-x-1/2 -translate-y-1/2"></div>
             <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none -translate-x-1/2 translate-y-1/2"></div>

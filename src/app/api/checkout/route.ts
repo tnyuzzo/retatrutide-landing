@@ -40,6 +40,7 @@ const checkoutSchema = z.object({
     }),
     quantity: z.coerce.number().int().min(1).max(100).default(1),
     crypto_currency: z.string().transform(v => v.toLowerCase()).pipe(z.enum(ALLOWED_CRYPTOS)).default('btc'),
+    locale: z.string().max(5).optional().default('en'),
 });
 
 // ── Volume Discount Tiers ──
@@ -106,7 +107,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const { email, shipping_address, quantity, crypto_currency } = parsed.data;
+        const { email, shipping_address, quantity, crypto_currency, locale } = parsed.data;
 
         // ── Price Calculation (must match frontend tiers) ──
         const basePrice = 197;
@@ -241,6 +242,7 @@ export async function POST(req: Request) {
                     shipping_address,
                     payment_url: paymentAddress,
                     items,
+                    locale,
                 }
             ])
             .select()
@@ -262,6 +264,7 @@ export async function POST(req: Request) {
                 cryptoAmount: calculatedCryptoAmount,
                 paymentAddress,
                 quantity,
+                locale,
             });
             resend.emails.send({
                 from: process.env.RESEND_FROM_EMAIL || 'Aura Peptides <noreply@aurapep.eu>',

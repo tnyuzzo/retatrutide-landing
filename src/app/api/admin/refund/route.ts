@@ -119,9 +119,11 @@ export async function POST(req: NextRequest) {
             try {
                 const { subject, html } = refundConfirmationEmail({
                     referenceId: order.reference_id,
+                    orderNumber: order.order_number,
                     fiatAmount: orderAmount,
                     refundAmount,
                     isPartial,
+                    locale: order.locale || 'en',
                 });
 
                 await resend.emails.send({

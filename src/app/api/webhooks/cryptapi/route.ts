@@ -54,7 +54,7 @@ export async function GET(req: Request) {
             // First, read order to get expected amount and details
             const { data: order, error: fetchError } = await supabaseAdmin
                 .from('orders')
-                .select('id, status, email, shipping_address, items, fiat_amount, crypto_currency, crypto_amount, order_number')
+                .select('id, status, email, shipping_address, items, fiat_amount, crypto_currency, crypto_amount, order_number, locale')
                 .eq('reference_id', order_id)
                 .single();
 
@@ -288,6 +288,7 @@ export async function GET(req: Request) {
                             referenceId: order_id,
                             orderNumber: order.order_number,
                             fiatAmount: order.fiat_amount || 0,
+                            locale: order.locale || 'en',
                         });
 
                         notificationPromises.push(

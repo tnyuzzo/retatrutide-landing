@@ -1,6 +1,11 @@
 /**
  * Professional HTML email templates for Aura Peptides (Retatrutide)
+ *
+ * Customer-facing emails (5) are translated via locale using getEmailString().
+ * Admin/warehouse emails (4) stay in Italian.
  */
+
+import { getEmailString } from './email-translations';
 
 interface ShipmentNotificationParams {
     referenceId: string;
@@ -8,6 +13,7 @@ interface ShipmentNotificationParams {
     carrier: string;
     trackingNumber: string;
     trackingUrl: string | null;
+    locale?: string;
 }
 
 interface OrderReceivedAdminParams {
@@ -25,6 +31,56 @@ interface LowStockAlertParams {
     sku: string;
     currentQuantity: number;
     threshold: number;
+}
+
+interface WarehouseNewOrderParams {
+    orderId: string;
+    kitsToShip: number;
+    customerName: string;
+    customerPhone: string;
+    shippingAddress: Record<string, string>;
+}
+
+interface RefundConfirmationParams {
+    referenceId: string;
+    orderNumber?: string;
+    fiatAmount: number;
+    refundAmount: number;
+    isPartial: boolean;
+    locale?: string;
+}
+
+interface UnderpaidAlertParams {
+    referenceId: string;
+    orderNumber?: string;
+    fiatAmount: number;
+    cryptoCurrency: string;
+    expectedCryptoAmount: number;
+    receivedCryptoAmount: number;
+    email?: string | null;
+    shippingAddress: Record<string, string>;
+}
+
+interface CartRecoveryParams {
+    referenceId: string;
+    orderNumber?: string;
+    fiatAmount: number;
+    cryptoCurrency: string;
+    cryptoAmount: number;
+    paymentUrl: string;
+    emailNumber: 1 | 2 | 3;
+    locale?: string;
+}
+
+interface OrderCreatedParams {
+    referenceId: string;
+    orderNumber?: string;
+    fiatAmount: number;
+    cryptoCurrency: string;
+    cryptoAmount: number;
+    paymentAddress: string;
+    quantity: number;
+    locale?: string;
 }
 
 const BRAND_GOLD = '#D4AF37';
@@ -62,34 +118,165 @@ function baseWrapper(content: string): string {
 </html>`;
 }
 
+// ═══════════════════════════════════════════════════
+// CUSTOMER-FACING EMAILS (translated via locale)
+// ═══════════════════════════════════════════════════
+
 export function shipmentNotificationEmail(params: ShipmentNotificationParams) {
-    const { referenceId, orderNumber, carrier, trackingNumber, trackingUrl } = params;
+    const { referenceId, orderNumber, carrier, trackingNumber, trackingUrl, locale } = params;
+    const t = (key: string, vars?: Record<string, string>) => getEmailString(locale || 'en', key, vars);
     const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
     const trackingLink = trackingUrl
-        ? `<a href="${trackingUrl}" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:12px 28px;border-radius:8px;text-decoration:none;margin-top:16px;">Traccia il Pacco</a>`
+        ? `<a href="${trackingUrl}" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:12px 28px;border-radius:8px;text-decoration:none;margin-top:16px;">${t('shipment_cta')}</a>`
         : `<code style="background:rgba(255,255,255,0.1);padding:4px 12px;border-radius:6px;color:${BRAND_GOLD};font-size:14px;">${trackingNumber}</code>`;
 
     return {
-        subject: `📦 Il tuo ordine è stato spedito! — #${displayId}`,
+        subject: `📦 ${t('shipment_subject', { id: displayId })}`,
         html: baseWrapper(`
-            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">Ordine Spedito!</h2>
+            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">${t('shipment_heading')}</h2>
             <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
-                Il tuo ordine <strong style="color:white;">#${displayId}</strong> è stato affidato al corriere e sta viaggiando verso di te.
+                ${t('shipment_body', { id: displayId })}
             </p>
             <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:24px;">
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Dettagli Spedizione</div>
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">${t('shipment_details_label')}</div>
                 <div style="font-size:14px;color:rgba(255,255,255,0.8);">
-                    <strong>Corriere:</strong> ${carrier}<br>
-                    <strong>Tracking:</strong> ${trackingNumber}
+                    <strong>${t('shipment_carrier')}:</strong> ${carrier}<br>
+                    <strong>${t('shipment_tracking')}:</strong> ${trackingNumber}
                 </div>
             </div>
             <div style="text-align:center;">${trackingLink}</div>
             <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:24px;text-align:center;">
-                Per qualsiasi domanda rispondi direttamente a questa email.
+                ${t('shipment_contact')}
             </p>
         `),
     };
 }
+
+export function refundConfirmationEmail(params: RefundConfirmationParams) {
+    const { referenceId, orderNumber, fiatAmount, refundAmount, isPartial, locale } = params;
+    const t = (key: string, vars?: Record<string, string>) => getEmailString(locale || 'en', key, vars);
+    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
+    const partialText = isPartial ? t('refund_partial') : '';
+    return {
+        subject: `💸 ${t('refund_subject', { partial: partialText, id: displayId })}`,
+        html: baseWrapper(`
+            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">${t('refund_heading', { partial: partialText })}</h2>
+            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
+                ${t('refund_body', { id: displayId })}
+            </p>
+            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">${t('refund_amount_label')}</div>
+                <div style="font-size:28px;font-weight:600;color:${BRAND_GOLD};">€${refundAmount.toFixed(2)}</div>
+                ${isPartial ? `<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">${t('refund_of_total', { total: fiatAmount.toFixed(2) })}</div>` : ''}
+            </div>
+            <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;">
+                ${t('refund_note')}
+            </p>
+        `),
+    };
+}
+
+export function cartRecoveryEmail(params: CartRecoveryParams) {
+    const { referenceId, orderNumber, fiatAmount, cryptoCurrency, cryptoAmount, paymentUrl, emailNumber, locale } = params;
+    const t = (key: string, vars?: Record<string, string>) => getEmailString(locale || 'en', key, vars);
+    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aurapep.eu';
+    const subjectEmojis: Record<number, string> = { 1: '⏳', 2: '🔔', 3: '⚠️' };
+
+    return {
+        subject: `${subjectEmojis[emailNumber]} ${t(`recovery_subject_${emailNumber}`, { id: displayId })}`,
+        html: baseWrapper(`
+            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">${t(`recovery_heading_${emailNumber}`)}</h2>
+            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
+                ${t(`recovery_intro_${emailNumber}`, { id: displayId })}
+            </p>
+            <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">${t('recovery_amount_label')}</div>
+                <div style="font-size:28px;font-weight:700;color:${BRAND_GOLD};">${cryptoAmount} ${cryptoCurrency}</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;">€${fiatAmount.toFixed(2)}</div>
+            </div>
+            <div style="text-align:center;margin-bottom:24px;">
+                <a href="${siteUrl}/checkout/${referenceId}" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;">${t('recovery_cta')}</a>
+            </div>
+            ${paymentUrl ? `
+            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">${t('recovery_address_label', { crypto: cryptoCurrency })}</div>
+                <code style="display:block;word-break:break-all;font-size:12px;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.05);padding:10px;border-radius:8px;">${escapeHtml(paymentUrl)}</code>
+            </div>` : ''}
+            <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;">
+                ${t('recovery_contact')}
+            </p>
+        `),
+    };
+}
+
+export function orderCreatedEmail(params: OrderCreatedParams) {
+    const { referenceId, orderNumber, fiatAmount, cryptoCurrency, cryptoAmount, paymentAddress, quantity, locale } = params;
+    const t = (key: string, vars?: Record<string, string>) => getEmailString(locale || 'en', key, vars);
+    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aurapep.eu';
+    const checkoutUrl = `${siteUrl}/checkout/${referenceId}`;
+    const kitLabel = quantity > 1 ? `${quantity} kit Retatrutide 10mg` : '1 kit Retatrutide 10mg';
+
+    return {
+        subject: `🧪 ${t('order_created_subject', { id: displayId })}`,
+        html: baseWrapper(`
+            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">${t('order_created_heading')}</h2>
+            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
+                ${t('order_created_body', { kits: kitLabel, crypto: cryptoCurrency })}
+            </p>
+            <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">${t('order_created_amount_label')}</div>
+                <div style="font-size:28px;font-weight:700;color:${BRAND_GOLD};">${cryptoAmount} ${cryptoCurrency}</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;">€${fiatAmount.toFixed(2)} · #${displayId}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">${t('order_created_address_label', { crypto: cryptoCurrency })}</div>
+                <code style="display:block;word-break:break-all;font-size:13px;color:rgba(255,255,255,0.9);background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;line-height:1.5;">${escapeHtml(paymentAddress)}</code>
+            </div>
+            <div style="text-align:center;margin-bottom:24px;">
+                <a href="${checkoutUrl}" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;">${t('order_created_cta')}</a>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px;margin-bottom:16px;">
+                <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:0;line-height:1.6;">
+                    <strong style="color:rgba(255,255,255,0.7);">${t('order_created_instructions_title')}</strong><br>
+                    1. ${t('order_created_step1', { crypto: cryptoCurrency })}<br>
+                    2. ${t('order_created_step2', { amount: String(cryptoAmount), crypto: cryptoCurrency })}<br>
+                    3. ${t('order_created_step3')}<br><br>
+                    <span style="color:rgba(255,255,255,0.4);">${t('order_created_no_crypto', { crypto: cryptoCurrency })}</span>
+                </p>
+            </div>
+            <p style="color:rgba(255,255,255,0.35);font-size:11px;text-align:center;">
+                ${t('order_created_validity')}
+            </p>
+        `),
+    };
+}
+
+export function orderConfirmationCustomerEmail(params: { referenceId: string; orderNumber?: string; fiatAmount: number; locale?: string }) {
+    const t = (key: string, vars?: Record<string, string>) => getEmailString(params.locale || 'en', key, vars);
+    const displayId = params.orderNumber || params.referenceId.slice(-8).toUpperCase();
+    return {
+        subject: `✅ ${t('payment_received_subject', { id: displayId })}`,
+        html: baseWrapper(`
+            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">${t('payment_received_heading')}</h2>
+            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
+                ${t('payment_received_body', { id: displayId })}
+            </p>
+            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">${t('payment_received_total_label')}</div>
+                <div style="font-size:28px;font-weight:600;color:${BRAND_GOLD};">€${params.fiatAmount.toFixed(2)}</div>
+            </div>
+            <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;">
+                ${t('payment_received_tracking_note')}
+            </p>
+        `),
+    };
+}
+
+// ═══════════════════════════════════════════════════
+// ADMIN / WAREHOUSE EMAILS (Italian, no locale)
+// ═══════════════════════════════════════════════════
 
 export function orderConfirmationAdminEmail(params: OrderReceivedAdminParams) {
     const { referenceId, orderNumber, fiatAmount, cryptoCurrency, cryptoAmount, items, shippingAddress, email } = params;
@@ -149,22 +336,6 @@ export function lowStockAlertEmail(params: LowStockAlertParams) {
     };
 }
 
-interface WarehouseNewOrderParams {
-    orderId: string;
-    kitsToShip: number;
-    customerName: string;
-    customerPhone: string;
-    shippingAddress: Record<string, string>;
-}
-
-interface RefundConfirmationParams {
-    referenceId: string;
-    orderNumber?: string;
-    fiatAmount: number;
-    refundAmount: number;
-    isPartial: boolean;
-}
-
 export function warehouseNewOrderEmail(params: WarehouseNewOrderParams) {
     const { orderId, kitsToShip, customerName, customerPhone, shippingAddress } = params;
     return {
@@ -191,39 +362,6 @@ export function warehouseNewOrderEmail(params: WarehouseNewOrderParams) {
             </div>
         `),
     };
-}
-
-export function refundConfirmationEmail(params: RefundConfirmationParams) {
-    const { referenceId, orderNumber, fiatAmount, refundAmount, isPartial } = params;
-    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
-    return {
-        subject: `💸 Rimborso ${isPartial ? 'Parziale ' : ''}Confermato — Ordine #${displayId}`,
-        html: baseWrapper(`
-            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">Rimborso ${isPartial ? 'Parziale ' : ''}Confermato</h2>
-            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
-                Il rimborso per il tuo ordine <strong style="color:white;">#${displayId}</strong> è stato elaborato.
-            </p>
-            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Importo Rimborsato</div>
-                <div style="font-size:28px;font-weight:600;color:${BRAND_GOLD};">€${refundAmount.toFixed(2)}</div>
-                ${isPartial ? `<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">su €${fiatAmount.toFixed(2)} totali</div>` : ''}
-            </div>
-            <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;">
-                Il rimborso crypto verrà inviato al tuo wallet. Per qualsiasi domanda rispondi direttamente a questa email.
-            </p>
-        `),
-    };
-}
-
-interface UnderpaidAlertParams {
-    referenceId: string;
-    orderNumber?: string;
-    fiatAmount: number;
-    cryptoCurrency: string;
-    expectedCryptoAmount: number;
-    receivedCryptoAmount: number;
-    email?: string | null;
-    shippingAddress: Record<string, string>;
 }
 
 export function underpaidAlertEmail(params: UnderpaidAlertParams) {
@@ -267,138 +405,6 @@ export function underpaidAlertEmail(params: UnderpaidAlertParams) {
             <div style="text-align:center;">
                 <a href="${siteUrl}/admin" style="display:inline-block;background:#F97316;color:white;font-weight:600;padding:12px 28px;border-radius:8px;text-decoration:none;">Gestisci in Dashboard</a>
             </div>
-        `),
-    };
-}
-
-interface CartRecoveryParams {
-    referenceId: string;
-    orderNumber?: string;
-    fiatAmount: number;
-    cryptoCurrency: string;
-    cryptoAmount: number;
-    paymentUrl: string;
-    emailNumber: 1 | 2 | 3;  // 1h, 12h, 48h
-}
-
-export function cartRecoveryEmail(params: CartRecoveryParams) {
-    const { referenceId, orderNumber, fiatAmount, cryptoCurrency, cryptoAmount, paymentUrl, emailNumber } = params;
-    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aurapep.eu';
-
-    const subjects: Record<number, string> = {
-        1: `⏳ Il tuo ordine ${displayId} è in attesa di pagamento`,
-        2: `🔔 Non dimenticare il tuo ordine ${displayId} — completa il pagamento`,
-        3: `⚠️ Ultima possibilità: il tuo ordine ${displayId} scade tra poche ore`,
-    };
-
-    const headings: Record<number, string> = {
-        1: 'Il tuo ordine è pronto!',
-        2: 'Completa il tuo acquisto',
-        3: 'Ultima occasione!',
-    };
-
-    const intros: Record<number, string> = {
-        1: `Hai creato l'ordine <strong style="color:white;">${displayId}</strong> ma non abbiamo ancora ricevuto il pagamento. L'indirizzo crypto è ancora attivo — puoi completare il pagamento quando vuoi.`,
-        2: `Il tuo ordine <strong style="color:white;">${displayId}</strong> è ancora in attesa. Hai già tutti i dati per completare il pagamento — ti basta inviare l'importo esatto all'indirizzo qui sotto.`,
-        3: `Il tuo ordine <strong style="color:white;">${displayId}</strong> scadrà tra poche ore. Dopo la scadenza dovrai crearne uno nuovo con un nuovo tasso di cambio. Completa il pagamento adesso per bloccare il prezzo attuale.`,
-    };
-
-    return {
-        subject: subjects[emailNumber],
-        html: baseWrapper(`
-            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">${headings[emailNumber]}</h2>
-            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
-                ${intros[emailNumber]}
-            </p>
-            <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Importo da Inviare</div>
-                <div style="font-size:28px;font-weight:700;color:${BRAND_GOLD};">${cryptoAmount} ${cryptoCurrency}</div>
-                <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;">€${fiatAmount.toFixed(2)}</div>
-            </div>
-            <div style="text-align:center;margin-bottom:24px;">
-                <a href="${siteUrl}/checkout/${referenceId}" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;">Completa il Pagamento</a>
-            </div>
-            ${paymentUrl ? `
-            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Indirizzo ${cryptoCurrency}</div>
-                <code style="display:block;word-break:break-all;font-size:12px;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.05);padding:10px;border-radius:8px;">${escapeHtml(paymentUrl)}</code>
-            </div>` : ''}
-            <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;">
-                Per qualsiasi domanda rispondi direttamente a questa email.
-            </p>
-        `),
-    };
-}
-
-interface OrderCreatedParams {
-    referenceId: string;
-    orderNumber?: string;
-    fiatAmount: number;
-    cryptoCurrency: string;
-    cryptoAmount: number;
-    paymentAddress: string;
-    quantity: number;
-}
-
-export function orderCreatedEmail(params: OrderCreatedParams) {
-    const { referenceId, orderNumber, fiatAmount, cryptoCurrency, cryptoAmount, paymentAddress, quantity } = params;
-    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aurapep.eu';
-    const checkoutUrl = `${siteUrl}/checkout/${referenceId}`;
-    const kitLabel = quantity > 1 ? `${quantity} kit` : '1 kit';
-
-    return {
-        subject: `🧪 Ordine ${displayId} creato — completa il pagamento`,
-        html: baseWrapper(`
-            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">Il tuo ordine è pronto!</h2>
-            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
-                Hai ordinato <strong style="color:white;">${kitLabel} Retatrutide 10mg</strong>. Per completare l'acquisto, invia l'importo esatto in ${cryptoCurrency} all'indirizzo qui sotto.
-            </p>
-            <div style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Importo da Inviare</div>
-                <div style="font-size:28px;font-weight:700;color:${BRAND_GOLD};">${cryptoAmount} ${cryptoCurrency}</div>
-                <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px;">€${fiatAmount.toFixed(2)} · Ordine #${displayId}</div>
-            </div>
-            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Indirizzo ${cryptoCurrency}</div>
-                <code style="display:block;word-break:break-all;font-size:13px;color:rgba(255,255,255,0.9);background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;line-height:1.5;">${escapeHtml(paymentAddress)}</code>
-            </div>
-            <div style="text-align:center;margin-bottom:24px;">
-                <a href="${checkoutUrl}" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;font-size:15px;">Apri Pagina di Pagamento</a>
-            </div>
-            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px;margin-bottom:16px;">
-                <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:0;line-height:1.6;">
-                    <strong style="color:rgba(255,255,255,0.7);">Come completare il pagamento:</strong><br>
-                    1. Copia l'indirizzo ${cryptoCurrency} qui sopra<br>
-                    2. Apri il tuo wallet e invia esattamente <strong style="color:white;">${cryptoAmount} ${cryptoCurrency}</strong><br>
-                    3. Il pagamento viene confermato automaticamente in pochi minuti<br><br>
-                    <span style="color:rgba(255,255,255,0.4);">Non hai crypto? Puoi acquistare ${cryptoCurrency} con carta su <a href="https://changehero.io" style="color:${BRAND_GOLD};text-decoration:none;">ChangeHero</a> e inviarli direttamente all'indirizzo qui sopra.</span>
-                </p>
-            </div>
-            <p style="color:rgba(255,255,255,0.35);font-size:11px;text-align:center;">
-                L'ordine è valido 72 ore. Per qualsiasi domanda rispondi a questa email.
-            </p>
-        `),
-    };
-}
-
-export function orderConfirmationCustomerEmail(params: { referenceId: string; orderNumber?: string; fiatAmount: number }) {
-    const displayId = params.orderNumber || params.referenceId.slice(-8).toUpperCase();
-    return {
-        subject: `✅ Pagamento Ricevuto — Ordine #${displayId}`,
-        html: baseWrapper(`
-            <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">Pagamento Ricevuto!</h2>
-            <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
-                Il tuo pagamento crypto per l'ordine <strong style="color:white;">#${displayId}</strong> è stato confermato. Il tuo kit è in preparazione logistica.
-            </p>
-            <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
-                <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Totale Confermato</div>
-                <div style="font-size:28px;font-weight:600;color:${BRAND_GOLD};">€${params.fiatAmount.toFixed(2)}</div>
-            </div>
-            <p style="color:rgba(255,255,255,0.4);font-size:12px;text-align:center;">
-                Riceverai un'ulteriore email con il tracking number non appena il pacco verrà affidato al corriere espresso.
-            </p>
         `),
     };
 }
