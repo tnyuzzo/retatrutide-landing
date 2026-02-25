@@ -245,6 +245,7 @@ export async function GET(req: Request) {
                     if (adminEmail) {
                         const { subject, html } = orderConfirmationAdminEmail({
                             referenceId: order_id,
+                            orderNumber: order.order_number,
                             fiatAmount: order.fiat_amount || 0,
                             cryptoCurrency: order.crypto_currency || 'BTC',
                             cryptoAmount: parseFloat(value_forwarded_coin || '0') || order.crypto_amount || 0,
@@ -276,6 +277,7 @@ export async function GET(req: Request) {
                     if (order.email && order.email.includes('@')) {
                         const { subject, html } = orderConfirmationCustomerEmail({
                             referenceId: order_id,
+                            orderNumber: order.order_number,
                             fiatAmount: order.fiat_amount || 0,
                         });
 

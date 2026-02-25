@@ -47,7 +47,7 @@ export async function GET(req: Request) {
         // Find all pending orders that haven't received all 3 recovery emails
         const { data: pendingOrders, error: fetchError } = await supabaseAdmin
             .from('orders')
-            .select('id, reference_id, email, fiat_amount, crypto_currency, crypto_amount, payment_url, created_at, recovery_emails_sent, last_recovery_email_at')
+            .select('id, reference_id, order_number, email, fiat_amount, crypto_currency, crypto_amount, payment_url, created_at, recovery_emails_sent, last_recovery_email_at')
             .eq('status', 'pending')
             .lt('recovery_emails_sent', 3)
             .order('created_at', { ascending: true });
@@ -83,6 +83,7 @@ export async function GET(req: Request) {
             try {
                 const { subject, html } = cartRecoveryEmail({
                     referenceId: order.reference_id,
+                    orderNumber: order.order_number,
                     fiatAmount: order.fiat_amount || 0,
                     cryptoCurrency: order.crypto_currency || '',
                     cryptoAmount: parseFloat(String(order.crypto_amount)) || 0,

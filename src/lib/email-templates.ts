@@ -4,6 +4,7 @@
 
 interface ShipmentNotificationParams {
     referenceId: string;
+    orderNumber?: string;
     carrier: string;
     trackingNumber: string;
     trackingUrl: string | null;
@@ -11,6 +12,7 @@ interface ShipmentNotificationParams {
 
 interface OrderReceivedAdminParams {
     referenceId: string;
+    orderNumber?: string;
     fiatAmount: number;
     cryptoCurrency: string;
     cryptoAmount: number;
@@ -61,17 +63,18 @@ function baseWrapper(content: string): string {
 }
 
 export function shipmentNotificationEmail(params: ShipmentNotificationParams) {
-    const { referenceId, carrier, trackingNumber, trackingUrl } = params;
+    const { referenceId, orderNumber, carrier, trackingNumber, trackingUrl } = params;
+    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
     const trackingLink = trackingUrl
         ? `<a href="${trackingUrl}" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:12px 28px;border-radius:8px;text-decoration:none;margin-top:16px;">Traccia il Pacco</a>`
         : `<code style="background:rgba(255,255,255,0.1);padding:4px 12px;border-radius:6px;color:${BRAND_GOLD};font-size:14px;">${trackingNumber}</code>`;
 
     return {
-        subject: `📦 Il tuo ordine è stato spedito! — ${referenceId.slice(-8).toUpperCase()}`,
+        subject: `📦 Il tuo ordine è stato spedito! — #${displayId}`,
         html: baseWrapper(`
             <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">Ordine Spedito!</h2>
             <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
-                Il tuo ordine <strong style="color:white;">${referenceId.slice(-8).toUpperCase()}</strong> è stato affidato al corriere e sta viaggiando verso di te.
+                Il tuo ordine <strong style="color:white;">#${displayId}</strong> è stato affidato al corriere e sta viaggiando verso di te.
             </p>
             <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:24px;">
                 <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Dettagli Spedizione</div>
@@ -89,7 +92,8 @@ export function shipmentNotificationEmail(params: ShipmentNotificationParams) {
 }
 
 export function orderConfirmationAdminEmail(params: OrderReceivedAdminParams) {
-    const { referenceId, fiatAmount, cryptoCurrency, cryptoAmount, items, shippingAddress, email } = params;
+    const { referenceId, orderNumber, fiatAmount, cryptoCurrency, cryptoAmount, items, shippingAddress, email } = params;
+    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
 
     const itemsHtml = items.map(item =>
         `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
@@ -99,11 +103,11 @@ export function orderConfirmationAdminEmail(params: OrderReceivedAdminParams) {
     ).join('');
 
     return {
-        subject: `🚨 NUOVO ORDINE PAGATO: ${referenceId.slice(-8).toUpperCase()} — €${fiatAmount.toFixed(0)}`,
+        subject: `🚨 NUOVO ORDINE PAGATO: #${displayId} — €${fiatAmount.toFixed(0)}`,
         html: baseWrapper(`
             <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;color:${BRAND_GOLD};">Nuovo Ordine Da Evadere</h2>
             <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;">
-                L'ordine <strong style="color:white;">${referenceId.slice(-8).toUpperCase()}</strong> è stato confermato sulla blockchain.
+                L'ordine <strong style="color:white;">#${displayId}</strong> è stato confermato sulla blockchain.
             </p>
             <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
                 <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Pagamento</div>
@@ -155,6 +159,7 @@ interface WarehouseNewOrderParams {
 
 interface RefundConfirmationParams {
     referenceId: string;
+    orderNumber?: string;
     fiatAmount: number;
     refundAmount: number;
     isPartial: boolean;
@@ -189,13 +194,14 @@ export function warehouseNewOrderEmail(params: WarehouseNewOrderParams) {
 }
 
 export function refundConfirmationEmail(params: RefundConfirmationParams) {
-    const { referenceId, fiatAmount, refundAmount, isPartial } = params;
+    const { referenceId, orderNumber, fiatAmount, refundAmount, isPartial } = params;
+    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
     return {
-        subject: `💸 Rimborso ${isPartial ? 'Parziale ' : ''}Confermato — Ordine ${referenceId.slice(-8).toUpperCase()}`,
+        subject: `💸 Rimborso ${isPartial ? 'Parziale ' : ''}Confermato — Ordine #${displayId}`,
         html: baseWrapper(`
             <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">Rimborso ${isPartial ? 'Parziale ' : ''}Confermato</h2>
             <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
-                Il rimborso per il tuo ordine <strong style="color:white;">${referenceId.slice(-8).toUpperCase()}</strong> è stato elaborato.
+                Il rimborso per il tuo ordine <strong style="color:white;">#${displayId}</strong> è stato elaborato.
             </p>
             <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;">
                 <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Importo Rimborsato</div>
@@ -267,6 +273,7 @@ export function underpaidAlertEmail(params: UnderpaidAlertParams) {
 
 interface CartRecoveryParams {
     referenceId: string;
+    orderNumber?: string;
     fiatAmount: number;
     cryptoCurrency: string;
     cryptoAmount: number;
@@ -275,8 +282,8 @@ interface CartRecoveryParams {
 }
 
 export function cartRecoveryEmail(params: CartRecoveryParams) {
-    const { referenceId, fiatAmount, cryptoCurrency, cryptoAmount, paymentUrl, emailNumber } = params;
-    const displayId = referenceId.slice(-8).toUpperCase();
+    const { referenceId, orderNumber, fiatAmount, cryptoCurrency, cryptoAmount, paymentUrl, emailNumber } = params;
+    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aurapep.eu';
 
     const subjects: Record<number, string> = {
@@ -326,6 +333,7 @@ export function cartRecoveryEmail(params: CartRecoveryParams) {
 
 interface OrderCreatedParams {
     referenceId: string;
+    orderNumber?: string;
     fiatAmount: number;
     cryptoCurrency: string;
     cryptoAmount: number;
@@ -334,8 +342,8 @@ interface OrderCreatedParams {
 }
 
 export function orderCreatedEmail(params: OrderCreatedParams) {
-    const { referenceId, fiatAmount, cryptoCurrency, cryptoAmount, paymentAddress, quantity } = params;
-    const displayId = referenceId.slice(-8).toUpperCase();
+    const { referenceId, orderNumber, fiatAmount, cryptoCurrency, cryptoAmount, paymentAddress, quantity } = params;
+    const displayId = orderNumber || referenceId.slice(-8).toUpperCase();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://aurapep.eu';
     const checkoutUrl = `${siteUrl}/checkout/${referenceId}`;
     const kitLabel = quantity > 1 ? `${quantity} kit` : '1 kit';
@@ -375,13 +383,14 @@ export function orderCreatedEmail(params: OrderCreatedParams) {
     };
 }
 
-export function orderConfirmationCustomerEmail(params: { referenceId: string; fiatAmount: number }) {
+export function orderConfirmationCustomerEmail(params: { referenceId: string; orderNumber?: string; fiatAmount: number }) {
+    const displayId = params.orderNumber || params.referenceId.slice(-8).toUpperCase();
     return {
-        subject: `✅ Pagamento Ricevuto — Ordine ${params.referenceId.slice(-8).toUpperCase()}`,
+        subject: `✅ Pagamento Ricevuto — Ordine #${displayId}`,
         html: baseWrapper(`
             <h2 style="margin:0 0 8px;font-weight:400;font-size:22px;">Pagamento Ricevuto!</h2>
             <p style="color:rgba(255,255,255,0.6);margin:0 0 24px;font-size:14px;line-height:1.6;">
-                Il tuo pagamento crypto per l'ordine <strong style="color:white;">${params.referenceId.slice(-8).toUpperCase()}</strong> è stato confermato. Il tuo kit è in preparazione logistica.
+                Il tuo pagamento crypto per l'ordine <strong style="color:white;">#${displayId}</strong> è stato confermato. Il tuo kit è in preparazione logistica.
             </p>
             <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
                 <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Totale Confermato</div>

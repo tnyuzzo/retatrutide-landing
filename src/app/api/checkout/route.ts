@@ -256,6 +256,7 @@ export async function POST(req: Request) {
             const resend = new Resend(process.env.RESEND_API_KEY);
             const { subject, html } = orderCreatedEmail({
                 referenceId,
+                orderNumber,
                 fiatAmount: fiat_amount,
                 cryptoCurrency: crypto_currency.toUpperCase(),
                 cryptoAmount: calculatedCryptoAmount,

@@ -294,7 +294,7 @@ async function handlePost(req: NextRequest) {
 
             // Customer confirmation
             if (order.email?.includes('@')) {
-                const { subject, html } = orderConfirmationCustomerEmail({ referenceId: order.reference_id, fiatAmount: order.fiat_amount || 0 });
+                const { subject, html } = orderConfirmationCustomerEmail({ referenceId: order.reference_id, orderNumber: order.order_number, fiatAmount: order.fiat_amount || 0 });
                 notifyPromises.push(
                     resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to: order.email, subject, html })
                         .catch(e => console.error('Failed to send underpaid approval customer email:', e))
@@ -367,6 +367,7 @@ async function handlePost(req: NextRequest) {
         if (order.email && process.env.RESEND_API_KEY) {
             const { subject, html } = shipmentNotificationEmail({
                 referenceId: order.reference_id,
+                orderNumber: order.order_number,
                 carrier,
                 trackingNumber: tracking_number,
                 trackingUrl,
