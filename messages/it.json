@@ -293,7 +293,7 @@
     "order_why_crypto_3": "Crittografia blockchain — transazioni immutabili e sicure al 100%",
     "order_no_crypto_title": "Non hai crypto o un wallet?",
     "order_no_crypto_desc": "Puoi pagare con carta di credito in 5 minuti tramite ChangeHero — nessun account necessario. Guida passo per passo inclusa.",
-    "order_no_crypto_cta": "Come pagare con carta →",
+    "order_no_crypto_cta": "Come pagare con carta",
     "order_pending_banner_title": "Hai un ordine in attesa",
     "order_pending_banner_desc": "Ordine #{number} — €{fiat} in {crypto} — in attesa di pagamento",
     "order_pending_resume_cta": "Riprendi il pagamento",

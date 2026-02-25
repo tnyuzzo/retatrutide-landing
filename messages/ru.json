@@ -293,7 +293,7 @@
     "order_why_crypto_3": "Блокчейн-шифрование — неизменяемые и 100% безопасные транзакции",
     "order_no_crypto_title": "Нет крипто? Нет кошелька? Нет проблем.",
     "order_no_crypto_desc": "Оплатите картой за 5 минут через ChangeHero — без регистрации. Пошаговое руководство включено.",
-    "order_no_crypto_cta": "Как оплатить картой →",
+    "order_no_crypto_cta": "Как оплатить картой",
     "order_pending_banner_title": "У вас есть незавершённый заказ",
     "order_pending_banner_desc": "Заказ #{number} — €{fiat} в {crypto} — ожидает оплаты",
     "order_pending_resume_cta": "Возобновить оплату",

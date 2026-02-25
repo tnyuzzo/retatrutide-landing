@@ -293,7 +293,7 @@
     "order_why_crypto_3": "تشفير البلوكتشين — معاملات غير قابلة للتغيير وآمنة 100%",
     "order_no_crypto_title": "ليس لديك عملة مشفرة؟ لا محفظة؟ لا مشكلة.",
     "order_no_crypto_desc": "ادفع ببطاقة الائتمان في 5 دقائق عبر ChangeHero — بدون حساب. دليل خطوة بخطوة متضمن.",
-    "order_no_crypto_cta": "كيفية الدفع ببطاقة →",
+    "order_no_crypto_cta": "كيفية الدفع ببطاقة",
     "order_pending_banner_title": "لديك طلب معلق",
     "order_pending_banner_desc": "الطلب #{number} — €{fiat} بـ {crypto} — في انتظار الدفع",
     "order_pending_resume_cta": "استئناف الدفع",
