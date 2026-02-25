@@ -70,14 +70,33 @@ export async function GET(req: Request) {
             }
 
             // 2. Underpayment check
-            // CryptAPI's value_forwarded_coin is AFTER their fee deduction.
-            // CryptAPI advertises 1% fee but in practice retains much more
-            // (observed: ~34% for USDT TRC20). We use a generous 50% threshold
-            // to avoid blocking legitimate payments. Genuine underpayments
-            // (customer sent wrong amount) will still be caught.
+            // CryptAPI's value_forwarded_coin is AFTER deducting:
+            //   a) CryptAPI's 1% service fee (percentage of amount)
+            //   b) Blockchain forwarding fee (FIXED per network, NOT percentage)
+            //      - BTC: ~0.0001 BTC (~$10)    - ETH: ~0.005 ETH (~$15)
+            //      - USDT TRC20: ~12.9 TRX (~$4) - USDC ERC20: ~$15 gas
+            //      - XMR: ~0.0001 XMR (~$0.02)   - SOL: ~0.01 SOL (~$2)
+            // For production (€197), total deduction is 3-8%.
+            // For small test orders, the fixed fee dominates (up to 30-40%).
+            // We subtract estimated fees, then allow 20% extra tolerance.
             const expectedAmount = order.crypto_amount ? parseFloat(String(order.crypto_amount)) : 0;
-            const UNDERPAYMENT_THRESHOLD = 0.50;
-            const isUnderpaid = received !== null && expectedAmount > 0 && received < expectedAmount * UNDERPAYMENT_THRESHOLD;
+
+            // Max blockchain forwarding fee per crypto (generous estimates in crypto units)
+            const BLOCKCHAIN_FEE: Record<string, number> = {
+                'BTC': 0.0003,   // ~$25 — covers high-fee periods
+                'ETH': 0.01,    // ~$25 — covers high gas
+                'XMR': 0.001,   // ~$0.15
+                'SOL': 0.05,    // ~$8
+                'USDT': 8,      // $8 — TRC20 forwarding
+                'USDC': 20,     // $20 — ERC20 gas
+                'XRP': 3,       // $3
+            };
+            const cryptoKey = (order.crypto_currency || 'BTC').toUpperCase();
+            const estimatedFee = BLOCKCHAIN_FEE[cryptoKey] ?? expectedAmount * 0.10;
+            // Expected received = original - 1% CryptAPI fee - blockchain fee
+            // Then allow 20% tolerance for fee fluctuations
+            const minExpected = Math.max(0, (expectedAmount * 0.99 - estimatedFee) * 0.80);
+            const isUnderpaid = received !== null && expectedAmount > 0 && received < minExpected;
 
             // 3. Atomic update: only update if status is still 'pending' (prevents double-processing)
             const updatePayload: Record<string, unknown> = {
