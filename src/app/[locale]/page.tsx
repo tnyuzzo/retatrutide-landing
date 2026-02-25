@@ -81,7 +81,7 @@ export default function Home() {
             transition={{ duration: 1, ease: "easeOut" }}
             className="flex flex-col gap-5 lg:gap-6"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand-gold/30 bg-brand-gold/5 w-fit whitespace-nowrap self-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand-gold/30 bg-brand-gold/5 w-fit whitespace-nowrap self-center md:self-start">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse shrink-0"></span>
               <span className="text-xs uppercase tracking-[0.2em] text-brand-gold">{t('hero_badge')}</span>
             </div>
@@ -95,8 +95,8 @@ export default function Home() {
               {t('hero_subtitle')}
             </p>
 
-            {/* Mobile-only product image — above the fold before CTA */}
-            <div className="lg:hidden relative h-36 w-full rounded-2xl overflow-hidden border border-brand-gold/20 bg-brand-void gold-glow">
+            {/* Mobile + Tablet product image — above the fold before CTA */}
+            <div className="lg:hidden relative h-36 md:h-52 w-full md:max-w-md rounded-2xl overflow-hidden border border-brand-gold/20 bg-brand-void gold-glow">
               <div className="absolute inset-0 bg-gradient-to-tr from-brand-void via-brand-void/80 to-[#1a1c1a]" />
               <div className="absolute inset-0">
                 <Image
@@ -275,7 +275,7 @@ export default function Home() {
       </section >
 
       {/* WHY CHOOSE US / FEATURES */}
-      <section id="science" className="py-24 px-6 bg-black relative" >
+      <section id="science" className="py-24 px-6 bg-brand-void relative" >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-light mb-4">{t('section_science_title_1')} <span className="text-brand-gold font-medium">{t('section_science_title_2')}</span></h2>
@@ -327,7 +327,7 @@ export default function Home() {
       {/* TRUST BADGES & GUARANTEES */}
 
       {/* Mobile: fade banners in sequenza */}
-      <section className="md:hidden py-6 bg-[#0a0a0a] border-t border-b border-white/5">
+      <section className="md:hidden py-6 bg-brand-void border-t border-b border-white/5">
         {(() => {
           const items = [
             { icon: <ShieldCheck className="w-5 h-5 text-brand-gold shrink-0" />, label: t('ticker_purity') },
@@ -363,10 +363,10 @@ export default function Home() {
       </section>
 
       {/* Desktop: infinite scrolling ticker */}
-      <section className="hidden md:block py-8 bg-[#0a0a0a] border-t border-b border-white/5 overflow-hidden">
+      <section className="hidden md:block py-8 bg-brand-void border-t border-b border-white/5 overflow-hidden">
         <div className="relative flex w-full">
-          <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-[#0a0a0a] to-transparent z-10"></div>
-          <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-[#0a0a0a] to-transparent z-10"></div>
+          <div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-brand-void to-transparent z-10"></div>
+          <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-brand-void to-transparent z-10"></div>
           <motion.div
             animate={{ x: ["0%", "-50%"] }}
             transition={{ duration: 25, ease: "linear", repeat: Infinity }}
@@ -561,7 +561,7 @@ export default function Home() {
       </section >
 
       {/* PEPTIDE CALCULATOR CTA (Rec 7) */}
-      <section className="py-12 px-6 bg-brand-gold/5 border-t border-brand-gold/20" >
+      <section className="py-12 px-6 bg-brand-void border-t border-white/5" >
         <div className="max-w-4xl mx-auto glass-panel p-8 flex flex-col md:flex-row items-center justify-between gap-6 border-brand-gold/30 gold-glow">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-brand-void border border-brand-gold flex items-center justify-center shrink-0">
