@@ -653,11 +653,17 @@ export default function OrderPage() {
                             </div>
                             <div className="flex justify-between text-white/70">
                                 <span>{t('order_unit_price')}</span>
-                                <span>{unitPrice}€ {discount > 0 && <span className="text-white/30 line-through ml-1">{BASE_PRICE}€</span>}</span>
+                                <span className="flex items-baseline gap-1.5">
+                                    {discount > 0 && <span className="text-white/30 line-through text-xs">{BASE_PRICE}€</span>}
+                                    <span>{unitPrice}€</span>
+                                </span>
                             </div>
                             <div className="flex justify-between text-white/70">
                                 <span>{t('order_shipping')}</span>
-                                <span className="text-green-400">{t('order_free_stealth')}</span>
+                                <span className="flex items-baseline gap-2">
+                                    <span className="text-white/35 text-xs">{t('order_free_stealth')}</span>
+                                    <span className="text-white/70">0€</span>
+                                </span>
                             </div>
 
                             {discount > 0 && (
