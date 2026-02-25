@@ -272,6 +272,7 @@ Alternative: `cancelled`, `expired` (24h timeout), `refunded`, `partially_refund
 | Route | Method | Auth | Scopo |
 |-------|--------|------|-------|
 | `/api/checkout` | POST | None (rate limited) | Crea ordine + genera indirizzo crypto |
+| `/api/checkout/pending` | GET | None | Idempotenza: cerca ordini pending per email (ultimi 24h) |
 | `/api/checkout/status` | GET | None | Poll status ordine (per CheckoutPoller) |
 | `/api/portal` | GET | None | Lookup ordine cliente (email + reference_id) |
 | `/api/c/[code]` | GET | None | Redirect short link + incrementa click |
@@ -494,6 +495,18 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-25] **Idempotenza ordini pending + UX checkout polish**:
+  - Nuova API `GET /api/checkout/pending?email=...`: cerca ordini `pending` con stessa email nelle ultime 24h
+  - `order/page.tsx`: al submit, check idempotenza → se trovato, alert inline ambra con pulsing dot sotto il bottone CTA; bottoni affiancati (sm:flex-row); scroll automatico su mobile; `handleCheckout(skipPendingCheck?: boolean)`
+  - `messages` (10 locali): +4 chiavi pending order + aggiornamenti `checkout_address_label`, `checkout_qr_label`, `checkout_detection_note` (con parametro `{crypto}` dinamico)
+  - `checkout/[id]/page.tsx`: etichetta Step 2 → "Indirizzo a cui inviare l'importo..."; QR step senza numero 3; sezione status più grande (`text-base px-6 py-3`); spinner più grande; nota corsivo con link portale
+  - `CheckoutCountdown`: aggiunto prop `className` per override dimensioni
+  - `CheckoutCountdown`: fix hydration mismatch SSR/client (`useState<number|null>(null)` + init in `useEffect`)
+  - `CopyAddressButton`: redesign con address display + bottone gigante gold/green
+  - Rimozione Janoshik: 10 messages + 2 TSX files
+  - Hero mobile spacing: `items-start md:items-center`, `md:min-h-screen`, `gap-5 lg:gap-6`
+  - Crypto guide: ChangeHero URL → `/buy/usdt`, Step 2 con callout visivo indirizzo wallet
+  - Order page: sezione "WHY CRYPTO" con benefit-focus, card "No crypto?" prominente
 - [2026-02-23] **Tablet audit & fix (768px)** (commit `3f32dae`):
   - Nav: `md:px-12` → `md:px-8 lg:px-12` — risolve collisione 673px in 672px (logo+link+right)
   - Nav links: `gap-8` → `gap-6 lg:gap-8` + `whitespace-nowrap` — "ORDER NOW" non si spezza più a 768px

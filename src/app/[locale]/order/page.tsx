@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ArrowLeft, Lock, Shield, ChevronRight, ChevronDown, Minus, Plus, MapPin, User, Mail, Phone, Ban, Eye, CreditCard, ExternalLink, ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Lock, Shield, ChevronRight, ChevronDown, Minus, Plus, MapPin, User, Mail, Phone, Eye, CreditCard, ExternalLink, ArrowRight, CheckCircle2, Zap, Clock } from "lucide-react";
+import Link from "next/link";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
@@ -78,6 +79,13 @@ export default function OrderPage() {
     const [phone, setPhone] = useState("");
     const [phoneCountryCode, setPhoneCountryCode] = useState("+39");
     const [isDiscountOpen, setIsDiscountOpen] = useState(false);
+    const [pendingOrder, setPendingOrder] = useState<{
+        reference_id: string;
+        order_number: string | null;
+        crypto_currency: string;
+        fiat_amount: number;
+        created_at: string;
+    } | null>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
     const autocompleteRef = useRef<any>(null);
 
@@ -226,11 +234,29 @@ export default function OrderPage() {
         return true;
     };
 
-    const handleCheckout = async () => {
+    const handleCheckout = async (skipPendingCheck = false) => {
         if (!validateForm()) return;
 
         setIsProcessing(true);
         setFormError(null);
+
+        // Idempotency check: look for an existing pending order with the same email
+        if (!skipPendingCheck && email.includes('@')) {
+            try {
+                const pendingRes = await fetch(`/api/checkout/pending?email=${encodeURIComponent(email.toLowerCase().trim())}`);
+                const pendingData = await pendingRes.json();
+                if (pendingData.order) {
+                    setPendingOrder(pendingData.order);
+                    setIsProcessing(false);
+                    setTimeout(() => {
+                        document.getElementById('pending-order-alert')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                    return;
+                }
+            } catch {
+                // API error — proceed with new order creation
+            }
+        }
 
         try {
             const res = await fetch('/api/checkout', {
@@ -651,34 +677,45 @@ export default function OrderPage() {
 
                         {/* WHY CRYPTO */}
                         <div className="mt-6 bg-white/5 rounded-xl p-4 border border-white/10">
-                            <h3 className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-brand-gold mb-3">
-                                <Shield className="w-3.5 h-3.5" />
+                            <h3 className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-brand-gold mb-4">
+                                <Zap className="w-3.5 h-3.5" />
                                 {t('order_why_crypto')}
                             </h3>
-                            <div className="flex flex-col gap-2 mb-4">
-                                <div className="flex items-start gap-2">
-                                    <Ban className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
-                                    <p className="text-[11px] text-white/50">{t('order_why_crypto_1')}</p>
+                            <div className="flex flex-col gap-3.5">
+                                <div className="flex items-start gap-3">
+                                    <div className="w-7 h-7 rounded-full bg-brand-gold/10 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Zap className="w-3.5 h-3.5 text-brand-gold" />
+                                    </div>
+                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_1')}</p>
                                 </div>
-                                <div className="flex items-start gap-2">
-                                    <Eye className="w-3.5 h-3.5 text-brand-gold shrink-0 mt-0.5" />
-                                    <p className="text-[11px] text-white/50">{t('order_why_crypto_2')}</p>
+                                <div className="flex items-start gap-3">
+                                    <div className="w-7 h-7 rounded-full bg-brand-gold/10 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Eye className="w-3.5 h-3.5 text-brand-gold" />
+                                    </div>
+                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_2')}</p>
                                 </div>
-                                <div className="flex items-start gap-2">
-                                    <Lock className="w-3.5 h-3.5 text-green-400 shrink-0 mt-0.5" />
-                                    <p className="text-[11px] text-white/50">{t('order_why_crypto_3')}</p>
+                                <div className="flex items-start gap-3">
+                                    <div className="w-7 h-7 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Shield className="w-3.5 h-3.5 text-green-400" />
+                                    </div>
+                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_3')}</p>
                                 </div>
                             </div>
-                            <div className="bg-brand-gold/5 border border-brand-gold/15 rounded-lg p-3">
-                                <p className="text-[11px] text-white/60 mb-1 font-medium">{t('order_no_crypto_title')}</p>
-                                <p className="text-[10px] text-white/40 mb-2">{t('order_no_crypto_desc')}</p>
-                                <a
-                                    href={`/${locale}/crypto-guide`}
-                                    className="inline-flex items-center gap-1 text-[11px] text-brand-gold hover:text-brand-gold/80 font-medium transition-colors"
-                                >
-                                    {t('order_no_crypto_cta')} <ExternalLink className="w-3 h-3" />
-                                </a>
+                        </div>
+
+                        {/* NO CRYPTO CARD - Prominent */}
+                        <div className="mt-3 rounded-xl p-4 border border-brand-gold/40 bg-brand-gold/5">
+                            <div className="flex items-center gap-2 mb-2">
+                                <CreditCard className="w-4 h-4 text-brand-gold shrink-0" />
+                                <p className="text-sm font-semibold text-white">{t('order_no_crypto_title')}</p>
                             </div>
+                            <p className="text-xs text-white/60 leading-relaxed mb-3">{t('order_no_crypto_desc')}</p>
+                            <a
+                                href={`/${locale}/crypto-guide`}
+                                className="w-full flex items-center justify-center gap-2 text-xs font-semibold bg-brand-gold/15 hover:bg-brand-gold/25 border border-brand-gold/40 text-brand-gold py-3 px-4 rounded-lg transition-colors"
+                            >
+                                {t('order_no_crypto_cta')} <ArrowRight className="w-3.5 h-3.5" />
+                            </a>
                         </div>
 
                         {/* PAYMENT SELECTION */}
@@ -722,13 +759,51 @@ export default function OrderPage() {
 
                         <PremiumButton
                             className="w-full justify-center group py-4 mt-4"
-                            onClick={handleCheckout}
+                            onClick={() => handleCheckout()}
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
                             <span className="relative z-10 flex items-center gap-2">
                                 {isProcessing ? t('order_processing') : t('order_cta')} <ChevronRight className="w-4 h-4" />
                             </span>
                         </PremiumButton>
+
+                        {/* Pending Order Alert */}
+                        {pendingOrder && (
+                            <div id="pending-order-alert" className="mt-4 rounded-2xl border border-amber-400/40 bg-amber-500/[0.07] p-4 flex flex-col gap-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="relative shrink-0">
+                                        <div className="w-9 h-9 rounded-full bg-amber-400/10 flex items-center justify-center mt-0.5">
+                                            <Clock className="w-4.5 h-4.5 text-amber-400" />
+                                        </div>
+                                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-sm font-semibold text-white">{t('order_pending_banner_title')}</h3>
+                                        <p className="text-xs text-amber-200/60 mt-0.5 leading-relaxed">
+                                            {t('order_pending_banner_desc', {
+                                                number: pendingOrder.order_number || pendingOrder.reference_id.slice(-8).toUpperCase(),
+                                                fiat: pendingOrder.fiat_amount,
+                                                crypto: pendingOrder.crypto_currency,
+                                            })}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                    <Link
+                                        href={`/${locale}/checkout/${pendingOrder.reference_id}`}
+                                        className="flex-1 flex items-center justify-center gap-2 bg-brand-gold text-brand-void font-semibold py-3 rounded-xl hover:bg-brand-gold-light transition-colors text-sm"
+                                    >
+                                        {t('order_pending_resume_cta')}
+                                    </Link>
+                                    <button
+                                        onClick={() => { setPendingOrder(null); handleCheckout(true); }}
+                                        className="flex-1 flex items-center justify-center gap-2 bg-white/5 border border-white/15 text-white/60 hover:text-white hover:border-white/30 py-3 rounded-xl transition-colors text-sm"
+                                    >
+                                        {t('order_pending_new_cta')}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         {/* TRUST SIGNALS UNDER PAY BUTTON (UX Improvement) */}
                         <div className="flex flex-col items-center justify-center gap-2 mt-4 text-center">

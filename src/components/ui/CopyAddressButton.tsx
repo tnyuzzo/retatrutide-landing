@@ -16,7 +16,6 @@ export function CopyAddressButton({ address, labelCopy, labelCopied }: CopyAddre
         try {
             await navigator.clipboard.writeText(address);
         } catch {
-            // Fallback for older mobile browsers
             const textarea = document.createElement("textarea");
             textarea.value = address;
             textarea.style.position = "fixed";
@@ -28,30 +27,39 @@ export function CopyAddressButton({ address, labelCopy, labelCopied }: CopyAddre
             document.body.removeChild(textarea);
         }
         setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
+        setTimeout(() => setCopied(false), 3000);
     };
 
     return (
-        <div className="w-full flex items-center gap-2 bg-black/40 p-3 rounded-xl border border-white/5 hover:border-brand-gold/30 transition-colors">
-            <span className="font-mono text-xs truncate text-white/70 tracking-tight select-all flex-1 min-w-0">
-                {address}
-            </span>
+        <div className="w-full flex flex-col gap-3">
+            {/* Address display — readable, selectable */}
+            <div className="bg-black/50 border border-white/15 rounded-2xl px-4 py-4">
+                <p className="font-mono text-sm text-white/80 break-all leading-relaxed select-all text-center">
+                    {address}
+                </p>
+            </div>
+
+            {/* Big copy button */}
             <button
                 onClick={handleCopy}
                 aria-label={copied ? labelCopied : labelCopy}
-                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${copied
-                    ? "bg-green-500/20 border border-green-500/40 text-green-400"
-                    : "bg-brand-gold/10 hover:bg-brand-gold/20 border border-brand-gold/30 text-brand-gold"
-                    }`}
+                className={`w-full flex items-center justify-center gap-3 py-5 rounded-2xl text-lg font-bold transition-all duration-300 active:scale-95 ${
+                    copied
+                        ? "bg-green-500 text-white shadow-[0_0_25px_rgba(34,197,94,0.5)]"
+                        : "bg-brand-gold text-brand-void shadow-[0_0_25px_rgba(212,175,55,0.4)] hover:bg-brand-gold-light"
+                }`}
             >
                 {copied ? (
-                    <Check className="w-3.5 h-3.5" />
+                    <>
+                        <Check className="w-6 h-6" />
+                        {labelCopied}
+                    </>
                 ) : (
-                    <Copy className="w-3.5 h-3.5" />
+                    <>
+                        <Copy className="w-6 h-6" />
+                        {labelCopy}
+                    </>
                 )}
-                <span className="hidden sm:inline">
-                    {copied ? labelCopied : labelCopy}
-                </span>
             </button>
         </div>
     );

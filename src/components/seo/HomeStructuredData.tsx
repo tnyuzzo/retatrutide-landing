@@ -15,7 +15,7 @@ export function HomeStructuredData() {
     url: baseUrl,
     logo: `${baseUrl}/images/retatrutide_hero_gold.png`,
     description:
-      "Premium research peptides for the European market. ≥99.8% HPLC-verified purity, Janoshik tested.",
+      "Premium research peptides for the European market. ≥99.8% HPLC-verified purity, independently tested.",
     contactPoint: {
       "@type": "ContactPoint",
       email: "support@aurapeptides.eu",
@@ -161,7 +161,7 @@ export function HomeStructuredData() {
       {
         "@type": "PropertyValue",
         name: "Third-Party Testing",
-        value: "Janoshik Analytical Laboratory",
+        value: "Independent Analytical Laboratory",
       },
     ],
   };

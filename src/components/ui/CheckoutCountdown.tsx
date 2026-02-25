@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
 
 interface CheckoutCountdownProps {
-  createdAt: string;         // ISO timestamp from DB
-  labelValid: string;        // "Valido per"
-  labelExpires: string;      // "Scade tra"
-  labelExpired: string;      // "Ordine scaduto"
+  createdAt: string;
+  labelValid: string;
+  labelExpires: string;
+  labelExpired: string;
+  className?: string;
 }
 
-const ORDER_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const ORDER_TTL_MS = 24 * 60 * 60 * 1000;
 
 function calcRemaining(createdAt: string): number {
   const expiresAt = new Date(createdAt).getTime() + ORDER_TTL_MS;
@@ -26,34 +27,33 @@ function formatTime(ms: number): { h: number; m: number; s: number } {
   };
 }
 
-export function CheckoutCountdown({
-  createdAt,
-  labelValid,
-  labelExpires,
-  labelExpired,
-}: CheckoutCountdownProps) {
-  const [remaining, setRemaining] = useState(() => calcRemaining(createdAt));
+export function CheckoutCountdown({ createdAt, labelValid, labelExpires, labelExpired, className = '' }: CheckoutCountdownProps) {
+  // Initialize null to avoid SSR/client mismatch (Date.now() differs between server and client)
+  const [remaining, setRemaining] = useState<number | null>(null);
 
   useEffect(() => {
-    if (remaining <= 0) return;
+    // Set initial value only on client
+    setRemaining(calcRemaining(createdAt));
+
     const tick = setInterval(() => {
       const r = calcRemaining(createdAt);
       setRemaining(r);
       if (r <= 0) clearInterval(tick);
     }, 1000);
     return () => clearInterval(tick);
-  }, [createdAt, remaining]);
+  }, [createdAt]);
+
+  // Don't render until client-side hydration is complete
+  if (remaining === null) return null;
 
   const { h, m, s } = formatTime(remaining);
   const pad = (n: number) => String(n).padStart(2, "0");
 
   const isExpired = remaining <= 0;
-  const isCritical = remaining > 0 && remaining < 15 * 60 * 1000; // < 15 min
-  const isWarning  = remaining > 0 && remaining < 60 * 60 * 1000; // < 1 hour
+  const isCritical = remaining > 0 && remaining < 15 * 60 * 1000;
+  const isWarning = remaining > 0 && remaining < 60 * 60 * 1000;
 
-  const colorClass = isExpired
-    ? "text-red-400 border-red-500/30 bg-red-500/5"
-    : isCritical
+  const colorClass = isExpired || isCritical
     ? "text-red-400 border-red-500/30 bg-red-500/5"
     : isWarning
     ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/5"
@@ -63,8 +63,8 @@ export function CheckoutCountdown({
   const label = isExpired ? labelExpired : h > 0 ? labelValid : labelExpires;
 
   return (
-    <div className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl border text-xs font-mono ${colorClass} transition-colors duration-500`}>
-      <Clock className="w-3.5 h-3.5 shrink-0" />
+    <div className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl border font-mono ${colorClass} transition-colors duration-500 ${className}`}>
+      <Clock className="w-4 h-4 shrink-0" />
       <span className="font-sans font-medium">{label}</span>
       {!isExpired && (
         <span className="tabular-nums tracking-wider">{timeStr}</span>

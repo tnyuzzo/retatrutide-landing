@@ -69,7 +69,7 @@ export default function Home() {
       </nav>
 
       {/* HERO SECTION */}
-      <section className="relative min-h-screen flex items-center justify-center pt-16 md:pt-24 pb-12 px-6">
+      <section className="relative md:min-h-screen flex items-start md:items-center justify-center pt-16 md:pt-24 pb-16 md:pb-12 px-6">
         {/* Background Effects */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-gold/10 blur-[120px] rounded-full pointer-events-none radial-glow"></div>
 
@@ -79,7 +79,7 @@ export default function Home() {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className="flex flex-col gap-2 lg:gap-6"
+            className="flex flex-col gap-5 lg:gap-6"
           >
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand-gold/30 bg-brand-gold/5 w-fit whitespace-nowrap self-center">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse shrink-0"></span>
@@ -466,7 +466,7 @@ export default function Home() {
               className="flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/30 px-4 py-2 rounded-full text-xs text-brand-gold font-medium hover:bg-brand-gold/20 transition-colors"
             >
               <FlaskConical className="w-3.5 h-3.5" />
-              Janoshik Tested — {t('trust_badge_view_report')}
+              Lab Tested — {t('trust_badge_view_report')}
             </button>
           </div>
           <motion.div
@@ -735,7 +735,7 @@ export default function Home() {
                   </div>
                   <Image
                     src="/assets/janoshik-coa-retatrutide-10mg.png"
-                    alt="Janoshik Certificate of Analysis - Retatrutide 10mg purity verification 99.86% HPLC tested"
+                    alt="Certificate of Analysis - Retatrutide 10mg purity verification 99.86% HPLC tested"
                     width={800}
                     height={1000}
                     className="w-full h-auto object-cover opacity-80"
