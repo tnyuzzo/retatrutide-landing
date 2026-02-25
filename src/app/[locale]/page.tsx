@@ -52,11 +52,8 @@ export default function Home() {
             {t('title')}
           </span>
         </div>
-        <div className="hidden md:flex gap-4 lg:gap-8 text-xs lg:text-sm tracking-widest text-white/70 uppercase whitespace-nowrap">
-          <a href={`/${locale}/calculator`} className="hover:text-brand-gold transition-colors">{t('nav_calculator')}</a>
-          <a href={`/${locale}/order`} className="hover:text-brand-gold transition-colors">{t('nav_order')}</a>
-        </div>
         <div className="flex items-center gap-3 md:gap-6">
+          <a href={`/${locale}/calculator`} className="hidden md:inline-block text-xs lg:text-sm tracking-widest text-white/70 uppercase whitespace-nowrap hover:text-brand-gold transition-colors">{t('nav_calculator')}</a>
           <LanguageSwitcher />
           <a
             href={`/${locale}/portal`}
@@ -114,18 +111,17 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Mobile: info strip sopra il CTA */}
-            <div className="lg:hidden flex flex-col gap-1 px-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-brand-gold font-semibold text-sm">97€</span>
-                <span className="text-white/40 text-xs">/fiala</span>
-                <span className="text-white/20 text-xs">·</span>
-                <span className="text-white/50 text-xs">min. 3 box</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-white/50">
+            {/* Mobile/Tablet: info strip sopra il CTA */}
+            <div className="lg:hidden flex items-center flex-wrap justify-center gap-x-1.5 gap-y-0.5 px-1">
+              <span className="text-brand-gold font-semibold text-sm">99€</span>
+              <span className="text-white/40 text-xs">/fiala</span>
+              <span className="text-white/20 text-xs">·</span>
+              <span className="text-white/50 text-xs">min. 3 box</span>
+              <span className="text-white/20 text-xs">·</span>
+              <span className="flex items-center gap-1 text-xs text-white/50">
                 <Gift className="w-3 h-3 text-brand-gold shrink-0" />
-                <span>Acqua batteriostatica 3ml omaggio</span>
-              </div>
+                Acqua batteriostatica 3ml omaggio
+              </span>
             </div>
 
             <div className="flex flex-col items-center lg:items-start gap-3 lg:gap-4 lg:mt-8 w-full">
@@ -135,10 +131,10 @@ export default function Home() {
               </div>
 
               <PremiumButton
-                className="hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] transition-shadow group relative overflow-hidden px-12 py-4 text-lg w-full sm:w-auto"
+                className="shadow-[0_0_20px_rgba(255,215,0,0.2)] hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] hover:scale-105 transition-all duration-300 group relative overflow-hidden px-12 py-4 text-lg w-full sm:w-auto"
                 onClick={() => window.location.href = `/${locale}/order`}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
                   {t('hero_cta_hook')} <ArrowRight className="w-5 h-5 ml-1" />
                 </span>
@@ -161,7 +157,7 @@ export default function Home() {
 
               <div className="hidden lg:flex items-center gap-2 text-white/50 text-sm pl-2">
                 <Lock className="w-3 h-3 text-brand-gold" />
-                <span>{t('hero_cta_starting')} <strong className="text-white">97€</strong> {t('hero_cta_per_vial')}</span>
+                <span>{t('hero_cta_starting')} <strong className="text-white">99€</strong> {t('hero_cta_per_vial')}</span>
               </div>
             </div>
 
@@ -172,26 +168,13 @@ export default function Home() {
                 <Truck className="w-5 h-5 mt-0.5 shrink-0" />
                 <div className="flex flex-col gap-1">
                   <span><strong className="text-white">{t('shipping_promise')}</strong> {t('shipping_condition')}</span>
-                  {/* Rec 2: Visual Timeline */}
-                  <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs text-white/60 font-medium mt-1">
-                    <div className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> {t('timeline_today')}</div>
-                    <span className="text-white/20">👉</span>
-                    <div>{t('timeline_tomorrow')}</div>
-                    <span className="text-white/20">👉</span>
-                    <div className="text-brand-gold">{t('timeline_delivered')}</div>
+                  <div className="flex items-center gap-1.5 text-xs text-white/60 font-medium mt-1">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0"></span>
+                    <span>{t('shipping_timeline_simple')}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="h-px w-full bg-white/10 my-1"></div>
-
-              {/* Rec 1: COA Link */}
-              <div>
-                <button onClick={() => setShowCoaModal(true)} className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors group min-h-[44px] py-2">
-                  <FlaskConical className="w-4 h-4 text-brand-gold group-hover:scale-110 transition-transform" />
-                  <span className="underline decoration-brand-gold/30 underline-offset-4 group-hover:decoration-brand-gold transition-colors">{t('btn_lab_report')}</span>
-                </button>
-              </div>
             </div>
 
             {/* Trust Signals */}
@@ -275,9 +258,9 @@ export default function Home() {
       </section >
 
       {/* WHY CHOOSE US / FEATURES */}
-      <section id="science" className="py-24 px-6 bg-brand-void relative" >
+      <section id="science" className="py-16 px-6 bg-brand-void relative" >
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
             <h2 className="text-3xl md:text-5xl font-light mb-4">{t('section_science_title_1')} <span className="text-brand-gold font-medium">{t('section_science_title_2')}</span></h2>
             <p className="text-white/50 max-w-2xl mx-auto">{t('section_science_desc')}</p>
           </div>
@@ -401,10 +384,10 @@ export default function Home() {
       </section>
 
       {/* QUALITY PIPELINE */}
-      <section className="py-24 px-6 bg-brand-void relative" id="quality" >
+      <section className="py-16 px-6 bg-brand-void relative" id="quality" >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-gold/3 blur-[150px] rounded-full pointer-events-none"></div>
         <div className="max-w-5xl mx-auto relative z-10">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
             <h2 className="text-3xl md:text-5xl font-light mb-4 text-white">{t('qa_title')} <span className="text-brand-gold font-medium">{t('qa_subtitle')}</span></h2>
             <p className="text-white/50 max-w-2xl mx-auto">{t('qa_desc')}</p>
           </div>
@@ -431,17 +414,11 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mt-12 text-center">
-            <button onClick={() => setShowCoaModal(true)} className="inline-flex items-center gap-2 text-sm text-brand-gold hover:text-brand-gold-light transition-colors underline underline-offset-4 decoration-brand-gold/30 min-h-[44px] py-2 px-3">
-              <FlaskConical className="w-4 h-4" />
-              {t('btn_view_coa')}
-            </button>
-          </div>
         </div>
       </section >
 
       {/* TESTIMONIALS (Rec 4) */}
-      <section className="py-24 px-6 bg-brand-void border-t border-white/5 relative overflow-hidden" id="testimonials" >
+      <section className="py-16 px-6 bg-brand-void border-t border-white/5 relative overflow-hidden" id="testimonials" >
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-10">
@@ -461,13 +438,10 @@ export default function Home() {
               <span className="w-2 h-2 rounded-full bg-green-400 shrink-0"></span>
               EU Direct Shipping
             </div>
-            <button
-              onClick={() => setShowCoaModal(true)}
-              className="flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/30 px-4 py-2 rounded-full text-xs text-brand-gold font-medium hover:bg-brand-gold/20 transition-colors"
-            >
-              <FlaskConical className="w-3.5 h-3.5" />
-              Lab Tested — {t('trust_badge_view_report')}
-            </button>
+            <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full text-xs text-white/70 font-medium">
+              <span className="w-2 h-2 rounded-full bg-brand-gold shrink-0"></span>
+              Lab Tested
+            </div>
           </div>
           <motion.div
             whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }} viewport={{ once: true, amount: 0.05 }} transition={{ duration: 0.6 }}
@@ -511,9 +485,9 @@ export default function Home() {
       </section >
 
       {/* WHY AURA */}
-      <section className="py-24 px-6 border-t border-white/5" >
+      <section className="py-16 px-6 border-t border-white/5" >
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
             <h2 className="text-3xl md:text-5xl font-light mb-4 text-white">{t('why_title')} <span className="text-brand-gold font-medium">{t('why_subtitle')}</span></h2>
           </div>
           <motion.div
@@ -577,7 +551,7 @@ export default function Home() {
       </section >
 
       {/* BUYER PROTECTION BOX */}
-      <section className="py-16 px-6 bg-brand-void border-t border-white/5" >
+      <section className="py-12 px-6 bg-brand-void border-t border-white/5" >
         <div className="max-w-3xl mx-auto">
           <div className="glass-panel p-8 border-green-500/30 bg-green-500/5 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-400"></div>
@@ -609,9 +583,9 @@ export default function Home() {
       </section >
 
       {/* FAQ SECTION */}
-      < section className="py-24 px-6 bg-brand-void relative" id="faq" >
+      < section className="py-16 px-6 bg-brand-void relative" id="faq" >
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10">
             <h2 className="text-3xl md:text-5xl font-light mb-4 text-white">
               {t('faq_title')}
             </h2>
@@ -674,7 +648,7 @@ export default function Home() {
       </section >
 
       {/* FOOTER - MIAMI STYLE (Rec 3) */}
-      < footer className="border-t border-white/5 py-12 px-6 bg-brand-void" >
+      < footer className="border-t border-white/5 py-10 px-6 bg-brand-void" >
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 text-sm text-white/40 mb-12">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 mb-2">
@@ -767,23 +741,23 @@ export default function Home() {
 
       {/* STICKY MOBILE PURCHASE BAR */}
       {showStickyBar && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-brand-void/95 backdrop-blur-xl border-t border-brand-gold/20 px-4 py-3 flex items-center gap-3 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]">
-          {/* Prezzo */}
-          <div className="flex flex-col shrink-0 min-w-0">
-            <div className="flex items-baseline gap-1">
-              <span className="text-[10px] text-white/40 leading-none mr-0.5">{t('hero_cta_starting')}</span>
-              <span className="text-lg font-bold text-brand-gold leading-none">97€</span>
+        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-brand-void/95 backdrop-blur-xl border-t border-brand-gold/20 px-4 py-3 flex items-center justify-between gap-4 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]">
+          {/* Prezzo — testo più grande */}
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-xs text-white/40 leading-none">{t('hero_cta_starting')}</span>
+              <span className="text-2xl font-bold text-brand-gold leading-none">99€</span>
             </div>
-            <div className="flex items-center gap-1 mt-0.5">
+            <div className="flex items-center gap-1 mt-1">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0"></span>
-              <span className="text-[10px] text-red-400 leading-none whitespace-nowrap">{t('inventory_high_demand')} 47 {t('inventory_kits_remaining')}</span>
+              <span className="text-xs text-red-400 leading-none whitespace-nowrap">{t('inventory_high_demand')} 47 {t('inventory_kits_remaining')}</span>
             </div>
           </div>
           <PremiumButton
-            className="flex-1 !py-2.5 !text-sm"
+            className="shrink-0 !py-2.5 !px-6 !text-sm"
             onClick={() => window.location.href = `/${locale}/order`}
           >
-            <span className="flex items-center justify-center gap-2">
+            <span className="flex items-center gap-2">
               {t('hero_cta_hook')} <ArrowRight className="w-4 h-4" />
             </span>
           </PremiumButton>
