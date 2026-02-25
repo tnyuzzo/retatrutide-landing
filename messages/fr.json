@@ -388,7 +388,8 @@
     "order_field_first_name": "Prénom",
     "order_field_last_name": "Nom",
     "order_error_first_name": "Veuillez entrer votre prénom",
-    "order_error_last_name": "Veuillez entrer votre nom"
+    "order_error_last_name": "Veuillez entrer votre nom",
+    "popup_researcher": "Un chercheur"
   },
   "inventory_high_demand": "Forte Demande : seulement",
   "inventory_kits_remaining": "flacons restants"

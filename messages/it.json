@@ -388,7 +388,8 @@
     "order_field_first_name": "Nome",
     "order_field_last_name": "Cognome",
     "order_error_first_name": "Inserisci il tuo nome",
-    "order_error_last_name": "Inserisci il tuo cognome"
+    "order_error_last_name": "Inserisci il tuo cognome",
+    "popup_researcher": "Un ricercatore"
   },
   "inventory_high_demand": "Alta Richiesta: solo",
   "inventory_kits_remaining": "fiale rimanenti"

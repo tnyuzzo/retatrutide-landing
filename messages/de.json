@@ -388,7 +388,8 @@
     "order_field_first_name": "Vorname",
     "order_field_last_name": "Nachname",
     "order_error_first_name": "Bitte Vornamen eingeben",
-    "order_error_last_name": "Bitte Nachnamen eingeben"
+    "order_error_last_name": "Bitte Nachnamen eingeben",
+    "popup_researcher": "Ein Forscher"
   },
   "inventory_high_demand": "Hohe Nachfrage: nur",
   "inventory_kits_remaining": "Fläschchen übrig"

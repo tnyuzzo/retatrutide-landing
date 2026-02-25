@@ -388,7 +388,8 @@
     "order_field_first_name": "Nome",
     "order_field_last_name": "Apelido",
     "order_error_first_name": "Introduza o seu nome",
-    "order_error_last_name": "Introduza o seu apelido"
+    "order_error_last_name": "Introduza o seu apelido",
+    "popup_researcher": "Um investigador"
   },
   "inventory_high_demand": "Alta Procura: apenas",
   "inventory_kits_remaining": "frascos restantes"

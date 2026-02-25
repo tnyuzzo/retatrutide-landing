@@ -3,76 +3,21 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, PackageCheck } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
-interface SocialProofEntry {
-    name: string;
-    city: string;
-    quantity: number;
-}
-
-const POOL: SocialProofEntry[] = [
-    // Italy (biggest market)
-    { name: "Marco B.", city: "Milano", quantity: 2 },
-    { name: "Luca R.", city: "Roma", quantity: 1 },
-    { name: "Andrea M.", city: "Napoli", quantity: 3 },
-    { name: "Giovanni P.", city: "Torino", quantity: 1 },
-    { name: "Alessandro F.", city: "Firenze", quantity: 2 },
-    { name: "Matteo S.", city: "Bologna", quantity: 1 },
-    { name: "Davide C.", city: "Palermo", quantity: 1 },
-    { name: "Roberto T.", city: "Genova", quantity: 2 },
-    { name: "Simone G.", city: "Verona", quantity: 1 },
-    { name: "Fabio L.", city: "Catania", quantity: 1 },
-    { name: "Lorenzo D.", city: "Bari", quantity: 3 },
-    { name: "Stefano V.", city: "Padova", quantity: 1 },
-    { name: "Paolo N.", city: "Trieste", quantity: 2 },
-    { name: "Riccardo A.", city: "Perugia", quantity: 1 },
-    // Germany
-    { name: "Thomas K.", city: "Berlin", quantity: 2 },
-    { name: "Michael S.", city: "München", quantity: 1 },
-    { name: "Stefan W.", city: "Hamburg", quantity: 3 },
-    { name: "Andreas B.", city: "Frankfurt", quantity: 1 },
-    { name: "Markus H.", city: "Köln", quantity: 2 },
-    { name: "Jörg F.", city: "Stuttgart", quantity: 1 },
-    { name: "Christian R.", city: "Düsseldorf", quantity: 1 },
-    { name: "Felix M.", city: "Leipzig", quantity: 2 },
-    // France
-    { name: "Pierre D.", city: "Paris", quantity: 1 },
-    { name: "Nicolas R.", city: "Lyon", quantity: 2 },
-    { name: "Antoine L.", city: "Marseille", quantity: 1 },
-    { name: "François B.", city: "Toulouse", quantity: 3 },
-    { name: "Mathieu C.", city: "Nice", quantity: 1 },
-    { name: "Romain P.", city: "Strasbourg", quantity: 2 },
-    { name: "Julien V.", city: "Bordeaux", quantity: 1 },
-    // Spain
-    { name: "Carlos G.", city: "Madrid", quantity: 2 },
-    { name: "Miguel A.", city: "Barcelona", quantity: 1 },
-    { name: "Javier S.", city: "Valencia", quantity: 1 },
-    { name: "Pablo M.", city: "Sevilla", quantity: 1 },
-    { name: "Alejandro R.", city: "Málaga", quantity: 2 },
-    // Netherlands & Belgium
-    { name: "Jan V.", city: "Amsterdam", quantity: 2 },
-    { name: "Pieter D.", city: "Rotterdam", quantity: 1 },
-    { name: "Willem B.", city: "Utrecht", quantity: 1 },
-    { name: "Mathieu V.", city: "Bruxelles", quantity: 1 },
-    { name: "Jonas D.", city: "Antwerpen", quantity: 2 },
-    // Poland
-    { name: "Krzysztof N.", city: "Warszawa", quantity: 2 },
-    { name: "Tomasz K.", city: "Kraków", quantity: 1 },
-    { name: "Piotr W.", city: "Wrocław", quantity: 1 },
-    // Portugal
-    { name: "João S.", city: "Lisboa", quantity: 1 },
-    { name: "Pedro M.", city: "Porto", quantity: 2 },
-    // Austria
-    { name: "Florian M.", city: "Wien", quantity: 1 },
-    { name: "Lukas S.", city: "Graz", quantity: 2 },
-    // Nordics
-    { name: "Erik L.", city: "Stockholm", quantity: 1 },
-    { name: "Lars N.", city: "København", quantity: 2 },
-    // Others EU
-    { name: "Jakub P.", city: "Praha", quantity: 1 },
-    { name: "Andrei C.", city: "București", quantity: 2 },
-];
+// Cities grouped by locale — visitor sees cities from their own country
+const CITIES_BY_LOCALE: Record<string, string[]> = {
+    it: ["Milano", "Roma", "Napoli", "Torino", "Firenze", "Bologna", "Palermo", "Genova", "Verona", "Catania", "Bari", "Padova", "Trieste", "Perugia", "Bergamo"],
+    de: ["Berlin", "München", "Hamburg", "Frankfurt", "Köln", "Stuttgart", "Düsseldorf", "Leipzig", "Dresden", "Wien", "Graz", "Zürich", "Hannover", "Nürnberg", "Bremen"],
+    fr: ["Paris", "Lyon", "Marseille", "Toulouse", "Nice", "Strasbourg", "Bordeaux", "Nantes", "Lille", "Montpellier", "Rennes", "Grenoble", "Dijon", "Toulon", "Angers"],
+    es: ["Madrid", "Barcelona", "Valencia", "Sevilla", "Málaga", "Bilbao", "Zaragoza", "Alicante", "Palma", "Granada", "Murcia", "Vigo", "Gijón", "Córdoba", "Valladolid"],
+    pt: ["Lisboa", "Porto", "Braga", "Coimbra", "Funchal", "Faro", "Aveiro", "Évora", "Setúbal", "Viseu", "Leiria", "Guimarães", "Viana do Castelo", "Beja", "Santarém"],
+    pl: ["Warszawa", "Kraków", "Wrocław", "Gdańsk", "Poznań", "Łódź", "Katowice", "Szczecin", "Lublin", "Bydgoszcz", "Białystok", "Toruń", "Rzeszów", "Kielce", "Olsztyn"],
+    ru: ["București", "Praha", "Budapest", "Sofia", "Bratislava", "Ljubljana", "Zagreb", "Vilnius", "Riga", "Tallinn", "Helsinki", "Athina", "Nicosia", "Valletta", "Dublin"],
+    uk: ["București", "Praha", "Budapest", "Sofia", "Bratislava", "Ljubljana", "Zagreb", "Vilnius", "Riga", "Tallinn", "Helsinki", "Athina", "Nicosia", "Valletta", "Warszawa"],
+    ar: ["Berlin", "Paris", "Amsterdam", "Bruxelles", "Stockholm", "Wien", "Milano", "Madrid", "Lisboa", "København", "Helsinki", "Praha", "Budapest", "Warszawa", "Dublin"],
+    en: ["Amsterdam", "Rotterdam", "Bruxelles", "Dublin", "Stockholm", "København", "Helsinki", "London", "Edinburgh", "Manchester", "Birmingham", "Leeds", "Bristol", "Liverpool", "Glasgow"],
+};
 
 const TIME_KEYS = [
     "popup_just_now", "popup_just_now",
@@ -91,24 +36,37 @@ function shuffle<T>(arr: T[]): T[] {
     return a;
 }
 
+interface ToastEntry {
+    city: string;
+    quantity: number;
+}
+
 type TimeKey = "popup_just_now" | "popup_2min_ago" | "popup_5min_ago" | "popup_12min_ago" | "popup_1hour_ago";
 type AmountKey = "popup_box" | "popup_boxes";
 
 export function RecentSalesPopup() {
     const t = useTranslations('Index');
+    const locale = useLocale();
     const [isVisible, setIsVisible] = useState(false);
-    const [entries, setEntries] = useState<SocialProofEntry[]>([]);
+    const [entries, setEntries] = useState<ToastEntry[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [timeKey, setTimeKey] = useState<TimeKey>("popup_just_now");
     const mounted = useRef(true);
 
     useEffect(() => {
         mounted.current = true;
-        setEntries(shuffle(POOL));
+        const cities = CITIES_BY_LOCALE[locale] || CITIES_BY_LOCALE.en;
+        const shuffled = shuffle(cities);
+        // Generate entries with weighted quantities (mostly 1-2)
+        const generated: ToastEntry[] = shuffled.map(city => ({
+            city,
+            quantity: Math.random() < 0.55 ? 1 : Math.random() < 0.75 ? 2 : Math.random() < 0.9 ? 3 : Math.ceil(Math.random() * 3) + 2,
+        }));
+        setEntries(generated);
         return () => { mounted.current = false; };
-    }, []);
+    }, [locale]);
 
-    const showNextPopup = useCallback((idx: number, items: SocialProofEntry[]) => {
+    const showNextPopup = useCallback((idx: number, items: ToastEntry[]) => {
         if (!mounted.current) return;
         setCurrentIndex(idx);
         setTimeKey(TIME_KEYS[Math.floor(Math.random() * TIME_KEYS.length)] as TimeKey);
@@ -152,8 +110,7 @@ export function RecentSalesPopup() {
                     </div>
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-white text-sm font-medium">{current.name}</span>
-                            <span className="text-white/40 text-xs">{t('popup_from')} {current.city}</span>
+                            <span className="text-white/60 text-sm">{t('popup_researcher')} {t('popup_from')} <strong className="text-white">{current.city}</strong></span>
                         </div>
                         <p className="text-brand-gold/90 text-sm">
                             {t('popup_purchased')}{' '}

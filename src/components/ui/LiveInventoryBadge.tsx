@@ -2,26 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useStock } from "./useStock";
 
 export function LiveInventoryBadge() {
     const t = useTranslations('Index');
-    const locale = useLocale();
     const stock = useStock();
     const [timestamp, setTimestamp] = useState<string | null>(null);
 
-    // Generate "last verified" timestamp client-side (visitor's timezone)
+    // Update timestamp every time stock changes — uses browser's local timezone
     useEffect(() => {
         const now = new Date();
-        const hoursAgo = 1 + Math.floor(Math.random() * 3); // 1-3h ago
-        const d = new Date(now.getTime() - hoursAgo * 3600000);
-        d.setMinutes(d.getMinutes() >= 30 ? 30 : 0, 0, 0);
-
-        const time = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-        const date = d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: '2-digit' });
+        // Explicitly use browser timezone via Intl
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: tz });
+        const date = now.toLocaleDateString([], { day: '2-digit', month: '2-digit', year: '2-digit', timeZone: tz });
         setTimestamp(`${time} · ${date}`);
-    }, [locale]);
+    }, [stock]);
 
     return (
         <div className="flex flex-col items-center lg:items-start gap-1 w-fit mx-auto lg:mx-0">
@@ -32,9 +29,12 @@ export function LiveInventoryBadge() {
                 </span>
             </div>
             {timestamp && (
-                <span className="text-[10px] text-white/30 tabular-nums px-1">
-                    {t('inventory_updated')} {timestamp}
-                </span>
+                <div className="flex items-center gap-1.5 px-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shrink-0"></span>
+                    <span className="text-[10px] text-white/40 tabular-nums">
+                        Live · {timestamp}
+                    </span>
+                </div>
             )}
         </div>
     );

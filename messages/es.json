@@ -388,7 +388,8 @@
     "order_field_first_name": "Nombre",
     "order_field_last_name": "Apellido",
     "order_error_first_name": "Introduce tu nombre",
-    "order_error_last_name": "Introduce tu apellido"
+    "order_error_last_name": "Introduce tu apellido",
+    "popup_researcher": "Un investigador"
   },
   "inventory_high_demand": "Alta Demanda: solo",
   "inventory_kits_remaining": "viales restantes"

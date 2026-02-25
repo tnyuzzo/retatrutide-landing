@@ -388,7 +388,8 @@
     "order_field_first_name": "Imię",
     "order_field_last_name": "Nazwisko",
     "order_error_first_name": "Wprowadź imię",
-    "order_error_last_name": "Wprowadź nazwisko"
+    "order_error_last_name": "Wprowadź nazwisko",
+    "popup_researcher": "Badacz"
   },
   "inventory_high_demand": "Duże Zapotrzebowanie: tylko",
   "inventory_kits_remaining": "fiolek pozostało"

@@ -388,7 +388,8 @@
     "order_field_first_name": "Ім'я",
     "order_field_last_name": "Прізвище",
     "order_error_first_name": "Введіть ім'я",
-    "order_error_last_name": "Введіть прізвище"
+    "order_error_last_name": "Введіть прізвище",
+    "popup_researcher": "Дослідник"
   },
   "inventory_high_demand": "Великий попит: лише",
   "inventory_kits_remaining": "флаконів залишилось"

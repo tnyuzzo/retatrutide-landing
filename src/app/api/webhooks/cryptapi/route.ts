@@ -214,6 +214,14 @@ export async function GET(req: Request) {
                             phone: customerPhone,
                         });
                     }
+
+                    // Mark lead as converted (non-critical, ignore errors)
+                    try {
+                        await supabaseAdmin
+                            .from('leads')
+                            .update({ converted: true, updated_at: new Date().toISOString() })
+                            .eq('email', normalizedEmail);
+                    } catch { /* lead table may not exist yet */ }
                 }
             } catch (custErr) {
                 console.error("Webhook: Failed to upsert customer:", custErr);

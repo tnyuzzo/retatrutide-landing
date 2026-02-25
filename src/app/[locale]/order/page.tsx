@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { ArrowLeft, Lock, Shield, ChevronRight, ChevronDown, Minus, Plus, MapPin, User, Mail, Phone, Eye, CreditCard, ExternalLink, ArrowRight, CheckCircle2, Zap, Clock } from "lucide-react";
 import Link from "next/link";
 import { PremiumButton } from "@/components/ui/PremiumButton";
@@ -202,6 +202,17 @@ export default function OrderPage() {
             }));
         } catch {}
     }, [email, firstName, lastName, addressLine1, addressLine2, city, postalCode, country, phone, phoneCountryCode, selectedCrypto, quantity]);
+
+    // Progressive lead capture: send data to /api/leads on field blur
+    const leadSentRef = useRef<string>(''); // tracks last sent payload hash
+    const sendLead = useCallback(() => {
+        if (!email || !email.includes('@')) return;
+        const payload = { email, firstName, lastName, phone: phone ? `${phoneCountryCode}${phone}` : '', country, city, locale };
+        const hash = JSON.stringify(payload);
+        if (hash === leadSentRef.current) return; // no change
+        leadSentRef.current = hash;
+        fetch('/api/leads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: hash }).catch(() => {});
+    }, [email, firstName, lastName, phone, phoneCountryCode, country, city, locale]);
 
     const discount = getDiscount(quantity);
     const unitPrice = Math.round(BASE_PRICE * (1 - discount / 100));
@@ -526,6 +537,7 @@ export default function OrderPage() {
                                         placeholder={t('order_field_email')}
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
+                                        onBlur={sendLead}
                                         className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
                                     />
                                 </div>
@@ -540,6 +552,7 @@ export default function OrderPage() {
                                             placeholder={t('order_field_first_name')}
                                             value={firstName}
                                             onChange={(e) => setFirstName(e.target.value)}
+                                            onBlur={sendLead}
                                             className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
                                         />
                                     </div>
@@ -550,6 +563,7 @@ export default function OrderPage() {
                                             placeholder={t('order_field_last_name')}
                                             value={lastName}
                                             onChange={(e) => setLastName(e.target.value)}
+                                            onBlur={sendLead}
                                             className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-4 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
                                         />
                                     </div>
@@ -583,6 +597,7 @@ export default function OrderPage() {
                                         placeholder={t('order_field_phone')}
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
+                                        onBlur={sendLead}
                                         className="flex-1 min-w-0 h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
                                     />
                                 </div>
@@ -602,6 +617,7 @@ export default function OrderPage() {
                                             const prefix = COUNTRY_PHONE_PREFIXES[val];
                                             if (prefix) setPhoneCountryCode(prefix);
                                         }}
+                                        onBlur={sendLead}
                                         className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
                                     >
                                         <option value="" className="bg-brand-void">{t('order_field_country')}</option>
@@ -641,6 +657,7 @@ export default function OrderPage() {
                                         placeholder={t('order_field_city')}
                                         value={city}
                                         onChange={(e) => setCity(e.target.value)}
+                                        onBlur={sendLead}
                                         className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
                                     />
                                     <input

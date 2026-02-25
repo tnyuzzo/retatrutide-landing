@@ -388,7 +388,8 @@
     "order_field_first_name": "First name",
     "order_field_last_name": "Last name",
     "order_error_first_name": "Please enter your first name",
-    "order_error_last_name": "Please enter your last name"
+    "order_error_last_name": "Please enter your last name",
+    "popup_researcher": "A researcher"
   },
   "inventory_high_demand": "High Demand: only",
   "inventory_kits_remaining": "vials remaining"

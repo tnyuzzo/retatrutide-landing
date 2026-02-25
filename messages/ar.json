@@ -388,7 +388,8 @@
     "order_field_first_name": "الاسم الأول",
     "order_field_last_name": "اسم العائلة",
     "order_error_first_name": "يرجى إدخال الاسم الأول",
-    "order_error_last_name": "يرجى إدخال اسم العائلة"
+    "order_error_last_name": "يرجى إدخال اسم العائلة",
+    "popup_researcher": "باحث"
   },
   "inventory_high_demand": "طلب مرتفع: فقط",
   "inventory_kits_remaining": "قوارير متبقية"
