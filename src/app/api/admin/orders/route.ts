@@ -23,7 +23,7 @@ const STATUS_TRANSITIONS: Record<string, string[]> = {
     shipped: ['delivered'],
     delivered: [],
     cancelled: [],
-    expired: [],
+    expired: ['paid', 'cancelled'],
     refunded: [],
     partially_refunded: [],
 };
@@ -260,8 +260,8 @@ async function handlePost(req: NextRequest) {
         }
     }
 
-    // Underpaid → Paid: run fulfillment side effects
-    if (new_status === 'paid' && order.status === 'underpaid') {
+    // Any status → Paid: run fulfillment side effects (inventory + notifications)
+    if (new_status === 'paid' && ['pending', 'underpaid', 'expired'].includes(order.status)) {
         // Decrement inventory
         try {
             let totalQty = 1;
@@ -279,7 +279,7 @@ async function handlePost(req: NextRequest) {
                     await supabaseAdmin.from('inventory_movements').insert({
                         sku: 'RET-KIT-1', type: 'remove', quantity: -totalQty,
                         previous_quantity: inv.quantity, new_quantity: newQty,
-                        reason: `Approvazione pagamento incompleto: ${order.order_number || order.reference_id}`,
+                        reason: `Approvazione manuale (${order.status} → paid): ${order.order_number || order.reference_id}`,
                         performed_by: user.id,
                         performed_by_name: (await supabaseAdmin.from('profiles').select('full_name').eq('id', user.id).single()).data?.full_name || 'Staff',
                     });
@@ -334,7 +334,7 @@ async function handlePost(req: NextRequest) {
                     if (wh.phone) {
                         const shortAddr = [shippingAddress.address_line_1, shippingAddress.city, shippingAddress.postal_code, shippingAddress.country].filter(Boolean).join(', ');
                         notifyPromises.push(
-                            sendSMS({ to: wh.phone, body: `ORDINE APPROVATO (era underpaid) #${order.reference_id.slice(-8).toUpperCase()}\n${totalKits} kit · ${shippingAddress.full_name || 'N/A'}\n${shortAddr}` })
+                            sendSMS({ to: wh.phone, body: `NUOVO ORDINE CONFERMATO #${order.reference_id.slice(-8).toUpperCase()}\n${totalKits} kit · ${shippingAddress.full_name || 'N/A'}\n${shortAddr}` })
                                 .catch(e => console.error('Failed to send warehouse SMS:', e))
                         );
                     }
