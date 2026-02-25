@@ -617,16 +617,11 @@ supabase/migrations/                # 4 SQL migration files
 
 ## In Progress
 
-- **Test pagamento**: BASE_PRICE = 10€ in `order/page.tsx:11` e `checkout/route.ts:110` — **RIPRISTINARE A 197 dopo test**
-- **Migration da eseguire**: `08_order_locale.sql` su Supabase (aggiunge colonna `locale` a orders)
-- **Migration da eseguire**: `06_cart_recovery.sql` su Supabase (aggiunge colonne recovery email tracking)
-- **Migration da eseguire**: `05_leads_table.sql` su Supabase (tabella leads per progressive capture)
+- Nessun task critico in corso
 
 ## TODO / Planned
 
 - [ ] Configurare wallet XRP (attualmente placeholder `CRYPTAPI_XRP_WALLET`)
-- [ ] **Ripristinare BASE_PRICE a 197** dopo test pagamento (order/page.tsx:11 + checkout/route.ts:110)
-- [ ] Eseguire le 3 migration SQL pending su Supabase (05, 06, 08)
 
 ---
 
