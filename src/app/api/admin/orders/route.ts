@@ -123,6 +123,18 @@ async function handleGet(req: NextRequest) {
         );
     }
 
+    // Date range filters
+    const dateFrom = searchParams.get('date_from');
+    const dateTo = searchParams.get('date_to');
+    if (dateFrom) {
+        query = query.gte('created_at', new Date(dateFrom).toISOString());
+    }
+    if (dateTo) {
+        const endDate = new Date(dateTo);
+        endDate.setDate(endDate.getDate() + 1);
+        query = query.lt('created_at', endDate.toISOString());
+    }
+
     const rangeFrom = (page - 1) * limit;
     const rangeTo = rangeFrom + limit - 1;
 

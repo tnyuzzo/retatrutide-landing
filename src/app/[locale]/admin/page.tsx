@@ -5,7 +5,8 @@ import { supabaseBrowser } from "@/lib/supabase-browser";
 import {
     RefreshCw, Search, CheckCircle, Clock, XCircle, Package,
     TrendingUp, ShoppingCart, BarChart3, Users, Boxes, ChevronDown,
-    UserPlus, Shield, Settings, Trash2, ArrowLeft, DollarSign, AlertTriangle
+    UserPlus, Shield, Settings, Trash2, ArrowLeft, DollarSign, AlertTriangle,
+    X, Copy, ExternalLink, MapPin, Phone, Mail, Truck, Download, ChevronLeft, ChevronRight
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────
@@ -13,12 +14,20 @@ type OrderStatus = 'pending' | 'paid' | 'underpaid' | 'expired' | 'processing' |
 type TabId = 'dashboard' | 'orders' | 'inventory' | 'customers' | 'team' | 'settings';
 
 type Order = {
-    id: string; reference_id: string; order_number?: string; created_at: string;
+    id: string; reference_id: string; order_number?: string;
+    created_at: string; updated_at?: string;
     crypto_amount?: number; crypto_currency?: string; fiat_amount: number;
     status: OrderStatus; email?: string | null;
-    shipping_address?: Record<string, string>;
-    tracking_number?: string; carrier?: string; items?: { quantity?: number; name?: string }[];
-    shipping_cost?: number; notes?: string; tracking_status?: string;
+    shipping_address?: {
+        full_name?: string; address_line_1?: string; address_line_2?: string;
+        city?: string; postal_code?: string; country?: string; phone?: string;
+    };
+    tracking_number?: string; carrier?: string;
+    items?: { sku?: string; quantity?: number; name?: string; price?: number }[];
+    shipping_cost?: number; notes?: string;
+    tracking_status?: string;
+    tracking_events?: { date: string | null; description: string; location: string }[];
+    shipped_at?: string; payment_url?: string; sent_by?: string;
 };
 
 type DashboardData = {
@@ -84,12 +93,468 @@ const KpiCard = ({ label, value, sub, icon, accent }: { label: string; value: st
 
 const CARRIERS = ['GLS', 'BRT', 'DHL', 'SDA', 'UPS', 'POSTE', 'FEDEX'];
 
+const CARRIER_TRACKING_URLS: Record<string, (num: string) => string> = {
+    BRT: (num) => `https://vas.brt.it/vas/sped_det_show.hsm?referer=sped_numspe_search.htm&Ession_id=&ShipYear=2025&Spession_Num=${num}`,
+    GLS: (num) => `https://www.gls-italy.com/?option=com_gls&view=track_e_trace&mode=search&numero_spedizione=${num}`,
+    SDA: (num) => `https://www.sda.it/wps/portal/Servizi_online/dettaglio-spedizione?locale=it&tression_id=${num}`,
+    DHL: (num) => `https://www.dhl.com/it-it/home/tracking/tracking-parcel.html?submit=1&tracking-id=${num}`,
+    UPS: (num) => `https://www.ups.com/track?tracknum=${num}`,
+    POSTE: (num) => `https://www.poste.it/cerca/index.html#/risultati-ricerca-702006/${num}`,
+    FEDEX: (num) => `https://www.fedex.com/fedextrack/?trknbr=${num}`,
+};
+
+function buildTrackingUrl(carrier?: string, trackingNumber?: string): string | null {
+    if (!carrier || !trackingNumber) return null;
+    const builder = CARRIER_TRACKING_URLS[carrier.toUpperCase()];
+    return builder ? builder(trackingNumber) : null;
+}
+
+// ── Sub-Components ──────────────────────────────────
+
+const StatusTimeline = ({ order }: { order: Order }) => {
+    const steps = [
+        { label: 'Creato', reached: true, date: order.created_at },
+        { label: 'Pagato', reached: ['paid', 'processing', 'shipped', 'delivered'].includes(order.status), date: null as string | null },
+        { label: 'Spedito', reached: ['shipped', 'delivered'].includes(order.status), date: order.shipped_at || null },
+        { label: 'Consegnato', reached: order.status === 'delivered', date: null as string | null },
+    ];
+    const isCancelled = ['cancelled', 'refunded', 'partially_refunded'].includes(order.status);
+
+    return (
+        <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
+            <div className="text-xs text-white/40 uppercase tracking-wider mb-4">Timeline</div>
+            <div className="flex flex-col">
+                {steps.map((step, i) => (
+                    <div key={i} className="flex gap-3 items-start">
+                        <div className="flex flex-col items-center">
+                            <div className={`w-3 h-3 rounded-full border-2 flex-shrink-0 ${step.reached ? 'bg-brand-gold border-brand-gold' : 'bg-transparent border-white/20'}`} />
+                            {i < steps.length - 1 && <div className={`w-0.5 h-8 ${steps[i + 1].reached ? 'bg-brand-gold' : 'bg-white/10'}`} />}
+                        </div>
+                        <div className="pb-6">
+                            <div className={`text-sm ${step.reached ? 'text-white' : 'text-white/30'}`}>{step.label}</div>
+                            {step.date && <div className="text-xs text-white/40 mt-0.5">{new Date(step.date).toLocaleString('it-IT')}</div>}
+                        </div>
+                    </div>
+                ))}
+                {isCancelled && (
+                    <div className="flex gap-3 items-start">
+                        <div className="w-3 h-3 rounded-full border-2 bg-red-500 border-red-500 flex-shrink-0" />
+                        <div className="text-sm text-red-400">
+                            {order.status === 'cancelled' ? 'Annullato' : order.status === 'refunded' ? 'Rimborsato' : 'Rimb. Parziale'}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const OrderDetailDrawer = ({ order, loading, onClose, onShip, onRefund, onCancel, onAccept, updating }: {
+    order: Order | null; loading: boolean; onClose: () => void;
+    onShip: () => void; onRefund: () => void; onCancel: () => void; onAccept: () => void;
+    updating: boolean;
+}) => {
+    const [copied, setCopied] = useState(false);
+    if (!order && !loading) return null;
+
+    const copyText = (text: string) => {
+        navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+    };
+
+    const addr = order?.shipping_address;
+    const trackingUrl = buildTrackingUrl(order?.carrier, order?.tracking_number);
+    const canShip = order?.status === 'paid';
+    const canRefund = order?.status && ['paid', 'processing', 'shipped'].includes(order.status);
+    const canCancel = order?.status && ['pending', 'paid', 'processing', 'expired'].includes(order.status);
+    const canAccept = order?.status && ['underpaid', 'expired'].includes(order.status);
+
+    return (
+        <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="relative w-full max-w-2xl h-full bg-[#0C1017] border-l border-white/10 overflow-y-auto"
+                onClick={e => e.stopPropagation()}>
+                {loading && !order ? (
+                    <div className="flex items-center justify-center h-full"><RefreshCw className="w-6 h-6 text-brand-gold animate-spin" /></div>
+                ) : order ? (
+                    <div className="flex flex-col gap-5 p-6">
+                        {/* Header */}
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <div className="flex items-center gap-3 mb-1">
+                                    <span className="font-mono text-lg text-brand-gold font-semibold">#{order.order_number || order.reference_id.substring(0, 8)}</span>
+                                    <StatusBadge status={order.status} />
+                                </div>
+                                <div className="text-xs text-white/40">{new Date(order.created_at).toLocaleString('it-IT')}</div>
+                            </div>
+                            <button onClick={onClose} className="text-white/40 hover:text-white p-1"><X className="w-5 h-5" /></button>
+                        </div>
+
+                        {/* Action Bar */}
+                        <div className="flex flex-wrap gap-2">
+                            {canShip && (
+                                <button onClick={onShip} disabled={updating}
+                                    className="bg-brand-gold/20 text-brand-gold disabled:opacity-30 px-4 py-2 rounded-lg text-sm hover:bg-brand-gold/30 transition-colors flex items-center gap-2">
+                                    <Truck className="w-4 h-4" /> Evadi Ordine
+                                </button>
+                            )}
+                            {canAccept && (
+                                <button onClick={onAccept} disabled={updating}
+                                    className="bg-green-500/10 text-green-400 disabled:opacity-30 px-4 py-2 rounded-lg text-sm hover:bg-green-500/20 transition-colors flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4" /> Accetta Pagamento
+                                </button>
+                            )}
+                            {canRefund && (
+                                <button onClick={onRefund} disabled={updating}
+                                    className="bg-red-500/10 text-red-400 disabled:opacity-30 px-4 py-2 rounded-lg text-sm hover:bg-red-500/20 transition-colors">
+                                    Rimborsa
+                                </button>
+                            )}
+                            {canCancel && order.status !== 'expired' && (
+                                <button onClick={onCancel} disabled={updating}
+                                    className="bg-white/5 text-white/50 disabled:opacity-30 px-4 py-2 rounded-lg text-sm hover:bg-white/10 transition-colors">
+                                    Annulla
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Two-Column: Order Details + Customer */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {/* Order Details */}
+                            <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
+                                <div className="text-xs text-white/40 uppercase tracking-wider mb-3">Dettagli Ordine</div>
+                                <div className="flex flex-col gap-2 text-sm">
+                                    {order.items?.map((item, i) => (
+                                        <div key={i} className="flex justify-between">
+                                            <span className="text-white/70">{item.quantity || 1}x {item.name || 'Kit'}</span>
+                                            {item.price !== undefined && <span className="text-white/50">{fmt(item.price)}</span>}
+                                        </div>
+                                    ))}
+                                    <div className="border-t border-white/5 pt-2 mt-1 flex justify-between font-medium">
+                                        <span>Totale</span>
+                                        <span className="text-brand-gold">{fmt(order.fiat_amount)}</span>
+                                    </div>
+                                    {order.shipping_cost ? (
+                                        <div className="flex justify-between text-xs text-white/40">
+                                            <span>Spedizione</span><span>{fmt(order.shipping_cost)}</span>
+                                        </div>
+                                    ) : null}
+                                    {order.crypto_currency && (
+                                        <div className="border-t border-white/5 pt-2 mt-1">
+                                            <div className="text-xs text-white/40 mb-1">Pagamento Crypto</div>
+                                            <div className="text-sm">{order.crypto_amount} {order.crypto_currency}</div>
+                                            {order.payment_url && (
+                                                <div className="font-mono text-xs text-white/30 mt-1 break-all">{order.payment_url}</div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Customer */}
+                            <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
+                                <div className="text-xs text-white/40 uppercase tracking-wider mb-3">Cliente</div>
+                                <div className="flex flex-col gap-3">
+                                    {addr?.full_name && (
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <Users className="w-4 h-4 text-white/30 flex-shrink-0" />
+                                            <span>{addr.full_name}</span>
+                                        </div>
+                                    )}
+                                    {order.email && (
+                                        <a href={`mailto:${order.email}`} className="flex items-center gap-2 text-sm text-brand-gold hover:underline">
+                                            <Mail className="w-4 h-4 text-white/30 flex-shrink-0" />
+                                            {order.email}
+                                        </a>
+                                    )}
+                                    {addr?.phone && (
+                                        <a href={`tel:${addr.phone}`} className="flex items-center gap-2 text-sm text-brand-gold hover:underline">
+                                            <Phone className="w-4 h-4 text-white/30 flex-shrink-0" />
+                                            {addr.phone}
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Shipping Address */}
+                        {addr && (
+                            <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
+                                <div className="text-xs text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    <MapPin className="w-3.5 h-3.5" /> Indirizzo di Spedizione
+                                </div>
+                                <div className="text-sm text-white/80 leading-relaxed">
+                                    {addr.full_name && <div className="font-medium">{addr.full_name}</div>}
+                                    {addr.address_line_1 && <div>{addr.address_line_1}</div>}
+                                    {addr.address_line_2 && <div>{addr.address_line_2}</div>}
+                                    <div>
+                                        {[addr.postal_code, addr.city].filter(Boolean).join(' ')}
+                                        {addr.country ? `, ${addr.country}` : ''}
+                                    </div>
+                                    {addr.phone && (
+                                        <a href={`tel:${addr.phone}`} className="text-brand-gold hover:underline mt-2 inline-flex items-center gap-1">
+                                            <Phone className="w-3 h-3" /> {addr.phone}
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Tracking */}
+                        {order.tracking_number && order.carrier && (
+                            <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
+                                <div className="text-xs text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    <Truck className="w-3.5 h-3.5" /> Tracking
+                                </div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="text-sm text-brand-gold font-medium">{order.carrier}</span>
+                                    <span className="font-mono text-sm text-white/70">{order.tracking_number}</span>
+                                    <button onClick={() => copyText(order.tracking_number || '')}
+                                        className="text-white/30 hover:text-white/60 transition-colors">
+                                        {copied ? <CheckCircle className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                    </button>
+                                </div>
+                                {order.tracking_status && (
+                                    <div className="text-xs text-cyan-400 mb-2">Stato: {order.tracking_status}</div>
+                                )}
+                                {trackingUrl && (
+                                    <a href={trackingUrl} target="_blank" rel="noopener noreferrer"
+                                        className="text-xs text-brand-gold hover:underline inline-flex items-center gap-1">
+                                        Traccia Spedizione <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                )}
+                                {/* Tracking Events */}
+                                {order.tracking_events && order.tracking_events.length > 0 && (
+                                    <div className="mt-4 border-t border-white/5 pt-3 max-h-48 overflow-y-auto flex flex-col gap-2">
+                                        {order.tracking_events.map((evt, i) => (
+                                            <div key={i} className="flex gap-3 items-start text-xs">
+                                                <div className={`w-2 h-2 rounded-full mt-1 flex-shrink-0 ${i === 0 ? 'bg-brand-gold' : 'bg-white/20'}`} />
+                                                <div>
+                                                    <div className="text-white/70">{evt.description}</div>
+                                                    <div className="text-white/30">
+                                                        {evt.date ? new Date(evt.date).toLocaleString('it-IT') : ''}
+                                                        {evt.location ? ` · ${evt.location}` : ''}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Status Timeline */}
+                        <StatusTimeline order={order} />
+
+                        {/* Underpaid Info */}
+                        {order.status === 'underpaid' && order.notes && (() => {
+                            let n: { underpaid_received?: number; underpaid_expected?: number } = {};
+                            try { n = JSON.parse(order.notes); } catch { /* empty */ }
+                            return n.underpaid_received ? (
+                                <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5">
+                                    <div className="text-xs text-orange-400 uppercase tracking-wider mb-2">Pagamento Incompleto</div>
+                                    <div className="text-sm text-orange-400/80">
+                                        Atteso: {n.underpaid_expected} {order.crypto_currency}<br />
+                                        Ricevuto: {n.underpaid_received} {order.crypto_currency}
+                                    </div>
+                                </div>
+                            ) : null;
+                        })()}
+
+                        {/* Notes */}
+                        {order.notes && order.status !== 'underpaid' && (
+                            <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
+                                <div className="text-xs text-white/40 uppercase tracking-wider mb-2">Note</div>
+                                <div className="text-sm text-white/60 whitespace-pre-line">{order.notes}</div>
+                            </div>
+                        )}
+                    </div>
+                ) : null}
+            </div>
+        </div>
+    );
+};
+
+const ShipModal = ({ order, onClose, onConfirm, updating }: {
+    order: Order | null; onClose: () => void;
+    onConfirm: (carrier: string, trackingNumber: string, shippingCost?: number) => void;
+    updating: boolean;
+}) => {
+    const [carrier, setCarrier] = useState('GLS');
+    const [trackingNumber, setTrackingNumber] = useState('');
+    const [shippingCost, setShippingCost] = useState('');
+    if (!order) return null;
+
+    const previewUrl = buildTrackingUrl(carrier, trackingNumber);
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center" onClick={onClose}>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="relative w-full max-w-md bg-[#0C1017] border border-white/10 rounded-2xl p-6" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-lg font-medium">Evadi Ordine <span className="text-brand-gold">#{order.order_number || order.reference_id.substring(0, 8)}</span></h3>
+                    <button onClick={onClose} className="text-white/40 hover:text-white"><X className="w-5 h-5" /></button>
+                </div>
+
+                {order.tracking_number && (
+                    <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg px-3 py-2 text-xs text-orange-400 mb-4">
+                        Attenzione: questo ordine ha già un tracking ({order.carrier} · {order.tracking_number})
+                    </div>
+                )}
+
+                <div className="flex flex-col gap-4">
+                    <div>
+                        <label className="text-xs text-white/50 mb-1 block">Corriere</label>
+                        <select value={carrier} onChange={e => setCarrier(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm appearance-none focus:outline-none focus:border-brand-gold/50">
+                            {CARRIERS.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-xs text-white/50 mb-1 block">Numero Tracking *</label>
+                        <input type="text" value={trackingNumber} onChange={e => setTrackingNumber(e.target.value)}
+                            placeholder="es. 123456789"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand-gold/50" />
+                        {previewUrl && (
+                            <a href={previewUrl} target="_blank" rel="noopener noreferrer"
+                                className="text-xs text-brand-gold/60 hover:text-brand-gold mt-1 inline-flex items-center gap-1">
+                                <ExternalLink className="w-3 h-3" /> Preview link tracking
+                            </a>
+                        )}
+                    </div>
+                    <div>
+                        <label className="text-xs text-white/50 mb-1 block">Costo Spedizione (EUR)</label>
+                        <input type="number" value={shippingCost} onChange={e => setShippingCost(e.target.value)}
+                            placeholder="Opzionale"
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand-gold/50" />
+                    </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                    <button onClick={onClose} className="flex-1 bg-white/5 text-white/60 py-2.5 rounded-lg text-sm hover:bg-white/10 transition-colors">Annulla</button>
+                    <button onClick={() => onConfirm(carrier, trackingNumber, shippingCost ? parseFloat(shippingCost) : undefined)}
+                        disabled={!trackingNumber.trim() || updating}
+                        className="flex-1 bg-brand-gold text-black font-medium py-2.5 rounded-lg text-sm hover:bg-brand-gold/90 disabled:opacity-30 transition-colors">
+                        {updating ? '...' : 'Conferma Spedizione'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const RefundModal = ({ order, onClose, onConfirm, updating }: {
+    order: Order | null; onClose: () => void;
+    onConfirm: (amount: number | undefined, reason: string) => void;
+    updating: boolean;
+}) => {
+    const [refundType, setRefundType] = useState<'full' | 'partial'>('full');
+    const [amount, setAmount] = useState('');
+    const [reason, setReason] = useState('');
+    if (!order) return null;
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center" onClick={onClose}>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="relative w-full max-w-md bg-[#0C1017] border border-white/10 rounded-2xl p-6" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-lg font-medium">Rimborso <span className="text-brand-gold">#{order.order_number || order.reference_id.substring(0, 8)}</span></h3>
+                    <button onClick={onClose} className="text-white/40 hover:text-white"><X className="w-5 h-5" /></button>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                    <div className="flex gap-3">
+                        <button onClick={() => setRefundType('full')}
+                            className={`flex-1 py-2.5 rounded-lg text-sm border transition-colors ${refundType === 'full' ? 'border-brand-gold/30 bg-brand-gold/10 text-brand-gold' : 'border-white/10 text-white/50'}`}>
+                            Completo ({fmt(order.fiat_amount)})
+                        </button>
+                        <button onClick={() => setRefundType('partial')}
+                            className={`flex-1 py-2.5 rounded-lg text-sm border transition-colors ${refundType === 'partial' ? 'border-brand-gold/30 bg-brand-gold/10 text-brand-gold' : 'border-white/10 text-white/50'}`}>
+                            Parziale
+                        </button>
+                    </div>
+
+                    {refundType === 'partial' && (
+                        <div>
+                            <label className="text-xs text-white/50 mb-1 block">Importo Rimborso (EUR) — max {fmt(order.fiat_amount)}</label>
+                            <input type="number" value={amount} onChange={e => setAmount(e.target.value)}
+                                max={order.fiat_amount} min={1}
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand-gold/50" />
+                        </div>
+                    )}
+
+                    <div>
+                        <label className="text-xs text-white/50 mb-1 block">Motivo *</label>
+                        <textarea value={reason} onChange={e => setReason(e.target.value)}
+                            placeholder="Motivo del rimborso..."
+                            rows={3}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand-gold/50 resize-none" />
+                    </div>
+
+                    <div className="text-xs text-white/30 bg-white/[0.02] border border-white/5 rounded-lg px-3 py-2">
+                        Il rimborso crypto è manuale. Questa azione aggiorna lo stato dell&apos;ordine e ripristina l&apos;inventario.
+                    </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                    <button onClick={onClose} className="flex-1 bg-white/5 text-white/60 py-2.5 rounded-lg text-sm hover:bg-white/10 transition-colors">Annulla</button>
+                    <button onClick={() => onConfirm(refundType === 'partial' ? parseFloat(amount) : undefined, reason)}
+                        disabled={!reason.trim() || (refundType === 'partial' && (!amount || parseFloat(amount) <= 0)) || updating}
+                        className="flex-1 bg-red-500/20 text-red-400 font-medium py-2.5 rounded-lg text-sm hover:bg-red-500/30 disabled:opacity-30 transition-colors">
+                        {updating ? '...' : 'Conferma Rimborso'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const CancelModal = ({ order, onClose, onConfirm, updating }: {
+    order: Order | null; onClose: () => void;
+    onConfirm: (notes: string) => void;
+    updating: boolean;
+}) => {
+    const [notes, setNotes] = useState('');
+    if (!order) return null;
+
+    return (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center" onClick={onClose}>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="relative w-full max-w-sm bg-[#0C1017] border border-white/10 rounded-2xl p-6" onClick={e => e.stopPropagation()}>
+                <div className="flex flex-col items-center text-center gap-3 mb-5">
+                    <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
+                        <XCircle className="w-6 h-6 text-red-400" />
+                    </div>
+                    <h3 className="text-lg font-medium">Annullare l&apos;ordine?</h3>
+                    <p className="text-xs text-white/40">
+                        #{order.order_number || order.reference_id.substring(0, 8)}
+                        {['paid', 'processing'].includes(order.status) && ' — L\'inventario verrà ripristinato.'}
+                    </p>
+                </div>
+
+                <textarea value={notes} onChange={e => setNotes(e.target.value)}
+                    placeholder="Note (opzionale)"
+                    rows={2}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-brand-gold/50 resize-none mb-4" />
+
+                <div className="flex gap-3">
+                    <button onClick={onClose} className="flex-1 bg-white/5 text-white/60 py-2.5 rounded-lg text-sm hover:bg-white/10 transition-colors">Torna Indietro</button>
+                    <button onClick={() => onConfirm(notes)} disabled={updating}
+                        className="flex-1 bg-red-500/20 text-red-400 font-medium py-2.5 rounded-lg text-sm hover:bg-red-500/30 disabled:opacity-30 transition-colors">
+                        {updating ? '...' : 'Annulla Ordine'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // ── Main Component ──────────────────────────────────
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState<TabId>('dashboard');
     const [token, setToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<string>('');
 
     // Dashboard state
     const [dashboard, setDashboard] = useState<DashboardData | null>(null);
@@ -98,10 +563,19 @@ export default function AdminDashboard() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("all");
-    const [trackingInput, setTrackingInput] = useState<Record<string, string>>({});
-    const [carrierInput, setCarrierInput] = useState<Record<string, string>>({});
-    const [shippingCostInput, setShippingCostInput] = useState<Record<string, string>>({});
     const [updating, setUpdating] = useState<Record<string, boolean>>({});
+    const [dateFrom, setDateFrom] = useState('');
+    const [dateTo, setDateTo] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalOrders, setTotalOrders] = useState(0);
+    const ordersPerPage = 20;
+
+    // Order detail + action modals
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [orderDetailLoading, setOrderDetailLoading] = useState(false);
+    const [shipModalOrder, setShipModalOrder] = useState<Order | null>(null);
+    const [refundModalOrder, setRefundModalOrder] = useState<Order | null>(null);
+    const [cancelModalOrder, setCancelModalOrder] = useState<Order | null>(null);
 
     // Inventory state
     const [invStock, setInvStock] = useState(0);
@@ -128,10 +602,20 @@ export default function AdminDashboard() {
     const [storeSettings, setStoreSettings] = useState<Record<string, any>>({});
     const [settingsMessage, setSettingsMessage] = useState("");
 
-    // Get auth token
+    // Get auth token + resolve role
     useEffect(() => {
-        supabaseBrowser.auth.getSession().then(({ data: { session } }) => {
+        supabaseBrowser.auth.getSession().then(async ({ data: { session } }) => {
             setToken(session?.access_token ?? null);
+            if (session?.user) {
+                const jwtRole = session.user.app_metadata?.role as string;
+                if (jwtRole && jwtRole !== 'customer') {
+                    setUserRole(jwtRole);
+                } else {
+                    const { data: profile } = await supabaseBrowser
+                        .from('profiles').select('role').eq('id', session.user.id).single();
+                    setUserRole(profile?.role || '');
+                }
+            }
         });
     }, []);
 
@@ -167,14 +651,23 @@ export default function AdminDashboard() {
         if (!token) return;
         setLoading(true);
         try {
-            const params = new URLSearchParams({ limit: '100' });
+            const params = new URLSearchParams({
+                limit: String(ordersPerPage),
+                page: String(currentPage),
+            });
             if (statusFilter !== 'all') params.set('status', statusFilter);
             if (searchTerm) params.set('search', searchTerm);
+            if (dateFrom) params.set('date_from', dateFrom);
+            if (dateTo) params.set('date_to', dateTo);
             const res = await fetch(`/api/admin/orders?${params}`, { headers: authHeaders() });
-            if (await handleFetchError(res, 'Ordini')) { const d = await res.json(); setOrders(d.orders || []); }
+            if (await handleFetchError(res, 'Ordini')) {
+                const d = await res.json();
+                setOrders(d.orders || []);
+                setTotalOrders(d.total || 0);
+            }
         } catch (e) { setErrorMsg('Errore di rete nel caricamento ordini'); console.error(e); }
         setLoading(false);
-    }, [token, statusFilter, searchTerm, authHeaders, handleFetchError]);
+    }, [token, statusFilter, searchTerm, dateFrom, dateTo, currentPage, authHeaders, handleFetchError]);
 
     const fetchInventory = useCallback(async () => {
         if (!token) return;
@@ -218,6 +711,17 @@ export default function AdminDashboard() {
         } catch (e) { setErrorMsg('Errore di rete nel caricamento impostazioni'); console.error(e); }
     }, [token, authHeaders, handleFetchError]);
 
+    const fetchOrderDetail = useCallback(async (orderId: string) => {
+        setOrderDetailLoading(true);
+        try {
+            const res = await fetch(`/api/admin/orders?id=${orderId}`, { headers: authHeaders() });
+            if (await handleFetchError(res, 'Dettaglio ordine')) {
+                setSelectedOrder((await res.json()).order || null);
+            }
+        } catch (e) { setErrorMsg('Errore caricamento dettaglio'); console.error(e); }
+        setOrderDetailLoading(false);
+    }, [authHeaders, handleFetchError]);
+
     // Load data on tab switch
     useEffect(() => {
         if (!token) return;
@@ -230,48 +734,54 @@ export default function AdminDashboard() {
     }, [activeTab, token, fetchDashboard, fetchOrders, fetchInventory, fetchCustomers, fetchTeam, fetchSettings]);
 
     // ── Actions ──────────────────────────────────
-    const shipOrder = async (orderId: string) => {
-        const tracking = trackingInput[orderId];
-        const carrier = carrierInput[orderId] || 'GLS';
-        const shippingCost = shippingCostInput[orderId] ? parseInt(shippingCostInput[orderId]) : undefined;
-        if (!tracking) return;
+    const shipOrder = async (orderId: string, carrier: string, trackingNumber: string, shippingCost?: number) => {
         setUpdating(p => ({ ...p, [orderId]: true }));
         try {
             const res = await fetch('/api/admin/orders', {
                 method: 'POST', headers: authHeaders(),
-                body: JSON.stringify({ action: 'update-status', order_id: orderId, new_status: 'shipped', tracking_number: tracking, carrier, shipping_cost: shippingCost }),
+                body: JSON.stringify({ action: 'update-status', order_id: orderId, new_status: 'shipped', tracking_number: trackingNumber, carrier, shipping_cost: shippingCost }),
             });
-            if (res.ok) fetchOrders();
+            if (res.ok) { fetchOrders(); setShipModalOrder(null); setSelectedOrder(null); }
+            else { const d = await res.json(); alert(d.error || 'Errore'); }
         } catch (e) { console.error(e); }
         setUpdating(p => ({ ...p, [orderId]: false }));
     };
 
-    const refundOrder = async (orderId: string) => {
-        if (!confirm('Confermi il rimborso completo di questo ordine?')) return;
+    const refundOrder = async (orderId: string, amount?: number, reason?: string) => {
         setUpdating(p => ({ ...p, [orderId]: true }));
         try {
             const res = await fetch('/api/admin/refund', {
                 method: 'POST', headers: authHeaders(),
-                body: JSON.stringify({ order_id: orderId, reason: 'Refund from admin panel' }),
+                body: JSON.stringify({ order_id: orderId, amount, reason: reason || 'Refund from admin panel' }),
             });
-            if (res.ok) fetchOrders();
-            else {
-                const d = await res.json();
-                alert(d.error || 'Errore durante il rimborso');
-            }
+            if (res.ok) { fetchOrders(); setRefundModalOrder(null); setSelectedOrder(null); }
+            else { const d = await res.json(); alert(d.error || 'Errore durante il rimborso'); }
         } catch (e) { console.error(e); }
         setUpdating(p => ({ ...p, [orderId]: false }));
     };
 
-    const acceptUnderpaid = async (orderId: string) => {
-        if (!confirm("Confermi di accettare il pagamento incompleto e procedere con l'evasione dell'ordine?")) return;
+    const cancelOrder = async (orderId: string) => {
+        setUpdating(p => ({ ...p, [orderId]: true }));
+        try {
+            const res = await fetch('/api/admin/orders', {
+                method: 'POST', headers: authHeaders(),
+                body: JSON.stringify({ action: 'update-status', order_id: orderId, new_status: 'cancelled' }),
+            });
+            if (res.ok) { fetchOrders(); setCancelModalOrder(null); setSelectedOrder(null); }
+            else { const d = await res.json(); alert(d.error || 'Errore'); }
+        } catch (e) { console.error(e); }
+        setUpdating(p => ({ ...p, [orderId]: false }));
+    };
+
+    const acceptPayment = async (orderId: string) => {
+        if (!confirm("Confermi di accettare il pagamento e procedere con l'evasione?")) return;
         setUpdating(p => ({ ...p, [orderId]: true }));
         try {
             const res = await fetch('/api/admin/orders', {
                 method: 'POST', headers: authHeaders(),
                 body: JSON.stringify({ action: 'update-status', order_id: orderId, new_status: 'paid' }),
             });
-            if (res.ok) fetchOrders();
+            if (res.ok) { fetchOrders(); setSelectedOrder(null); }
             else { const d = await res.json(); alert(d.error || 'Errore'); }
         } catch (e) { console.error(e); }
         setUpdating(p => ({ ...p, [orderId]: false }));
@@ -325,20 +835,14 @@ export default function AdminDashboard() {
 
     const approveRemoval = async (userId: string) => {
         try {
-            await fetch('/api/admin/team', {
-                method: 'POST', headers: authHeaders(),
-                body: JSON.stringify({ action: 'approve-removal', userId }),
-            });
+            await fetch('/api/admin/team', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ action: 'approve-removal', userId }) });
             fetchTeam();
         } catch (e) { console.error(e); }
     };
 
     const rejectRemoval = async (userId: string) => {
         try {
-            await fetch('/api/admin/team', {
-                method: 'POST', headers: authHeaders(),
-                body: JSON.stringify({ action: 'reject-removal', userId }),
-            });
+            await fetch('/api/admin/team', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ action: 'reject-removal', userId }) });
             fetchTeam();
         } catch (e) { console.error(e); }
     };
@@ -354,6 +858,40 @@ export default function AdminDashboard() {
             if (res.ok) { setSettingsMessage('Impostazioni salvate!'); setStoreSettings(d.settings || storeSettings); }
             else setSettingsMessage(d.error || 'Errore');
         } catch (e) { console.error(e); }
+    };
+
+    // ── CSV Export ──────────────────────────────────
+    const exportOrdersCSV = async () => {
+        try {
+            const params = new URLSearchParams({ limit: '10000', page: '1' });
+            if (statusFilter !== 'all') params.set('status', statusFilter);
+            if (searchTerm) params.set('search', searchTerm);
+            if (dateFrom) params.set('date_from', dateFrom);
+            if (dateTo) params.set('date_to', dateTo);
+            const res = await fetch(`/api/admin/orders?${params}`, { headers: authHeaders() });
+            if (!res.ok) return;
+            const d = await res.json();
+            const allOrders: Order[] = d.orders || [];
+
+            const headers = ['Numero Ordine', 'Riferimento', 'Data', 'Email', 'Nome', 'Stato', 'Importo EUR', 'Crypto', 'Importo Crypto', 'Quantita', 'Corriere', 'Tracking', 'Costo Sped.', 'Citta', 'CAP', 'Paese', 'Telefono'];
+            const rows = allOrders.map(o => [
+                o.order_number || '', o.reference_id, new Date(o.created_at).toLocaleString('it-IT'),
+                o.email || '', o.shipping_address?.full_name || '', o.status,
+                String(o.fiat_amount || 0), o.crypto_currency || '', String(o.crypto_amount || ''),
+                String(o.items?.reduce((a, i) => a + (i.quantity || 1), 0) || 1),
+                o.carrier || '', o.tracking_number || '', String(o.shipping_cost || ''),
+                o.shipping_address?.city || '', o.shipping_address?.postal_code || '',
+                o.shipping_address?.country || '', o.shipping_address?.phone || '',
+            ]);
+            const csvContent = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `ordini_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (e) { console.error('CSV export error:', e); setErrorMsg('Errore durante l\'esportazione CSV'); }
     };
 
     // ── Tabs ──────────────────────────────────
@@ -373,6 +911,32 @@ export default function AdminDashboard() {
         if (activeTab === 'customers') fetchCustomers();
         if (activeTab === 'team') fetchTeam();
         if (activeTab === 'settings') fetchSettings();
+    };
+
+    // ── Pagination Helpers ──────────────────────────────────
+    const totalPages = Math.ceil(totalOrders / ordersPerPage);
+
+    const getPageNumbers = () => {
+        const pages: number[] = [];
+        const maxVisible = 5;
+        if (totalPages <= maxVisible) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else if (currentPage <= 3) {
+            for (let i = 1; i <= maxVisible; i++) pages.push(i);
+        } else if (currentPage >= totalPages - 2) {
+            for (let i = totalPages - maxVisible + 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            for (let i = currentPage - 2; i <= currentPage + 2; i++) pages.push(i);
+        }
+        return pages;
+    };
+
+    // ── Inline action helpers for order table ──
+    const orderActionLabel = (order: Order): string => {
+        if (order.status === 'paid') return 'Evadi';
+        if (order.status === 'underpaid' || order.status === 'expired') return 'Accetta';
+        if (order.status === 'shipped') return `${order.carrier || ''} · ${order.tracking_number || ''}`;
+        return '-';
     };
 
     return (
@@ -413,14 +977,12 @@ export default function AdminDashboard() {
                         <KpiCard label="Ordini Totali" value={String(dashboard.orders.total)} sub={`Da evadere: ${dashboard.orders.to_ship}`} icon={<ShoppingCart className="w-4 h-4" />} accent="bg-blue-500/10 text-blue-400" />
                         <KpiCard label="Stock RET-KIT-1" value={String(dashboard.inventory.stock_quantity)} sub={dashboard.inventory.low_stock ? 'Scorte basse!' : 'Disponibile'} icon={<Boxes className="w-4 h-4" />} accent={dashboard.inventory.low_stock ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'} />
                     </div>
-
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <KpiCard label="Clienti Totali" value={String(dashboard.customers_total || 0)} icon={<Users className="w-4 h-4" />} accent="bg-purple-500/10 text-purple-400" />
                         <KpiCard label="Valore Medio Ordine" value={fmt(dashboard.avg_order_value || 0)} icon={<DollarSign className="w-4 h-4" />} accent="bg-cyan-500/10 text-cyan-400" />
                         <KpiCard label="Costi Spedizione" value={fmt(dashboard.shipping_costs || 0)} icon={<Package className="w-4 h-4" />} accent="bg-amber-500/10 text-amber-400" />
                         <KpiCard label="Da Spedire" value={String(dashboard.orders.to_ship)} icon={<Package className="w-4 h-4" />} accent={dashboard.orders.to_ship > 0 ? 'bg-amber-500/10 text-amber-400' : 'bg-green-500/10 text-green-400'} />
                     </div>
-
                     {/* Recent Orders */}
                     <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
                         <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center">
@@ -430,7 +992,7 @@ export default function AdminDashboard() {
                         <table className="w-full text-left">
                             <tbody>
                                 {dashboard.recent_orders.map(o => (
-                                    <tr key={o.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                                    <tr key={o.id} className="border-b border-white/5 hover:bg-white/[0.02] cursor-pointer" onClick={() => { setActiveTab('orders'); fetchOrderDetail(o.id); }}>
                                         <td className="px-5 py-3 font-mono text-xs text-brand-gold">{o.order_number || o.reference_id?.substring(0, 8)}</td>
                                         <td className="px-5 py-3 text-xs text-white/60">{o.email || '-'}</td>
                                         <td className="px-5 py-3 text-sm">{fmt(o.fiat_amount)}</td>
@@ -451,34 +1013,61 @@ export default function AdminDashboard() {
             {/* ══════════════ ORDERS TAB ══════════════ */}
             {activeTab === 'orders' && (
                 <div className="flex flex-col gap-4">
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <div className="relative flex-1">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-                            <input type="text" placeholder="Cerca per email, ID ordine, numero ordine..." value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && fetchOrders()}
-                                className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-brand-gold/50" />
+                    {/* Filters */}
+                    <div className="flex flex-col gap-3">
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <div className="relative flex-1">
+                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+                                <input type="text" placeholder="Cerca per email, ID ordine, numero ordine..." value={searchTerm}
+                                    onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                    onKeyDown={e => e.key === 'Enter' && fetchOrders()}
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-brand-gold/50" />
+                            </div>
+                            <div className="flex gap-2 items-center">
+                                <div className="relative">
+                                    <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+                                        className="bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm appearance-none pr-8 focus:outline-none focus:border-brand-gold/50 min-w-[140px]">
+                                        <option value="all">Tutti</option>
+                                        <option value="pending">In Attesa</option>
+                                        <option value="paid">Da Evadere</option>
+                                        <option value="underpaid">Inc. Pagamento</option>
+                                        <option value="processing">In Lavorazione</option>
+                                        <option value="shipped">Spediti</option>
+                                        <option value="delivered">Consegnati</option>
+                                        <option value="expired">Scaduti</option>
+                                        <option value="cancelled">Annullati</option>
+                                        <option value="refunded">Rimborsati</option>
+                                    </select>
+                                    <ChevronDown className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/30" />
+                                </div>
+                                {userRole === 'super_admin' && (
+                                    <button onClick={exportOrdersCSV} title="Esporta CSV"
+                                        className="bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white/60 hover:text-brand-gold hover:border-brand-gold/30 transition-colors flex items-center gap-1.5 whitespace-nowrap">
+                                        <Download className="w-4 h-4" /> CSV
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                        <div className="relative">
-                            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-                                className="bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm appearance-none pr-8 focus:outline-none focus:border-brand-gold/50 min-w-[140px]">
-                                <option value="all">Tutti</option>
-                                <option value="pending">In Attesa</option>
-                                <option value="paid">Da Evadere</option>
-                                <option value="underpaid">Inc. Pagamento</option>
-                                <option value="processing">In Lavorazione</option>
-                                <option value="shipped">Spediti</option>
-                                <option value="delivered">Consegnati</option>
-                                <option value="expired">Scaduti</option>
-                                <option value="cancelled">Annullati</option>
-                                <option value="refunded">Rimborsati</option>
-                            </select>
-                            <ChevronDown className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/30" />
+                        {/* Date Range */}
+                        <div className="flex flex-wrap gap-2 items-center">
+                            <input type="date" value={dateFrom}
+                                onChange={e => { setDateFrom(e.target.value); setCurrentPage(1); }}
+                                className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-gold/50 [color-scheme:dark]" />
+                            <span className="text-white/30 text-xs">—</span>
+                            <input type="date" value={dateTo}
+                                onChange={e => { setDateTo(e.target.value); setCurrentPage(1); }}
+                                className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-gold/50 [color-scheme:dark]" />
+                            {(dateFrom || dateTo) && (
+                                <button onClick={() => { setDateFrom(''); setDateTo(''); setCurrentPage(1); }}
+                                    className="text-white/30 hover:text-white/60 text-xs px-2">Resetta</button>
+                            )}
+                            <span className="text-xs text-white/30 ml-auto">{totalOrders} ordini</span>
                         </div>
                     </div>
 
                     <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-                        <div className="overflow-x-auto">
+                        {/* Desktop Table */}
+                        <div className="hidden md:block overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-white/5 bg-white/[0.02]">
@@ -494,98 +1083,63 @@ export default function AdminDashboard() {
                                     ) : orders.length === 0 ? (
                                         <tr><td colSpan={4} className="p-8 text-center text-white/30 text-sm">Nessun ordine trovato.</td></tr>
                                     ) : orders.map(order => (
-                                        <tr key={order.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                                        <tr key={order.id} className="border-b border-white/5 hover:bg-white/[0.02] cursor-pointer"
+                                            onClick={() => fetchOrderDetail(order.id)}>
                                             <td className="p-4">
                                                 <div className="font-mono text-sm text-brand-gold">{order.order_number || order.reference_id.substring(0, 8)}</div>
                                                 <div className="text-xs text-white/50">{new Date(order.created_at).toLocaleString('it-IT')}</div>
                                                 {order.email && <div className="text-xs text-white/70 mt-1">{order.email}</div>}
-                                                {order.tracking_status && <div className="text-xs text-cyan-400 mt-1">Tracking: {order.tracking_status}</div>}
                                             </td>
                                             <td className="p-4">
-                                                {order.fiat_amount !== undefined && <div className="text-sm font-medium">{fmt(order.fiat_amount)}</div>}
+                                                <div className="text-sm font-medium">{fmt(order.fiat_amount)}</div>
                                                 {order.crypto_amount !== undefined && <div className="text-xs text-white/40">{order.crypto_amount} {order.crypto_currency}</div>}
                                                 {order.items && order.items.length > 0 && (
                                                     <div className="text-xs text-blue-400 mt-1">{order.items.reduce((a, i) => a + (i.quantity || 1), 0)}x Kit</div>
                                                 )}
-                                                {order.shipping_cost ? <div className="text-xs text-white/30 mt-1">Sped: {fmt(order.shipping_cost)}</div> : null}
                                             </td>
                                             <td className="p-4"><StatusBadge status={order.status} /></td>
-                                            <td className="p-4">
+                                            <td className="p-4" onClick={e => e.stopPropagation()}>
                                                 {order.status === 'paid' ? (
-                                                    <div className="flex flex-col gap-2">
-                                                        <div className="flex gap-2 items-center">
-                                                            <select value={carrierInput[order.id] || 'GLS'} onChange={e => setCarrierInput({ ...carrierInput, [order.id]: e.target.value })}
-                                                                className="bg-black/30 border border-white/10 rounded px-2 py-1 text-xs w-20 appearance-none">
-                                                                {CARRIERS.map(c => <option key={c} value={c}>{c}</option>)}
-                                                            </select>
-                                                            <input type="text" placeholder="Tracking #" value={trackingInput[order.id] || ''}
-                                                                onChange={e => setTrackingInput({ ...trackingInput, [order.id]: e.target.value })}
-                                                                className="bg-black/30 border border-white/10 rounded px-2 py-1 text-xs flex-1 min-w-[100px] focus:border-brand-gold/50" />
-                                                        </div>
-                                                        <input type="number" placeholder="Costo sped. (EUR)" value={shippingCostInput[order.id] || ''}
-                                                            onChange={e => setShippingCostInput({ ...shippingCostInput, [order.id]: e.target.value })}
-                                                            className="bg-black/30 border border-white/10 rounded px-2 py-1 text-xs w-full focus:border-brand-gold/50" />
-                                                        <div className="flex gap-2">
-                                                            <button onClick={() => shipOrder(order.id)} disabled={!trackingInput[order.id] || updating[order.id]}
-                                                                className="bg-brand-gold/20 text-brand-gold disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-brand-gold/30 transition-colors flex-1">
-                                                                {updating[order.id] ? '...' : 'Evadi'}
-                                                            </button>
-                                                            <button onClick={() => refundOrder(order.id)} disabled={updating[order.id]}
-                                                                className="bg-red-500/10 text-red-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-red-500/20 transition-colors">
-                                                                Rimborsa
-                                                            </button>
-                                                        </div>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => setShipModalOrder(order)}
+                                                            className="bg-brand-gold/20 text-brand-gold px-3 py-1.5 rounded text-xs hover:bg-brand-gold/30 transition-colors">
+                                                            Evadi
+                                                        </button>
+                                                        <button onClick={() => setRefundModalOrder(order)}
+                                                            className="bg-red-500/10 text-red-400 px-3 py-1.5 rounded text-xs hover:bg-red-500/20 transition-colors">
+                                                            Rimborsa
+                                                        </button>
                                                     </div>
                                                 ) : order.status === 'underpaid' ? (
-                                                    <div className="flex flex-col gap-2">
-                                                        {(() => {
-                                                            let n: { underpaid_received?: number; underpaid_expected?: number } = {};
-                                                            try { n = JSON.parse(order.notes || '{}'); } catch { /* empty */ }
-                                                            return n.underpaid_received ? (
-                                                                <div className="text-xs text-orange-400/80 bg-orange-500/5 border border-orange-500/20 rounded-lg px-2 py-1.5 leading-relaxed">
-                                                                    Atteso: {n.underpaid_expected} {order.crypto_currency}<br />
-                                                                    Ricevuto: {n.underpaid_received} {order.crypto_currency}
-                                                                </div>
-                                                            ) : null;
-                                                        })()}
-                                                        <div className="flex gap-2">
-                                                            <button onClick={() => acceptUnderpaid(order.id)} disabled={updating[order.id]}
-                                                                className="bg-orange-500/10 text-orange-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-orange-500/20 transition-colors flex-1">
-                                                                {updating[order.id] ? '...' : 'Accetta'}
-                                                            </button>
-                                                            <button onClick={() => refundOrder(order.id)} disabled={updating[order.id]}
-                                                                className="bg-red-500/10 text-red-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-red-500/20 transition-colors">
-                                                                Rimborsa
-                                                            </button>
-                                                        </div>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => acceptPayment(order.id)} disabled={updating[order.id]}
+                                                            className="bg-orange-500/10 text-orange-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-orange-500/20 transition-colors">
+                                                            {updating[order.id] ? '...' : 'Accetta'}
+                                                        </button>
+                                                        <button onClick={() => setRefundModalOrder(order)}
+                                                            className="bg-red-500/10 text-red-400 px-3 py-1.5 rounded text-xs hover:bg-red-500/20 transition-colors">
+                                                            Rimborsa
+                                                        </button>
+                                                    </div>
+                                                ) : order.status === 'expired' ? (
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => acceptPayment(order.id)} disabled={updating[order.id]}
+                                                            className="bg-green-500/10 text-green-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-green-500/20 transition-colors">
+                                                            {updating[order.id] ? '...' : 'Accetta'}
+                                                        </button>
+                                                        <button onClick={() => setCancelModalOrder(order)}
+                                                            className="bg-red-500/10 text-red-400 px-3 py-1.5 rounded text-xs hover:bg-red-500/20 transition-colors">
+                                                            Cancella
+                                                        </button>
                                                     </div>
                                                 ) : order.status === 'shipped' ? (
                                                     <div className="text-xs text-white/50 flex items-center gap-1">
                                                         <CheckCircle className="w-3 h-3 text-brand-gold" />
                                                         {order.carrier} · {order.tracking_number}
                                                     </div>
-                                                ) : order.status === 'expired' ? (
-                                                    <div className="flex gap-2">
-                                                        <button onClick={() => acceptUnderpaid(order.id)} disabled={updating[order.id]}
-                                                            className="bg-green-500/10 text-green-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-green-500/20 transition-colors flex-1">
-                                                            {updating[order.id] ? '...' : 'Accetta pagamento'}
-                                                        </button>
-                                                        <button onClick={() => {
-                                                            if (!confirm('Cancellare questo ordine scaduto?')) return;
-                                                            setUpdating(p => ({ ...p, [order.id]: true }));
-                                                            fetch('/api/admin/orders', {
-                                                                method: 'POST', headers: authHeaders(),
-                                                                body: JSON.stringify({ action: 'update-status', order_id: order.id, new_status: 'cancelled' }),
-                                                            }).then(r => { if (r.ok) fetchOrders(); else r.json().then(d => alert(d.error || 'Errore')); })
-                                                              .finally(() => setUpdating(p => ({ ...p, [order.id]: false })));
-                                                        }} disabled={updating[order.id]}
-                                                            className="bg-red-500/10 text-red-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-red-500/20 transition-colors">
-                                                            Cancella
-                                                        </button>
-                                                    </div>
-                                                ) : ['processing'].includes(order.status) ? (
-                                                    <button onClick={() => refundOrder(order.id)} disabled={updating[order.id]}
-                                                        className="bg-red-500/10 text-red-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-red-500/20 transition-colors">
+                                                ) : order.status === 'processing' ? (
+                                                    <button onClick={() => setRefundModalOrder(order)}
+                                                        className="bg-red-500/10 text-red-400 px-3 py-1.5 rounded text-xs hover:bg-red-500/20 transition-colors">
                                                         Rimborsa
                                                     </button>
                                                 ) : <span className="text-xs text-white/20">-</span>}
@@ -595,6 +1149,61 @@ export default function AdminDashboard() {
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Mobile Cards */}
+                        <div className="md:hidden flex flex-col">
+                            {loading ? (
+                                <div className="p-8 text-center text-white/30 text-sm">Caricamento...</div>
+                            ) : orders.length === 0 ? (
+                                <div className="p-8 text-center text-white/30 text-sm">Nessun ordine trovato.</div>
+                            ) : orders.map(order => (
+                                <div key={order.id}
+                                    onClick={() => fetchOrderDetail(order.id)}
+                                    className="border-b border-white/5 p-4 cursor-pointer active:bg-white/[0.03] transition-colors">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <span className="font-mono text-sm text-brand-gold">{order.order_number || order.reference_id.substring(0, 8)}</span>
+                                            <div className="text-xs text-white/40 mt-0.5">{new Date(order.created_at).toLocaleString('it-IT')}</div>
+                                        </div>
+                                        <StatusBadge status={order.status} />
+                                    </div>
+                                    {order.email && <div className="text-xs text-white/60 mb-1">{order.email}</div>}
+                                    <div className="flex justify-between items-center">
+                                        <div className="text-sm font-medium">{fmt(order.fiat_amount)}</div>
+                                        {order.items && (
+                                            <span className="text-xs text-blue-400">{order.items.reduce((a, i) => a + (i.quantity || 1), 0)}x Kit</span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between px-4 py-3 border-t border-white/5">
+                                <span className="text-xs text-white/40">
+                                    {((currentPage - 1) * ordersPerPage) + 1}-{Math.min(currentPage * ordersPerPage, totalOrders)} di {totalOrders}
+                                </span>
+                                <div className="flex gap-1">
+                                    <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}
+                                        className="p-1.5 rounded-lg border border-white/10 text-white/50 hover:text-white disabled:opacity-30">
+                                        <ChevronLeft className="w-4 h-4" />
+                                    </button>
+                                    {getPageNumbers().map(pageNum => (
+                                        <button key={pageNum} onClick={() => setCurrentPage(pageNum)}
+                                            className={`px-3 py-1.5 text-xs rounded-lg border ${currentPage === pageNum
+                                                ? 'border-brand-gold/30 bg-brand-gold/10 text-brand-gold'
+                                                : 'border-white/10 text-white/50 hover:text-white'}`}>
+                                            {pageNum}
+                                        </button>
+                                    ))}
+                                    <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)}
+                                        className="p-1.5 rounded-lg border border-white/10 text-white/50 hover:text-white disabled:opacity-30">
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -625,11 +1234,8 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </div>
-
                     <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
-                        <div className="px-5 py-4 border-b border-white/5">
-                            <span className="text-sm font-medium">Storico Movimenti</span>
-                        </div>
+                        <div className="px-5 py-4 border-b border-white/5"><span className="text-sm font-medium">Storico Movimenti</span></div>
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-white/5 bg-white/[0.02]">
@@ -664,7 +1270,6 @@ export default function AdminDashboard() {
             {activeTab === 'customers' && (
                 <div className="flex flex-col gap-4">
                     {customerDetail ? (
-                        // Customer Detail View
                         <div className="flex flex-col gap-4">
                             <button onClick={() => setCustomerDetail(null)} className="flex items-center gap-2 text-sm text-brand-gold hover:underline w-fit">
                                 <ArrowLeft className="w-4 h-4" /> Torna alla lista
@@ -680,7 +1285,7 @@ export default function AdminDashboard() {
                                 <table className="w-full text-left">
                                     <tbody>
                                         {customerDetail.orders.map((o: Order) => (
-                                            <tr key={o.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                                            <tr key={o.id} className="border-b border-white/5 hover:bg-white/[0.02] cursor-pointer" onClick={() => fetchOrderDetail(o.id)}>
                                                 <td className="px-5 py-3 font-mono text-xs text-brand-gold">{o.order_number || o.reference_id?.substring(0, 8)}</td>
                                                 <td className="px-5 py-3 text-sm">{fmt(o.fiat_amount)}</td>
                                                 <td className="px-5 py-3"><StatusBadge status={o.status} /></td>
@@ -692,7 +1297,6 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     ) : (
-                        // Customer List
                         <>
                             {customerAggregates && (
                                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -743,7 +1347,6 @@ export default function AdminDashboard() {
             {/* ══════════════ TEAM TAB ══════════════ */}
             {activeTab === 'team' && (
                 <div className="flex flex-col gap-6">
-                    {/* Invite Form */}
                     <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-5">
                         <div className="text-xs text-white/40 uppercase tracking-wider mb-4 flex items-center gap-2"><UserPlus className="w-4 h-4" /> Invita Membro</div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -766,8 +1369,6 @@ export default function AdminDashboard() {
                         </div>
                         {teamMessage && <div className="mt-3 text-xs text-brand-gold">{teamMessage}</div>}
                     </div>
-
-                    {/* Team Members */}
                     <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
                         <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
                             <span className="text-sm font-medium">Team ({teamMembers.length})</span>
@@ -867,6 +1468,47 @@ export default function AdminDashboard() {
             {loading && !['dashboard'].includes(activeTab) && orders.length === 0 && teamMembers.length === 0 && (
                 <div className="text-center py-12 text-white/30 text-sm">Caricamento...</div>
             )}
+
+            {/* ══════════════ MODALS & DRAWERS ══════════════ */}
+            {(selectedOrder || orderDetailLoading) && (
+                <OrderDetailDrawer
+                    order={selectedOrder}
+                    loading={orderDetailLoading}
+                    onClose={() => { setSelectedOrder(null); setOrderDetailLoading(false); }}
+                    onShip={() => setShipModalOrder(selectedOrder)}
+                    onRefund={() => setRefundModalOrder(selectedOrder)}
+                    onCancel={() => setCancelModalOrder(selectedOrder)}
+                    onAccept={() => { if (selectedOrder) acceptPayment(selectedOrder.id); }}
+                    updating={!!selectedOrder && !!updating[selectedOrder.id]}
+                />
+            )}
+
+            <ShipModal
+                order={shipModalOrder}
+                onClose={() => setShipModalOrder(null)}
+                onConfirm={(carrier, trackingNumber, shippingCost) => {
+                    if (shipModalOrder) shipOrder(shipModalOrder.id, carrier, trackingNumber, shippingCost);
+                }}
+                updating={!!shipModalOrder && !!updating[shipModalOrder.id]}
+            />
+
+            <RefundModal
+                order={refundModalOrder}
+                onClose={() => setRefundModalOrder(null)}
+                onConfirm={(amount, reason) => {
+                    if (refundModalOrder) refundOrder(refundModalOrder.id, amount, reason);
+                }}
+                updating={!!refundModalOrder && !!updating[refundModalOrder.id]}
+            />
+
+            <CancelModal
+                order={cancelModalOrder}
+                onClose={() => setCancelModalOrder(null)}
+                onConfirm={() => {
+                    if (cancelModalOrder) cancelOrder(cancelModalOrder.id);
+                }}
+                updating={!!cancelModalOrder && !!updating[cancelModalOrder.id]}
+            />
         </div>
     );
 }
