@@ -79,23 +79,23 @@ export default function CryptoGuidePage() {
                 </div>
 
                 {/* Steps */}
-                <div className="glass-panel p-6 md:p-8 rounded-2xl border border-brand-gold/20">
-                    <h2 className="flex items-center gap-2 text-sm font-medium uppercase tracking-widest text-brand-gold mb-8">
+                <div className="glass-panel p-6 md:p-8 rounded-2xl border border-brand-gold/20 flex flex-col gap-8">
+                    <h2 className="text-sm font-medium uppercase tracking-widest text-brand-gold">
                         {t("crypto_step_title")}
                     </h2>
 
                     {/* Step 1 */}
-                    <div className="flex gap-4 mb-8">
-                        <div className="flex flex-col items-center">
-                            <div className="w-10 h-10 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold font-medium text-lg shrink-0">
+                    <div className="flex gap-5">
+                        <div className="flex flex-col items-center shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold font-semibold text-base">
                                 {t("crypto_step1_num")}
                             </div>
-                            <div className="w-px flex-1 bg-brand-gold/20 mt-2"></div>
+                            <div className="w-px flex-1 bg-brand-gold/15 mt-3"></div>
                         </div>
-                        <div className="pb-2">
-                            <h3 className="text-lg font-light text-white mb-2">{t("crypto_step1_title")}</h3>
-                            <p className="text-sm text-white/60 leading-relaxed">{t("crypto_step1_desc")}</p>
-                            <div className="mt-3 flex items-center gap-2 text-xs text-brand-gold/70 bg-brand-gold/5 px-3 py-2 rounded-lg">
+                        <div className="flex flex-col gap-3 pb-2">
+                            <h3 className="text-base font-semibold text-white leading-snug">{t("crypto_step1_title")}</h3>
+                            <p className="text-sm text-white/55 leading-relaxed">{t("crypto_step1_desc")}</p>
+                            <div className="inline-flex items-center gap-2 text-xs text-brand-gold/70 bg-brand-gold/5 border border-brand-gold/15 px-3 py-2 rounded-lg self-start">
                                 <Copy className="w-3.5 h-3.5 shrink-0" />
                                 <span>USDT (TRC20) recommended</span>
                             </div>
@@ -103,15 +103,26 @@ export default function CryptoGuidePage() {
                     </div>
 
                     {/* Step 2 */}
-                    <div className="flex gap-4">
-                        <div className="flex flex-col items-center">
-                            <div className="w-10 h-10 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold font-medium text-lg shrink-0">
+                    <div className="flex gap-5">
+                        <div className="shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold font-semibold text-base">
                                 {t("crypto_step2_num")}
                             </div>
                         </div>
-                        <div className="flex flex-col gap-3">
-                            <h3 className="text-lg font-light text-white">{t("crypto_step2_title")}</h3>
-                            <p className="text-sm text-white/60 leading-relaxed">{t("crypto_step2_desc")}</p>
+                        <div className="flex flex-col gap-4">
+                            <h3 className="text-base font-semibold text-white leading-snug">{t("crypto_step2_title")}</h3>
+
+                            {/* Sub-steps as numbered list */}
+                            <ol className="flex flex-col gap-2">
+                                {t("crypto_step2_desc").split("·").map((item, i) => (
+                                    <li key={i} className="flex items-start gap-3">
+                                        <span className="w-5 h-5 rounded-full bg-brand-gold/15 border border-brand-gold/30 text-brand-gold text-[11px] font-semibold flex items-center justify-center shrink-0 mt-0.5">
+                                            {i + 1}
+                                        </span>
+                                        <span className="text-sm text-white/60 leading-relaxed">{item.trim()}</span>
+                                    </li>
+                                ))}
+                            </ol>
 
                             {/* Visual callout: where to paste the address */}
                             <div className="bg-blue-500/10 border border-blue-400/25 rounded-xl p-4">
