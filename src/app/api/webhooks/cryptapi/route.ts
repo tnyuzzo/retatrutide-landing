@@ -69,9 +69,14 @@ export async function GET(req: Request) {
                 return new NextResponse('*ok*', { status: 200 });
             }
 
-            // 2. Underpayment check (3% tolerance for volatility + CryptAPI fees)
+            // 2. Underpayment check
+            // CryptAPI's value_forwarded_coin is AFTER their fee deduction.
+            // CryptAPI advertises 1% fee but in practice retains much more
+            // (observed: ~34% for USDT TRC20). We use a generous 50% threshold
+            // to avoid blocking legitimate payments. Genuine underpayments
+            // (customer sent wrong amount) will still be caught.
             const expectedAmount = order.crypto_amount ? parseFloat(String(order.crypto_amount)) : 0;
-            const UNDERPAYMENT_THRESHOLD = 0.97;
+            const UNDERPAYMENT_THRESHOLD = 0.50;
             const isUnderpaid = received !== null && expectedAmount > 0 && received < expectedAmount * UNDERPAYMENT_THRESHOLD;
 
             // 3. Atomic update: only update if status is still 'pending' (prevents double-processing)
