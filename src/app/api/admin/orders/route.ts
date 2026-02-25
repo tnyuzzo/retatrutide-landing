@@ -190,7 +190,11 @@ async function handlePost(req: NextRequest) {
         updatePayload.shipped_at = new Date().toISOString();
 
         if (shipping_cost !== undefined && shipping_cost !== null) {
-            updatePayload.shipping_cost = Math.round(Number(shipping_cost));
+            const cost = Number(shipping_cost);
+            if (isNaN(cost) || cost < 0 || cost > 10000) {
+                return NextResponse.json({ error: 'Shipping cost must be between 0 and 10000' }, { status: 400 });
+            }
+            updatePayload.shipping_cost = Math.round(cost);
         }
     }
 

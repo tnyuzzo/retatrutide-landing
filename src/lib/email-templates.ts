@@ -28,6 +28,11 @@ interface LowStockAlertParams {
 const BRAND_GOLD = '#D4AF37';
 const BRAND_DARK = '#070A0F';
 
+/** Escape HTML entities to prevent XSS in email templates */
+function escapeHtml(str: string): string {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function baseWrapper(content: string): string {
     return `
 <!DOCTYPE html>
@@ -109,11 +114,11 @@ export function orderConfirmationAdminEmail(params: OrderReceivedAdminParams) {
                 <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Articoli</div>
                 ${itemsHtml}
             </div>
-            ${email ? `<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px;">📧 Cliente: ${email}</div>` : ''}
+            ${email ? `<div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px;">📧 Cliente: ${escapeHtml(email)}</div>` : ''}
             ${Object.keys(shippingAddress).length > 0 ? `
             <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
                 <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Spedizione</div>
-                <pre style="font-size:12px;color:rgba(255,255,255,0.7);margin:0;white-space:pre-wrap;">${JSON.stringify(shippingAddress, null, 2)}</pre>
+                <pre style="font-size:12px;color:rgba(255,255,255,0.7);margin:0;white-space:pre-wrap;">${escapeHtml(JSON.stringify(shippingAddress, null, 2))}</pre>
             </div>` : ''}
             <div style="text-align:center;margin-top:16px;">
                 <a href="${process.env.NEXT_PUBLIC_SITE_URL || ''}/admin" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:12px 28px;border-radius:8px;text-decoration:none;">Apri Dashboard</a>
@@ -168,13 +173,13 @@ export function warehouseNewOrderEmail(params: WarehouseNewOrderParams) {
             <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
                 <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Destinatario</div>
                 <div style="font-size:14px;color:rgba(255,255,255,0.8);">
-                    <strong>${customerName}</strong><br>
-                    Tel: ${customerPhone}
+                    <strong>${escapeHtml(customerName)}</strong><br>
+                    Tel: ${escapeHtml(customerPhone)}
                 </div>
             </div>
             <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px;">
                 <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:${BRAND_GOLD};margin-bottom:8px;">Indirizzo</div>
-                <pre style="font-size:12px;color:rgba(255,255,255,0.7);margin:0;white-space:pre-wrap;">${JSON.stringify(shippingAddress, null, 2)}</pre>
+                <pre style="font-size:12px;color:rgba(255,255,255,0.7);margin:0;white-space:pre-wrap;">${escapeHtml(JSON.stringify(shippingAddress, null, 2))}</pre>
             </div>
             <div style="text-align:center;margin-top:16px;">
                 <a href="${process.env.NEXT_PUBLIC_SITE_URL || ''}/admin" style="display:inline-block;background:${BRAND_GOLD};color:${BRAND_DARK};font-weight:600;padding:12px 28px;border-radius:8px;text-decoration:none;">Apri Dashboard</a>

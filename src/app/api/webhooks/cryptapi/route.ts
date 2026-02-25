@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { Resend } from 'resend';
+import crypto from 'crypto';
 import {
     orderConfirmationAdminEmail,
     orderConfirmationCustomerEmail,
@@ -13,6 +14,12 @@ import { sendSMS } from '@/lib/clicksend';
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
 const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
 const EMAIL_REPLY_TO = 'support@aurapeptides.eu';
+
+/** Constant-time string comparison to prevent timing attacks */
+function safeCompare(a: string, b: string): boolean {
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(Buffer.from(a, 'utf-8'), Buffer.from(b, 'utf-8'));
+}
 
 export async function GET(req: Request) {
     try {
@@ -28,19 +35,23 @@ export async function GET(req: Request) {
             return new NextResponse('*ok*', { status: 200 });
         }
 
-        // ── Webhook Secret Verification (fail-closed) ──
+        // ── Webhook Secret Verification (fail-closed, timing-safe) ──
         const expectedSecret = process.env.WEBHOOK_SECRET;
         if (!expectedSecret) {
             console.error('CRITICAL: WEBHOOK_SECRET is not configured. Rejecting ALL webhook calls.');
             return new NextResponse('*ok*', { status: 200 });
         }
-        if (secret !== expectedSecret) {
+        if (!secret || !safeCompare(secret, expectedSecret)) {
             console.warn(`Webhook: Invalid secret for order ${order_id}. Rejecting.`);
             return new NextResponse('*ok*', { status: 200 });
         }
 
         if (pending === '0') {
-            // 1. Fetch current order
+            // 1. Atomic status update: only transition pending → paid/underpaid
+            //    This prevents race conditions if CryptAPI fires webhook twice
+            const received = value_forwarded_coin ? parseFloat(value_forwarded_coin) : null;
+
+            // First, read order to get expected amount and details
             const { data: order, error: fetchError } = await supabaseAdmin
                 .from('orders')
                 .select('id, status, email, shipping_address, items, fiat_amount, crypto_currency, crypto_amount, order_number')
@@ -53,38 +64,40 @@ export async function GET(req: Request) {
             }
 
             // Idempotency: skip if already processed
-            if (['paid', 'processing', 'shipped', 'delivered'].includes(order.status)) {
+            if (['paid', 'processing', 'shipped', 'delivered', 'underpaid'].includes(order.status)) {
                 console.log(`Webhook: Order ${order_id} already processed (status: ${order.status}).`);
                 return new NextResponse('*ok*', { status: 200 });
             }
 
             // 2. Underpayment check (3% tolerance for volatility + CryptAPI fees)
-            const received = value_forwarded_coin ? parseFloat(value_forwarded_coin) : null;
             const expectedAmount = order.crypto_amount ? parseFloat(String(order.crypto_amount)) : 0;
             const UNDERPAYMENT_THRESHOLD = 0.97;
             const isUnderpaid = received !== null && expectedAmount > 0 && received < expectedAmount * UNDERPAYMENT_THRESHOLD;
 
-            // 3. Mark as Paid or Underpaid
+            // 3. Atomic update: only update if status is still 'pending' (prevents double-processing)
             const updatePayload: Record<string, unknown> = {
                 status: isUnderpaid ? 'underpaid' : 'paid',
                 updated_at: new Date().toISOString(),
             };
             if (received !== null) {
                 if (isUnderpaid) {
-                    // Keep crypto_amount as expected; store received in notes for admin reference
                     updatePayload.notes = JSON.stringify({ underpaid_received: received, underpaid_expected: expectedAmount });
                 } else {
                     updatePayload.crypto_amount = received;
                 }
             }
 
-            const { error: updateError } = await supabaseAdmin
+            const { data: updatedOrder, error: updateError } = await supabaseAdmin
                 .from('orders')
                 .update(updatePayload)
-                .eq('reference_id', order_id);
+                .eq('reference_id', order_id)
+                .eq('status', 'pending')  // ← Atomic: only updates if still pending
+                .select('id')
+                .single();
 
-            if (updateError) {
-                console.error("Webhook: DB Update Error:", updateError);
+            if (updateError || !updatedOrder) {
+                // Another webhook call already processed this order — safe to ignore
+                console.log(`Webhook: Order ${order_id} was already transitioned (race condition avoided).`);
                 return new NextResponse('*ok*', { status: 200 });
             }
 
@@ -111,7 +124,8 @@ export async function GET(req: Request) {
 
             console.log(`Webhook: Order ${order_id} marked as PAID!`);
 
-            // 3. Atomic Inventory Decrement (optimistic concurrency with retry)
+            // 4. Atomic Inventory Decrement (optimistic concurrency with retry)
+            let inventoryDecrementFailed = false;
             try {
                 let totalQuantityToDeduct = 1;
                 if (order.items && Array.isArray(order.items)) {
@@ -135,7 +149,6 @@ export async function GET(req: Request) {
                     const previousQty = invData.quantity;
                     const newQty = Math.max(0, previousQty - totalQuantityToDeduct);
 
-                    // Optimistic concurrency: only update if quantity hasn't changed
                     const { data: updated, error: updateErr } = await supabaseAdmin
                         .from('inventory')
                         .update({ quantity: newQty, updated_at: new Date().toISOString() })
@@ -149,7 +162,6 @@ export async function GET(req: Request) {
                         continue;
                     }
 
-                    // Log inventory movement
                     await supabaseAdmin
                         .from('inventory_movements')
                         .insert({
@@ -169,13 +181,15 @@ export async function GET(req: Request) {
                 }
 
                 if (!decremented) {
-                    console.error(`Webhook: Failed to decrement inventory after ${MAX_RETRIES} attempts for order ${order_id}`);
+                    inventoryDecrementFailed = true;
+                    console.error(`Webhook: CRITICAL — Failed to decrement inventory after ${MAX_RETRIES} attempts for order ${order_id}`);
                 }
             } catch (invErr) {
-                console.error("Webhook: Failed to decrement inventory:", invErr);
+                inventoryDecrementFailed = true;
+                console.error("Webhook: CRITICAL — Failed to decrement inventory:", invErr);
             }
 
-            // 4. Customer upsert
+            // 5. Customer upsert
             try {
                 if (order.email) {
                     const normalizedEmail = order.email.toLowerCase().trim();
@@ -205,13 +219,14 @@ export async function GET(req: Request) {
                 console.error("Webhook: Failed to upsert customer:", custErr);
             }
 
-            // 5. Send Emails via Resend
+            // 6. Send Emails via Resend
             const notificationPromises: Promise<unknown>[] = [];
 
             if (process.env.RESEND_API_KEY) {
                 try {
-                    // Admin notification
                     const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+
+                    // Admin notification
                     if (adminEmail) {
                         const { subject, html } = orderConfirmationAdminEmail({
                             referenceId: order_id,
@@ -226,6 +241,19 @@ export async function GET(req: Request) {
                         notificationPromises.push(
                             resend.emails.send({ from: EMAIL_FROM, replyTo: EMAIL_REPLY_TO, to: adminEmail, subject, html })
                                 .catch((err) => console.error('Webhook: Failed to send admin email:', err))
+                        );
+                    }
+
+                    // Admin alert if inventory decrement failed
+                    if (inventoryDecrementFailed && adminEmail) {
+                        notificationPromises.push(
+                            resend.emails.send({
+                                from: EMAIL_FROM,
+                                replyTo: EMAIL_REPLY_TO,
+                                to: adminEmail,
+                                subject: `🚨 INVENTARIO: Decremento fallito per ordine ${order_id.slice(-8).toUpperCase()}`,
+                                html: `<p>L'ordine ${order_id} è stato marcato come PAID ma il decremento inventario è fallito dopo 3 tentativi. Verificare manualmente lo stock di RET-KIT-1.</p>`,
+                            }).catch((err) => console.error('Webhook: Failed to send inventory alert:', err))
                         );
                     }
 
@@ -257,7 +285,7 @@ export async function GET(req: Request) {
                         );
                     }
 
-                    // Warehouse email notifications
+                    // Warehouse email + SMS notifications
                     const { data: warehouseMembers } = await supabaseAdmin
                         .from('profiles')
                         .select('email, full_name, phone')
@@ -282,7 +310,6 @@ export async function GET(req: Request) {
                                         .catch((err) => console.error(`Webhook: Failed to send warehouse email to ${wh.email}:`, err))
                                 );
                             }
-                            // Warehouse SMS
                             if (wh.phone) {
                                 const shortAddr = [shippingAddress.address_line_1, shippingAddress.city, shippingAddress.postal_code, shippingAddress.country].filter(Boolean).join(', ');
                                 notificationPromises.push(
@@ -301,12 +328,12 @@ export async function GET(req: Request) {
                 console.log("Webhook: RESEND_API_KEY missing. Skipped emails.");
             }
 
-            // 6. Customer SMS confirmation
+            // 7. Customer SMS confirmation
             if (order.shipping_address?.phone) {
                 notificationPromises.push(
                     sendSMS({
                         to: order.shipping_address.phone,
-                        body: `Aura Peptides: il tuo pagamento è confermato! Ordine #${order_id.slice(-8).toUpperCase()}. Il kit è in preparazione e riceverai il tracking appena spedito.`,
+                        body: `Aura Peptides: il tuo pagamento è confermato! Ordine #${order_id.slice(-8).toUpperCase()}. Il kit è in preparazione.`,
                     }).catch((err) => console.error('Webhook: Failed to send customer SMS:', err))
                 );
             }

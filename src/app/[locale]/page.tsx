@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { LiveInventoryBadge } from "@/components/ui/LiveInventoryBadge";
 import { RecentSalesPopup } from "@/components/ui/RecentSalesPopup";
 import { HomeStructuredData } from "@/components/seo/HomeStructuredData";
+import { useStock } from "@/components/ui/useStock";
 
 export default function Home() {
   const t = useTranslations('Index');
@@ -19,6 +20,7 @@ export default function Home() {
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [tickerIndex, setTickerIndex] = useState(0);
   const [orderCount, setOrderCount] = useState<number | null>(null);
+  const stock = useStock();
 
   useEffect(() => {
     const handleScroll = () => setShowStickyBar(window.scrollY > 400);
@@ -167,7 +169,7 @@ export default function Home() {
               <div className="flex items-start gap-3 text-brand-gold/90 text-sm">
                 <Truck className="w-5 h-5 mt-0.5 shrink-0" />
                 <div className="flex flex-col gap-1">
-                  <span><strong className="text-white">{t('shipping_promise')}</strong> {t('shipping_condition')}</span>
+                  <span><strong className="text-white">{t('shipping_promise')}</strong> <span className="block md:inline mt-0.5 md:mt-0">{t('shipping_condition')}</span></span>
                   <div className="flex items-center gap-1.5 text-xs text-white/60 font-medium mt-1">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse shrink-0"></span>
                     <span>{t('shipping_timeline_simple')}</span>
@@ -750,7 +752,7 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-1 mt-1">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0"></span>
-              <span className="text-xs text-red-400 leading-none whitespace-nowrap">{t('inventory_high_demand')} 47 {t('inventory_kits_remaining')}</span>
+              <span className="text-xs text-red-400 leading-none whitespace-nowrap">{t('inventory_high_demand')} <strong className="text-white tabular-nums">{stock}</strong> {t('inventory_kits_remaining')}</span>
             </div>
           </div>
           <PremiumButton
