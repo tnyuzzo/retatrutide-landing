@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Lock, CheckCircle, ArrowLeft, Shield, Package, MapPin, CreditCard, AlertCircle, XCircle, Mail } from "lucide-react";
 import { CheckoutPoller } from "@/components/ui/CheckoutPoller";
 import { CopyAddressButton } from "@/components/ui/CopyAddressButton";
+import { CopyAmountButton } from "@/components/ui/CopyAmountButton";
 import { CheckoutCountdown } from "@/components/ui/CheckoutCountdown";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -185,11 +186,9 @@ export default async function CheckoutPage(props: {
                         <div className="w-7 h-7 rounded-full bg-brand-gold flex items-center justify-center text-brand-void font-bold text-sm shrink-0">1</div>
                         <span className="text-sm font-semibold text-white uppercase tracking-wide">{t('checkout_exact_amount')}</span>
                     </div>
-                    <div className="py-8 px-6 text-center">
-                        <div className="text-6xl font-bold text-brand-gold tracking-tight leading-none">
-                            {order.crypto_amount}
-                        </div>
-                        <div className="text-lg text-white/60 mt-3 font-medium">
+                    <div className="py-8 px-6 text-center flex flex-col items-center gap-3">
+                        <CopyAmountButton amount={order.crypto_amount} />
+                        <div className="text-lg text-white/60 font-medium">
                             {order.crypto_currency}
                             {order.crypto_currency === 'USDT' && (
                                 <span className="ml-2 text-sm text-white/40">(TRC20)</span>
