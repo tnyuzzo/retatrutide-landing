@@ -222,8 +222,8 @@ export default async function CheckoutPage(props: {
                         <span className="text-sm font-medium text-white/60 uppercase tracking-wide">{t('checkout_qr_label')}</span>
                     </summary>
                     <div className="flex justify-center p-6">
-                        <div className="bg-white p-4 rounded-2xl shadow-[0_0_30px_rgba(212,175,55,0.1)]">
-                            <QRCodeSVG value={order.payment_url || ""} size={180} level="H" includeMargin={true} />
+                        <div className="bg-white p-2 rounded-xl shadow-[0_0_30px_rgba(212,175,55,0.1)]">
+                            <QRCodeSVG value={order.payment_url || ""} size={220} level="H" includeMargin={false} />
                         </div>
                     </div>
                 </details>
