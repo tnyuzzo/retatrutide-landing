@@ -26,7 +26,19 @@ export async function verifyAuth(req: NextRequest) {
         throw new AuthError('Invalid or expired token', 401);
     }
 
-    const role = (user.app_metadata?.role as string) || 'customer';
+    // Prefer app_metadata.role (set by team invite flow), fallback to profiles table
+    let role = (user.app_metadata?.role as string) || '';
+    if (!role || role === 'customer') {
+        const { data: profile } = await supabaseAdmin
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+        if (profile?.role && profile.role !== 'customer') {
+            role = profile.role;
+        }
+    }
+    if (!role) role = 'customer';
 
     return { user, role, supabase: supabaseAdmin };
 }

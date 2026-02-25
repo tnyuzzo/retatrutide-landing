@@ -7,9 +7,9 @@
 
 ## Current State
 
-- **Last deploy**: 2026-02-25 (commit `b6940f4`)
+- **Last deploy**: 2026-02-25 (commit `03f4afa`)
 - **Branch**: main (up to date with origin/main)
-- **Build**: 81 static pages + 18 API routes, zero errors
+- **Build**: 81 static pages + 19 API routes, zero errors
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
 - **Domain**: aurapep.eu (Vercel, auto-deploy on push to main)
 - **Untracked files**: `addShipKeys.js`
@@ -67,9 +67,12 @@
 **Payment flow**:
 1. Customer seleziona crypto nella order page
 2. `POST /api/checkout` → CryptAPI genera indirizzo di pagamento unico
-3. QR code + indirizzo mostrati nella checkout page
-4. Customer invia crypto → CryptAPI webhook conferma → ordine → "paid"
-5. Buffer volatilità 1% aggiunto automaticamente
+3. Email immediata al customer con indirizzo, importo crypto, link checkout e istruzioni
+4. QR code + indirizzo mostrati nella checkout page
+5. Customer invia crypto → CryptAPI webhook conferma → ordine → "paid"
+6. Buffer volatilità 1% aggiunto automaticamente
+7. Se non paga: email recovery a 1h, 12h, 48h. Dopo 72h → status "expired"
+8. Pagamenti in ritardo su ordini expired vengono comunque accettati
 
 ---
 
@@ -106,7 +109,7 @@
 ```
 
 **Status possibili**: `pending → paid → processing → shipped → delivered`
-Alternative: `cancelled`, `expired` (24h timeout), `refunded`, `partially_refunded`
+Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati), `refunded`, `partially_refunded`, `underpaid`
 
 ---
 
@@ -276,7 +279,7 @@ Alternative: `cancelled`, `expired` (24h timeout), `refunded`, `partially_refund
 | Route | Method | Auth | Scopo |
 |-------|--------|------|-------|
 | `/api/checkout` | POST | None (rate limited) | Crea ordine + genera indirizzo crypto |
-| `/api/checkout/pending` | GET | None | Idempotenza: cerca ordini pending per email (ultimi 24h) |
+| `/api/checkout/pending` | GET | None | Idempotenza: cerca ordini pending per email (ultimi 72h) |
 | `/api/checkout/status` | GET | None | Poll status ordine (per CheckoutPoller) |
 | `/api/portal` | GET | None | Lookup ordine cliente (email + reference_id) |
 | `/api/c/[code]` | GET | None | Redirect short link + incrementa click |
@@ -286,9 +289,10 @@ Alternative: `cancelled`, `expired` (24h timeout), `refunded`, `partially_refund
 
 | Route | Method | Auth | Scopo |
 |-------|--------|------|-------|
-| `/api/webhooks/cryptapi` | GET | WEBHOOK_SECRET | Conferma pagamento crypto |
+| `/api/webhooks/cryptapi` | GET | WEBHOOK_SECRET | Conferma pagamento crypto (accetta anche expired) |
 | `/api/cron/check-tracking` | GET | CRON_SECRET | Daily: aggiorna tracking spedizioni |
-| `/api/cron/expire-orders` | GET | CRON_SECRET | Daily 3AM UTC: scade ordini pending >24h |
+| `/api/cron/expire-orders` | GET | CRON_SECRET | Daily 3AM UTC: scade ordini pending >72h |
+| `/api/cron/cart-recovery` | GET | CRON_SECRET | Hourly: invia email recovery (1h, 12h, 48h) a ordini pending |
 
 ---
 
@@ -355,17 +359,20 @@ Alternative: `cancelled`, `expired` (24h timeout), `refunded`, `partially_refund
 
 ---
 
-## Email System (6 template)
+## Email System (9 template)
 
 Tutti definiti in `src/lib/email-templates.ts`. Design: dark theme, gold accent (#D4AF37), HTML responsive.
 From: `Aura Peptides <noreply@aurapep.eu>` — Reply-to: `support@aurapeptides.eu`
 
-1. **Admin Order Alert** — "🚨 NUOVO ORDINE PAGATO: {ID} — €{amount}" → admin@aurapeptides.eu
-2. **Customer Confirmation** — Ricevuta ordine con reference number → customer email
-3. **Shipment Notification** — "📦 Il tuo ordine è stato spedito!" + tracking link → customer
-4. **Low Stock Alert** — Stock sotto 20 unità → admin
-5. **Warehouse Notice** — Dettagli ordine per fulfillment → warehouse staff
-6. **Refund Confirmation** — Conferma rimborso con importo → customer
+1. **Order Created** — Email immediata alla creazione ordine con indirizzo crypto, importo, link checkout e istruzioni → customer email
+2. **Admin Order Alert** — "🚨 NUOVO ORDINE PAGATO: {ID} — €{amount}" → admin@aurapeptides.eu
+3. **Customer Confirmation** — Ricevuta ordine post-pagamento con reference number → customer email
+4. **Shipment Notification** — "📦 Il tuo ordine è stato spedito!" + tracking link → customer
+5. **Low Stock Alert** — Stock sotto 20 unità → admin
+6. **Warehouse Notice** — Dettagli ordine per fulfillment → warehouse staff
+7. **Refund Confirmation** — Conferma rimborso con importo → customer
+8. **Underpaid Alert** — Pagamento incompleto con confronto importi → admin
+9. **Cart Recovery** — 3 varianti (1h/12h/48h) con urgenza crescente, indirizzo crypto + link checkout → customer
 
 ---
 
@@ -499,6 +506,20 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-25] **72h order lifecycle + instant payment email + cart recovery** (commit `03f4afa`):
+  - Ordini pending ora validi 72h (era 24h) — expire-orders cron + checkout/pending cutoff aggiornati
+  - Email immediata alla creazione ordine con indirizzo crypto, importo, link checkout e istruzioni ChangeHero
+  - Cart recovery cron (hourly): 3 email a 1h/12h/48h con urgenza crescente per ordini non pagati
+  - Webhook accetta pagamenti su ordini expired (li riattiva automaticamente)
+  - Admin: filtro "Scaduti" + badge nel tab ordini
+  - Migration `06_cart_recovery.sql`: colonne `recovery_emails_sent` + `last_recovery_email_at`
+  - 3 nuovi template email: Order Created, Cart Recovery (3 varianti), Underpaid Alert
+- [2026-02-25] **Lead capture + security audit + social proof** (commit `beca08e`):
+  - Progressive lead capture: `/api/leads` POST endpoint, onBlur handlers su form ordine
+  - Security: timing-safe webhook secret, atomic status update, inventory failure alert, email XSS escaping
+  - RecentSalesPopup: geo-aware (15 città per locale), privacy-first ("Un ricercatore da {city}")
+  - LiveInventoryBadge: real-time timestamp con timezone visitatore, useStock hook condiviso
+  - Sticky bar sincronizzata con stock counter via modulo-level singleton
 - [2026-02-25] **Tablet layout fix — color bands + hero image** (commit `b6940f4`):
   - `page.tsx`: `bg-black` → `bg-brand-void` (features section); `bg-[#0a0a0a]` → `bg-brand-void` (ticker sections); `from-[#0a0a0a]` → `from-brand-void` (ticker gradients); `bg-brand-gold/5` → `bg-brand-void` (calculator CTA)
   - Hero product image: `h-36` → `h-36 md:h-52` con `md:max-w-md`; badge `self-center` → `self-center md:self-start`
@@ -563,13 +584,15 @@ supabase/migrations/                # 4 SQL migration files
 
 ## In Progress
 
-- Nessun task in corso. **Piano CRO completo** — tutti gli item del piano implementati e pushati.
+- **Test pagamento**: BASE_PRICE = 10€ in `order/page.tsx:11` e `checkout/route.ts:110` — **RIPRISTINARE A 197 dopo test**
+- **Migration da eseguire**: `06_cart_recovery.sql` su Supabase (aggiunge colonne recovery email tracking)
+- **Migration da eseguire**: `05_leads_table.sql` su Supabase (tabella leads per progressive capture)
 
 ## TODO / Planned
 
 - [ ] Configurare wallet XRP (attualmente placeholder `CRYPTAPI_XRP_WALLET`)
 - [ ] Valutare ottimizzazioni SEO aggiuntive (content marketing, blog, backlinks)
-- [ ] **Tier 2 opzionale**: Sezione "Fiducia Garantita" → contatore dinamico ordini via API (non implementato — i trust badge in testimonials coprono già il trust need)
+- [ ] **Ripristinare BASE_PRICE a 197** dopo test pagamento (order/page.tsx:11 + checkout/route.ts:110)
 
 ---
 

@@ -11,7 +11,7 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
 const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
 const EMAIL_REPLY_TO = 'support@aurapeptides.eu';
 
-const BASE_PRICE = 12; // TODO: restore to 197 after testing
+const BASE_PRICE = 197;
 const DISCOUNT_TIERS = [
     { min: 30, discount: 50 },
     { min: 20, discount: 35 },

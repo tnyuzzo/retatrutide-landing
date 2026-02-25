@@ -109,7 +109,7 @@ export async function POST(req: Request) {
         const { email, shipping_address, quantity, crypto_currency } = parsed.data;
 
         // ── Price Calculation (must match frontend tiers) ──
-        const basePrice = 10; // ⚠️ TESTING — ripristinare a 197 per produzione
+        const basePrice = 197;
         const discountPercent = getDiscount(quantity);
         const unitPrice = Math.round(basePrice * (1 - discountPercent / 100));
         const fiat_amount = unitPrice * quantity;

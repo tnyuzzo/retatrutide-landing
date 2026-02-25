@@ -5,25 +5,53 @@ import { ShieldAlert, LogOut, Loader2 } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import type { User } from "@supabase/supabase-js";
 
+const ADMIN_ROLES = ['super_admin', 'manager', 'seller', 'warehouse'];
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
+    const [resolvedRole, setResolvedRole] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loginLoading, setLoginLoading] = useState(false);
 
+    // Resolve role: JWT app_metadata first, then profiles table fallback
+    const resolveRole = async (u: User) => {
+        const jwtRole = (u.app_metadata?.role as string) || '';
+        if (jwtRole && ADMIN_ROLES.includes(jwtRole)) {
+            setResolvedRole(jwtRole);
+            return;
+        }
+        // Fallback: check profiles table
+        const { data: profile } = await supabaseBrowser
+            .from('profiles')
+            .select('role')
+            .eq('id', u.id)
+            .single();
+        setResolvedRole(profile?.role || 'customer');
+    };
+
     useEffect(() => {
         supabaseBrowser.auth.getSession().then(({ data: { session } }) => {
-            setUser(session?.user ?? null);
-            setLoading(false);
+            const u = session?.user ?? null;
+            setUser(u);
+            if (u) {
+                resolveRole(u).finally(() => setLoading(false));
+            } else {
+                setLoading(false);
+            }
         });
 
         const { data: { subscription } } = supabaseBrowser.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
+            const u = session?.user ?? null;
+            setUser(u);
+            if (u) resolveRole(u);
+            else setResolvedRole(null);
         });
 
         return () => subscription.unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -105,7 +133,26 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         );
     }
 
-    const role = (user.app_metadata?.role as string) || "customer";
+    const role = resolvedRole || 'customer';
+
+    // Block non-admin users
+    if (!ADMIN_ROLES.includes(role)) {
+        return (
+            <div className="min-h-screen bg-[#070A0F] text-white flex items-center justify-center font-sans p-6">
+                <div className="w-full max-w-sm flex flex-col gap-4 p-8 rounded-2xl border border-red-500/20 bg-red-500/5 text-center">
+                    <ShieldAlert className="w-10 h-10 text-red-400 mx-auto" />
+                    <h1 className="text-lg font-medium text-red-400">Accesso negato</h1>
+                    <p className="text-sm text-white/50">Il tuo account non ha i permessi per accedere al pannello admin.</p>
+                    <button
+                        onClick={handleLogout}
+                        className="mt-2 text-xs text-white/50 hover:text-red-400 transition-colors border border-white/10 px-4 py-2 rounded-lg mx-auto"
+                    >
+                        <LogOut className="w-3 h-3 inline mr-1" /> Esci
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#070A0F] text-white flex flex-col font-sans">

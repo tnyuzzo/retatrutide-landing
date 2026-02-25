@@ -8,7 +8,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { OrderStructuredData } from "@/components/seo/OrderStructuredData";
 
-const BASE_PRICE = 10; // ⚠️ TESTING — ripristinare a 197 per produzione
+const BASE_PRICE = 197;
 
 const DISCOUNT_TIERS = [
     { min: 1, discount: 0 },

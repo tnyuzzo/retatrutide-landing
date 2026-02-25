@@ -66,13 +66,16 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
         }
 
-        // Restore inventory
-        let totalToRestore = 1;
+        // Restore inventory (proportional for partial refunds)
+        let totalOrderQty = 1;
         if (order.items && Array.isArray(order.items)) {
-            totalToRestore = order.items.reduce(
+            totalOrderQty = order.items.reduce(
                 (sum: number, item: { quantity?: number }) => sum + (item.quantity || 1), 0
             );
         }
+        const totalToRestore = isPartial
+            ? Math.max(1, Math.round(totalOrderQty * (refundAmount / orderAmount)))
+            : totalOrderQty;
 
         for (let attempt = 0; attempt < 3; attempt++) {
             const { data: inv } = await supabaseAdmin

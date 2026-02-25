@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────
-type OrderStatus = 'pending' | 'paid' | 'underpaid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded' | 'partially_refunded';
+type OrderStatus = 'pending' | 'paid' | 'underpaid' | 'expired' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded' | 'partially_refunded';
 type TabId = 'dashboard' | 'orders' | 'inventory' | 'customers' | 'team' | 'settings';
 
 type Order = {
@@ -89,6 +89,7 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState<TabId>('dashboard');
     const [token, setToken] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     // Dashboard state
     const [dashboard, setDashboard] = useState<DashboardData | null>(null);
@@ -140,15 +141,27 @@ export default function AdminDashboard() {
     }), [token]);
 
     // ── Fetchers ──────────────────────────────────
+    const handleFetchError = useCallback(async (res: Response, context: string) => {
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            const msg = body.error || `Errore ${res.status} in ${context}`;
+            setErrorMsg(msg);
+            console.error(`${context}:`, msg);
+            return false;
+        }
+        setErrorMsg(null);
+        return true;
+    }, []);
+
     const fetchDashboard = useCallback(async () => {
         if (!token) return;
         setLoading(true);
         try {
             const res = await fetch('/api/admin/dashboard', { headers: authHeaders() });
-            if (res.ok) setDashboard(await res.json());
-        } catch (e) { console.error(e); }
+            if (await handleFetchError(res, 'Dashboard')) setDashboard(await res.json());
+        } catch (e) { setErrorMsg('Errore di rete nel caricamento dashboard'); console.error(e); }
         setLoading(false);
-    }, [token, authHeaders]);
+    }, [token, authHeaders, handleFetchError]);
 
     const fetchOrders = useCallback(async () => {
         if (!token) return;
@@ -158,22 +171,22 @@ export default function AdminDashboard() {
             if (statusFilter !== 'all') params.set('status', statusFilter);
             if (searchTerm) params.set('search', searchTerm);
             const res = await fetch(`/api/admin/orders?${params}`, { headers: authHeaders() });
-            if (res.ok) { const d = await res.json(); setOrders(d.orders || []); }
-        } catch (e) { console.error(e); }
+            if (await handleFetchError(res, 'Ordini')) { const d = await res.json(); setOrders(d.orders || []); }
+        } catch (e) { setErrorMsg('Errore di rete nel caricamento ordini'); console.error(e); }
         setLoading(false);
-    }, [token, statusFilter, searchTerm, authHeaders]);
+    }, [token, statusFilter, searchTerm, authHeaders, handleFetchError]);
 
     const fetchInventory = useCallback(async () => {
         if (!token) return;
         try {
             const res = await fetch('/api/admin/inventory', { headers: authHeaders() });
-            if (res.ok) {
+            if (await handleFetchError(res, 'Inventario')) {
                 const d = await res.json();
                 setInvStock(d.current_stock);
                 setInvMovements(d.movements || []);
             }
-        } catch (e) { console.error(e); }
-    }, [token, authHeaders]);
+        } catch (e) { setErrorMsg('Errore di rete nel caricamento inventario'); console.error(e); }
+    }, [token, authHeaders, handleFetchError]);
 
     const fetchCustomers = useCallback(async () => {
         if (!token) return;
@@ -181,29 +194,29 @@ export default function AdminDashboard() {
             const params = new URLSearchParams();
             if (customerSearch) params.set('search', customerSearch);
             const res = await fetch(`/api/admin/customers?${params}`, { headers: authHeaders() });
-            if (res.ok) {
+            if (await handleFetchError(res, 'Clienti')) {
                 const d = await res.json();
                 setCustomers(d.customers || []);
                 setCustomerAggregates(d.aggregates || null);
             }
-        } catch (e) { console.error(e); }
-    }, [token, customerSearch, authHeaders]);
+        } catch (e) { setErrorMsg('Errore di rete nel caricamento clienti'); console.error(e); }
+    }, [token, customerSearch, authHeaders, handleFetchError]);
 
     const fetchTeam = useCallback(async () => {
         if (!token) return;
         try {
             const res = await fetch('/api/admin/team', { headers: authHeaders() });
-            if (res.ok) { const d = await res.json(); setTeamMembers(d.members || []); }
-        } catch (e) { console.error(e); }
-    }, [token, authHeaders]);
+            if (await handleFetchError(res, 'Team')) { const d = await res.json(); setTeamMembers(d.members || []); }
+        } catch (e) { setErrorMsg('Errore di rete nel caricamento team'); console.error(e); }
+    }, [token, authHeaders, handleFetchError]);
 
     const fetchSettings = useCallback(async () => {
         if (!token) return;
         try {
             const res = await fetch('/api/admin/settings', { headers: authHeaders() });
-            if (res.ok) { const d = await res.json(); setStoreSettings(d.settings || {}); }
-        } catch (e) { console.error(e); }
-    }, [token, authHeaders]);
+            if (await handleFetchError(res, 'Impostazioni')) { const d = await res.json(); setStoreSettings(d.settings || {}); }
+        } catch (e) { setErrorMsg('Errore di rete nel caricamento impostazioni'); console.error(e); }
+    }, [token, authHeaders, handleFetchError]);
 
     // Load data on tab switch
     useEffect(() => {
@@ -364,6 +377,13 @@ export default function AdminDashboard() {
 
     return (
         <div className="max-w-7xl mx-auto flex flex-col gap-6">
+            {/* Error Banner */}
+            {errorMsg && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 flex items-center justify-between">
+                    <span className="text-red-400 text-sm">{errorMsg}</span>
+                    <button onClick={() => setErrorMsg(null)} className="text-red-400/50 hover:text-red-400 text-xs ml-4">✕</button>
+                </div>
+            )}
             {/* Tab Navigation */}
             <div className="flex gap-1 bg-white/[0.02] border border-white/5 rounded-xl p-1 overflow-x-auto">
                 {tabs.map(tab => (
@@ -543,6 +563,25 @@ export default function AdminDashboard() {
                                                     <div className="text-xs text-white/50 flex items-center gap-1">
                                                         <CheckCircle className="w-3 h-3 text-brand-gold" />
                                                         {order.carrier} · {order.tracking_number}
+                                                    </div>
+                                                ) : order.status === 'expired' ? (
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => acceptUnderpaid(order.id)} disabled={updating[order.id]}
+                                                            className="bg-green-500/10 text-green-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-green-500/20 transition-colors flex-1">
+                                                            {updating[order.id] ? '...' : 'Accetta pagamento'}
+                                                        </button>
+                                                        <button onClick={() => {
+                                                            if (!confirm('Cancellare questo ordine scaduto?')) return;
+                                                            setUpdating(p => ({ ...p, [order.id]: true }));
+                                                            fetch('/api/admin/orders', {
+                                                                method: 'POST', headers: authHeaders(),
+                                                                body: JSON.stringify({ action: 'update-status', order_id: order.id, new_status: 'cancelled' }),
+                                                            }).then(r => { if (r.ok) fetchOrders(); else r.json().then(d => alert(d.error || 'Errore')); })
+                                                              .finally(() => setUpdating(p => ({ ...p, [order.id]: false })));
+                                                        }} disabled={updating[order.id]}
+                                                            className="bg-red-500/10 text-red-400 disabled:opacity-30 px-3 py-1.5 rounded text-xs hover:bg-red-500/20 transition-colors">
+                                                            Cancella
+                                                        </button>
                                                     </div>
                                                 ) : ['processing'].includes(order.status) ? (
                                                     <button onClick={() => refundOrder(order.id)} disabled={updating[order.id]}
