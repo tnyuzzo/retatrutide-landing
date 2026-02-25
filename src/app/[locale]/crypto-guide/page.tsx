@@ -54,6 +54,7 @@ export default function CryptoGuidePage() {
                     </div>
                     <h1 className="text-3xl md:text-4xl font-light">{t("crypto_title")}</h1>
                     <p className="text-white/50 text-sm mt-2">{t("crypto_subtitle")}</p>
+                    <p className="text-white/35 text-xs mt-4 max-w-md mx-auto leading-relaxed italic">{t("crypto_reassurance")}</p>
                 </div>
 
                 {/* Why Crypto */}
@@ -93,10 +94,7 @@ export default function CryptoGuidePage() {
                             <h3 className="text-base font-semibold text-white text-center leading-snug">{t("crypto_step1_title")}</h3>
                         </div>
                         <p className="text-sm text-white/55 leading-relaxed">{t("crypto_step1_desc")}</p>
-                        <div className="inline-flex items-center gap-2 text-xs text-brand-gold/70 bg-brand-gold/5 border border-brand-gold/15 px-3 py-2 rounded-lg self-start">
-                            <Copy className="w-3.5 h-3.5 shrink-0" />
-                            <span>USDT (TRC20) recommended</span>
-                        </div>
+                        <p className="text-xs text-white/30 leading-relaxed italic">{t("crypto_step1_tip")}</p>
                     </div>
 
                     {/* Step 2 */}

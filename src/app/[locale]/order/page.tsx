@@ -310,11 +310,17 @@ export default function OrderPage() {
                 </div>
             </header>
 
-            <div className="flex-1 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 p-6 md:p-12 relative">
+            <div className="flex-1 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 p-6 md:p-12 pb-28 lg:pb-12 relative">
                 <div className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
 
                 {/* LEFT COLUMN */}
                 <div className="lg:col-span-7 flex flex-col gap-8 relative z-10">
+                    {/* Step indicator */}
+                    <div className="flex items-center gap-2 text-xs text-white/40">
+                        <span className="w-5 h-5 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold text-[10px] font-semibold">1</span>
+                        <span>{t('order_step_indicator')}</span>
+                    </div>
+
                     <div>
                         <h1 className="text-3xl md:text-5xl font-light mb-2">{t('order_select_title')} <span className="font-medium text-brand-gold">{t('order_select_highlight')}</span></h1>
                         <p className="text-white/50 text-sm">{t('order_select_desc')}</p>
@@ -498,7 +504,7 @@ export default function OrderPage() {
                         <div className="p-6 flex flex-col gap-4">
                             {/* Contact Box (Group 1) */}
                             <div className="flex flex-col gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/5">
-                                <span className="text-[10px] uppercase tracking-widest text-brand-gold font-medium mb-1">Contact</span>
+                                <span className="text-[10px] uppercase tracking-widest text-brand-gold font-medium mb-1">{t('order_form_contact')}</span>
                                 {/* Email */}
                                 <div className="relative">
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
@@ -560,7 +566,7 @@ export default function OrderPage() {
 
                             {/* Shipping Box (Group 2) */}
                             <div className="flex flex-col gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/5">
-                                <span className="text-[10px] uppercase tracking-widest text-brand-gold font-medium mb-1">Destination</span>
+                                <span className="text-[10px] uppercase tracking-widest text-brand-gold font-medium mb-1">{t('order_form_destination')}</span>
                                 {/* Country */}
                                 <div className="relative">
                                     <select
@@ -681,36 +687,8 @@ export default function OrderPage() {
                             </div>
                         </div>
 
-                        {/* WHY CRYPTO */}
-                        <div className="mt-6 bg-white/5 rounded-xl p-4 border border-white/10">
-                            <h3 className="flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-brand-gold mb-4">
-                                <Zap className="w-3.5 h-3.5" />
-                                {t('order_why_crypto')}
-                            </h3>
-                            <div className="flex flex-col gap-3.5">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-full bg-brand-gold/10 flex items-center justify-center shrink-0 mt-0.5">
-                                        <Zap className="w-3.5 h-3.5 text-brand-gold" />
-                                    </div>
-                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_1')}</p>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-full bg-brand-gold/10 flex items-center justify-center shrink-0 mt-0.5">
-                                        <Eye className="w-3.5 h-3.5 text-brand-gold" />
-                                    </div>
-                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_2')}</p>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                                        <Shield className="w-3.5 h-3.5 text-green-400" />
-                                    </div>
-                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_3')}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* NO CRYPTO CARD - Prominent */}
-                        <div className="mt-3 rounded-xl p-4 border border-brand-gold/40 bg-brand-gold/5">
+                        {/* NO CRYPTO CARD - Prominent, right after total */}
+                        <div className="rounded-xl p-4 border border-brand-gold/40 bg-brand-gold/5">
                             <div className="flex items-center gap-2 mb-2">
                                 <CreditCard className="w-4 h-4 text-brand-gold shrink-0" />
                                 <p className="text-sm font-semibold text-white">{t('order_no_crypto_title')}</p>
@@ -724,37 +702,61 @@ export default function OrderPage() {
                             </a>
                         </div>
 
-                        {/* PAYMENT SELECTION */}
-                        <div className="flex flex-col gap-4 mt-6">
+                        {/* PAYMENT SELECTION + CRYPTO SELECTOR */}
+                        <div className="flex flex-col gap-4 mt-4">
                             <h3 className="text-sm font-medium text-white/70 uppercase tracking-widest">{t('order_payment_method')}</h3>
 
-                            <div className="flex items-center gap-3 py-3 px-4 rounded-xl border bg-brand-gold/10 border-brand-gold text-brand-gold">
-                                <Lock className="w-5 h-5" />
-                                <span className="text-xs font-medium">{t('order_crypto_native')}</span>
-                            </div>
-                        </div>
-
-                        {/* CRYPTO SELECTOR */}
-                        <div className="bg-black/40 rounded-xl p-4 mt-2">
-                            <div className="flex flex-col gap-3 animate-fade-in">
-                                <p className="text-xs text-white/60">{t('order_crypto_desc')}</p>
+                            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <Lock className="w-4 h-4 text-brand-gold" />
+                                    <span className="text-xs font-medium text-brand-gold">{t('order_crypto_native')}</span>
+                                </div>
+                                <p className="text-xs text-white/50 mb-3">{t('order_crypto_desc')}</p>
                                 <div className="relative h-10">
                                     <select
                                         value={selectedCrypto}
                                         onChange={(e) => setSelectedCrypto(e.target.value)}
                                         className="w-full h-full bg-brand-void/80 border border-brand-gold/30 text-white text-sm rounded-lg px-4 appearance-none focus:outline-none focus:border-brand-gold tracking-wider cursor-pointer font-medium"
                                     >
+                                        <option value="USDT">USDT — Stablecoin (TRC20) ✓</option>
                                         <option value="BTC">Bitcoin (BTC)</option>
                                         <option value="ETH">Ethereum (ETH)</option>
-                                        <option value="XMR">Monero (XMR)</option>
+                                        <option value="USDC">USDC — Stablecoin (ERC20)</option>
                                         <option value="SOL">Solana (SOL)</option>
-                                        <option value="USDT">Tether USDT (TRC20)</option>
-                                        <option value="USDC">USD Coin (ERC20)</option>
+                                        <option value="XMR">Monero (XMR)</option>
                                     </select>
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-gold/50 text-xs">▼</div>
                                 </div>
                             </div>
                         </div>
+
+                        {/* WHY CRYPTO — collapsed accordion */}
+                        <details className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+                            <summary className="flex items-center gap-2 px-4 py-3 cursor-pointer text-xs font-medium uppercase tracking-widest text-brand-gold hover:bg-white/5 transition-colors">
+                                <Zap className="w-3.5 h-3.5" />
+                                {t('order_why_crypto')}
+                            </summary>
+                            <div className="px-4 pb-4 flex flex-col gap-3">
+                                <div className="flex items-start gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-brand-gold/10 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Zap className="w-3 h-3 text-brand-gold" />
+                                    </div>
+                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_1')}</p>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-brand-gold/10 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Eye className="w-3 h-3 text-brand-gold" />
+                                    </div>
+                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_2')}</p>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Shield className="w-3 h-3 text-green-400" />
+                                    </div>
+                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_3')}</p>
+                                </div>
+                            </div>
+                        </details>
 
                         {/* ERROR */}
                         {formError && (
@@ -811,13 +813,13 @@ export default function OrderPage() {
                             </div>
                         )}
 
-                        {/* TRUST SIGNALS UNDER PAY BUTTON (UX Improvement) */}
+                        {/* TRUST SIGNALS UNDER PAY BUTTON */}
                         <div className="flex flex-col items-center justify-center gap-2 mt-4 text-center">
                             <div className="flex items-center gap-2 text-green-400">
                                 <Shield className="w-4 h-4" />
-                                <span className="text-[11px] font-medium tracking-wide">100% Secure & Anonymous Crypto Checkout</span>
+                                <span className="text-[11px] font-medium tracking-wide">{t('order_trust_headline')}</span>
                             </div>
-                            <span className="text-[10px] text-white/40 max-w-xs leading-relaxed">Your transaction is fully encrypted. The next screen will guide you step-by-step through the payment.</span>
+                            <span className="text-[10px] text-white/40 max-w-xs leading-relaxed">{t('order_trust_subtext')}</span>
                         </div>
                     </div>
                 </div>
@@ -833,12 +835,12 @@ export default function OrderPage() {
                         onChange={(e) => setSelectedCrypto(e.target.value)}
                         className="flex-1 h-7 bg-brand-void border border-brand-gold/30 text-white text-[11px] rounded-md px-2 appearance-none focus:outline-none focus:border-brand-gold cursor-pointer font-medium"
                     >
-                        <option value="BTC">Bitcoin (BTC)</option>
-                        <option value="ETH">Ethereum (ETH)</option>
-                        <option value="XMR">Monero (XMR)</option>
-                        <option value="SOL">Solana (SOL)</option>
-                        <option value="USDT">USDT (TRC20)</option>
-                        <option value="USDC">USDC (ERC20)</option>
+                        <option value="USDT">USDT ✓</option>
+                        <option value="BTC">Bitcoin</option>
+                        <option value="ETH">Ethereum</option>
+                        <option value="USDC">USDC</option>
+                        <option value="SOL">Solana</option>
+                        <option value="XMR">Monero</option>
                     </select>
                 </div>
                 {/* Price + CTA row */}
