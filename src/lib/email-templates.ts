@@ -363,9 +363,9 @@ export function orderCreatedEmail(params: OrderCreatedParams) {
                 <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:0;line-height:1.6;">
                     <strong style="color:rgba(255,255,255,0.7);">Come completare il pagamento:</strong><br>
                     1. Copia l'indirizzo ${cryptoCurrency} qui sopra<br>
-                    2. Apri il tuo wallet o vai su <a href="https://changehero.io" style="color:${BRAND_GOLD};text-decoration:none;">ChangeHero</a> per acquistare crypto con carta<br>
-                    3. Invia esattamente <strong style="color:white;">${cryptoAmount} ${cryptoCurrency}</strong><br>
-                    4. Il pagamento viene confermato automaticamente in pochi minuti
+                    2. Apri il tuo wallet e invia esattamente <strong style="color:white;">${cryptoAmount} ${cryptoCurrency}</strong><br>
+                    3. Il pagamento viene confermato automaticamente in pochi minuti<br><br>
+                    <span style="color:rgba(255,255,255,0.4);">Non hai crypto? Puoi acquistare ${cryptoCurrency} con carta su <a href="https://changehero.io" style="color:${BRAND_GOLD};text-decoration:none;">ChangeHero</a> e inviarli direttamente all'indirizzo qui sopra.</span>
                 </p>
             </div>
             <p style="color:rgba(255,255,255,0.35);font-size:11px;text-align:center;">
