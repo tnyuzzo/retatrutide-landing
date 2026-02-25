@@ -79,9 +79,9 @@ export default function Home() {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className="flex flex-col gap-5 lg:gap-6"
+            className="flex flex-col items-center lg:items-start text-center lg:text-left gap-5 lg:gap-6"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand-gold/30 bg-brand-gold/5 w-fit whitespace-nowrap self-center md:self-start">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand-gold/30 bg-brand-gold/5 w-fit whitespace-nowrap">
               <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse shrink-0"></span>
               <span className="text-xs uppercase tracking-[0.2em] text-brand-gold">{t('hero_badge')}</span>
             </div>
@@ -91,12 +91,12 @@ export default function Home() {
               <span className="font-semibold text-gradient-gold">Retatrutide</span>
             </h1>
 
-            <p className="text-xs md:text-lg lg:text-xl text-white/60 font-light max-w-lg leading-relaxed line-clamp-3 md:line-clamp-none">
+            <p className="text-xs md:text-lg lg:text-xl text-white/60 font-light max-w-lg mx-auto lg:mx-0 leading-relaxed line-clamp-3 md:line-clamp-none">
               {t('hero_subtitle')}
             </p>
 
             {/* Mobile + Tablet product image — above the fold before CTA */}
-            <div className="lg:hidden relative h-36 md:h-52 w-full md:max-w-md rounded-2xl overflow-hidden border border-brand-gold/20 bg-brand-void gold-glow">
+            <div className="lg:hidden relative h-36 md:h-52 w-full md:max-w-md mx-auto lg:mx-0 rounded-2xl overflow-hidden border border-brand-gold/20 bg-brand-void gold-glow">
               <div className="absolute inset-0 bg-gradient-to-tr from-brand-void via-brand-void/80 to-[#1a1c1a]" />
               <div className="absolute inset-0">
                 <Image
@@ -128,7 +128,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="flex flex-col items-start gap-3 lg:gap-4 lg:mt-8 w-full">
+            <div className="flex flex-col items-center lg:items-start gap-3 lg:gap-4 lg:mt-8 w-full">
               {/* Desktop: alert sopra il CTA */}
               <div className="hidden lg:block w-full">
                 <LiveInventoryBadge />
@@ -150,7 +150,7 @@ export default function Home() {
               </div>
 
               {/* Mobile-only: compact shipping timeline (hidden at md+ since trust card covers it) */}
-              <div className="md:hidden flex items-center gap-1.5 text-[11px] text-white/50 font-medium w-full px-1 overflow-hidden">
+              <div className="md:hidden flex items-center justify-center gap-1.5 text-[11px] text-white/50 font-medium w-full px-1 overflow-hidden">
                 <Truck className="w-3.5 h-3.5 text-brand-gold shrink-0" />
                 <span className="text-white/70 whitespace-nowrap">{t('timeline_today')}</span>
                 <ArrowRight className="w-2.5 h-2.5 text-white/25 shrink-0" />
@@ -166,7 +166,7 @@ export default function Home() {
             </div>
 
             {/* TRUST ELEMENTS BATCH 1 (Rec 1, 2, 10) */}
-            <div className="flex flex-col gap-4 mt-6 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm max-w-xl">
+            <div className="flex flex-col gap-4 mt-6 p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm max-w-xl mx-auto lg:mx-0">
               {/* Rec 10: Shipping Promise */}
               <div className="flex items-start gap-3 text-brand-gold/90 text-sm">
                 <Truck className="w-5 h-5 mt-0.5 shrink-0" />
@@ -195,7 +195,7 @@ export default function Home() {
             </div>
 
             {/* Trust Signals */}
-            <div className="flex flex-col gap-6 mt-8 pt-8 border-t border-white/10 hidden md:flex" >
+            <div className="hidden md:flex flex-col items-center lg:items-start gap-6 mt-8 pt-8 border-t border-white/10" >
               <div className="flex items-center gap-8">
                 <div className="flex flex-col gap-1">
                   <span className="text-2xl font-semibold text-white">{t('feature_eu')}</span>
@@ -214,7 +214,7 @@ export default function Home() {
               </div>
 
               {/* Rec 5 & 9: Sterility and HPLC Standardized Claims */}
-              <div className="flex items-start gap-4 p-4 rounded-xl border border-brand-gold/20 bg-brand-gold/5 max-w-lg">
+              <div className="flex items-start gap-4 p-4 rounded-xl border border-brand-gold/20 bg-brand-gold/5 max-w-lg mx-auto lg:mx-0">
                 <Shield className="w-8 h-8 text-brand-gold shrink-0" />
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-white">{t('clinical_grade')}</span>

@@ -7,7 +7,7 @@
 
 ## Current State
 
-- **Last deploy**: 2026-02-23 (commit `3f32dae`)
+- **Last deploy**: 2026-02-25 (commit `b6940f4`)
 - **Branch**: main (up to date with origin/main)
 - **Build**: 81 static pages + 18 API routes, zero errors
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
@@ -31,7 +31,7 @@
 
 ## Prodotto & Pricing
 
-**Prezzo base**: €197 per kit (**ATTENZIONE**: attualmente `BASE_PRICE = 12` in `src/app/[locale]/order/page.tsx:10` per testing — ripristinare a 197 per produzione)
+**Prezzo base**: €197 per kit (`BASE_PRICE = 12` in `src/app/[locale]/order/page.tsx:10` per testing — ripristinare a 197 per produzione)
 
 **Volume Discount (6 tier)**:
 
@@ -214,9 +214,13 @@ Alternative: `cancelled`, `expired` (24h timeout), `refunded`, `partially_refund
 - 3 FAQ expandable + amount warning
 
 ### Order (`/order`)
-- Form completo: shipping info + quantità + selezione crypto
+- Step indicator "1 di 2" sopra titolo
+- Form completo: shipping info (Contatto + Destinazione) + quantità + selezione crypto
 - Volume discount live, Google Places autocomplete
 - Phone country code auto-select per paese
+- Card "No crypto?" prominente dopo prezzo totale
+- Crypto selector semplificato (USDT prima, nomi brevi), Why Crypto in accordion
+- Trust signals tradotti sotto CTA + idempotenza check ordini pending
 
 ### Portal (`/portal`)
 - Lookup ordine: email + reference ID
@@ -495,6 +499,19 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-25] **Tablet layout fix — color bands + hero image** (commit `b6940f4`):
+  - `page.tsx`: `bg-black` → `bg-brand-void` (features section); `bg-[#0a0a0a]` → `bg-brand-void` (ticker sections); `from-[#0a0a0a]` → `from-brand-void` (ticker gradients); `bg-brand-gold/5` → `bg-brand-void` (calculator CTA)
+  - Hero product image: `h-36` → `h-36 md:h-52` con `md:max-w-md`; badge `self-center` → `self-center md:self-start`
+- [2026-02-25] **QR code checkout fix** (commit `d3b55dc`):
+  - `checkout/[id]/page.tsx`: rimosso doppio bordo bianco (CSS padding `p-4→p-2` + `includeMargin false`), QR size `180→220`, `rounded-2xl→rounded-xl` — più facile da scansionare
+- [2026-02-25] **Crypto-guide senior-friendly copy + Order page UX** (commit `c4c05d0`):
+  - Crypto-guide: titolo cambiato a "Come Pagare con Carta in 5 Minuti" pattern su tutte 10 locali; copy ottimizzata per target senior (linguaggio semplice, no gergo crypto)
+  - Order page 6 miglioramenti UX: step indicator sopra titolo; label form tradotte ("Contatto"/"Destinazione"); trust signals tradotti sotto CTA; card "No crypto?" spostata dopo prezzo totale; crypto selector semplificato (USDT prima con ✓); Why Crypto collassato in accordion `<details>`
+  - `messages` (10 locali): +5 chiavi order page (`order_trust_headline`, `order_trust_subtext`, `order_form_contact`, `order_form_destination`, `order_step_indicator`)
+- [2026-02-25] **Order summary fix + underpaid handling** (commit `bd8111e`, `954f461`):
+  - Order summary: prezzo barrato prima del prezzo reale, spedizione con label grigia + "0€"
+  - Underpaid payment handling: gestione pagamenti parziali crypto
+  - Crypto guide: step layout migliorato
 - [2026-02-25] **Idempotenza ordini pending + UX checkout polish**:
   - Nuova API `GET /api/checkout/pending?email=...`: cerca ordini `pending` con stessa email nelle ultime 24h
   - `order/page.tsx`: al submit, check idempotenza → se trovato, alert inline ambra con pulsing dot sotto il bottone CTA; bottoni affiancati (sm:flex-row); scroll automatico su mobile; `handleCheckout(skipPendingCheck?: boolean)`
