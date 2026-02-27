@@ -7,9 +7,11 @@
 
 ## Current State
 
-- **Last deploy**: 2026-02-25 (commit `c270906`)
+- **Last deploy**: 2026-02-26 (commit `5532602`)
 - **Branch**: main (up to date with origin/main)
-- **Build**: 84 static pages + 20 API routes, zero errors
+- **Build**: 84 static pages + 21 API routes, zero errors
+- **Analytics**: Microsoft Clarity (`vn1xc3jub1`) attivo su tutte le pagine
+- **IndexNow**: configurato e inviato (50 URL → Bing/Yandex/Seznam/Naver)
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
 - **Domain**: aurapep.eu (Vercel, auto-deploy on push to main)
 - **Untracked files**: `addShipKeys.js`
@@ -294,6 +296,7 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 | `/api/cron/check-tracking` | GET | CRON_SECRET | Daily: aggiorna tracking spedizioni |
 | `/api/cron/expire-orders` | GET | CRON_SECRET | Daily 3AM UTC: scade ordini pending >72h |
 | `/api/cron/cart-recovery` | GET | CRON_SECRET | Hourly: invia email recovery (1h, 12h, 48h) a ordini pending |
+| `/api/indexnow` | GET | CRON_SECRET | Ping IndexNow con tutte le 50 URL (Bing/Yandex/Seznam/Naver) |
 
 ---
 
@@ -357,6 +360,9 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 | Google Places | Address autocomplete | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` |
 | 17Track | Tracking spedizioni | `TRACKING_API_KEY_17TRACK` |
 | Vercel | Hosting + CI/CD | Auto-deploy on push to main |
+| Microsoft Clarity | Session recording + heatmaps | Project ID `vn1xc3jub1` (script in layout) |
+| IndexNow | Instant search engine notification | Key `c85e4148...` (file in /public/) |
+| Google Search Console | SEO monitoring + sitemap | Verificato via Cloudflare DNS |
 
 ---
 
@@ -512,6 +518,42 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-02-27] **GLP-1 Journal — migrazione 14 articoli da blog-engine** (`glp1-journal/`):
+  - 14 articoli IT migrati da `/Copy Forever Slim/blog-engine/output/` al blog GLP-1 Journal
+  - Conversione formato: `.md` → `.mdx`, frontmatter trasformato (rimosso slug/pillar/keywords, aggiunto locale/translationKey/category/tags/image)
+  - 14 immagini hero generate con Gemini 3 Pro (una per articolo, 16:9, stile editoriale scientifico)
+  - Fix compatibilità MDX: escape `<` e `>` usati come comparatori in 3 file
+  - Build: **615 pagine** (da 522), zero errori
+  - Articoli: confronto peptidi, FAQ, food noise, metabolismo, Mounjaro, Ozempic, retatrutide TRIPLE-G, benefici GLP-1, news 2026, dimagrire donna/uomo, come dimagrire, perché diete falliscono, stile di vita
+  - Categorie usate: glp1-agonists (4), advanced-science (5), research-guides (4), comparisons (1)
+  - Traduzioni EN/DE/FR/ES da fare in sessione successiva
+- [2026-02-26] **GLP-1 Journal — revisione editoriale completa 100 articoli** (`glp1-journal/`):
+  - Creato `ARTICLE-GUIDELINES.md` con 15 sezioni di linee guida editoriali
+  - **TRIPLE-G naming**: aggiunto a tutti i 100 articoli (min 3 menzioni/articolo, 106 totali solo IT)
+  - **Parole vietate eliminate**: farmaco→peptide (69 occorrenze IT), iniezione→somministrazione (30), effetti collaterali→segnali di adattamento (10), comprare→procurarsi (12)
+  - **Framework effetti collaterali 5 livelli**: riscrittura completa `effetti-collaterali-glp1.mdx` con analogia banana, confronto OTC, analogia digiuno, protocollo pratico
+  - **CTA editoriali**: tutte le menzioni "Aura Peptides" (lab-oriented) sostituite con "su aurapep.eu trovi..." (editoriale)
+  - **Tono conversazionale**: tutti gli articoli convertiti al "tu" informale
+  - **Argomento liofilizzato vs penna**: aggiunto negli articoli comparison/buying
+  - **Progressione generazionale**: semaglutide (1a gen) → tirzepatide (2a gen) → TRIPLE-G (3a gen)
+  - **Traduzioni aggiornate**: EN, DE, FR, ES — tutte allineate ai nuovi contenuti IT
+  - Build: 522 pagine, zero errori
+- [2026-02-26] **GLP-1 Journal blog completato** (`glp1-journal/`):
+  - Blog editoriale Astro 5 + MDX + Tailwind CSS 4 per glp1journal.eu
+  - 20 articoli strategici in italiano (lingua primaria) + 80 traduzioni (EN, DE, FR, ES) = 100 articoli totali
+  - 522 pagine statiche generate (articoli + homepage + categorie + tag per 5 lingue)
+  - SEO completo: hreflang 6-way per articolo, canonical, OG/Twitter, JSON-LD (BlogPosting + BreadcrumbList)
+  - Sitemap con 523 URL
+  - Sistema funnel 3-tier toggleabile via `PUBLIC_FUNNEL_TIER` env var
+  - Design light-theme clinico-scientifico (Source Serif 4 + Inter, self-hosted GDPR ok)
+  - 5 categorie: Agonisti GLP-1, Guide alla Ricerca, Confronti, Acquisto e Regolamentazione, Scienza Avanzata
+  - Distribuzione contenuti: 70% editoriale puro, 20% soft sell, 10% commercial
+- [2026-02-26] **IndexNow + Clarity analytics + middleware fix** (commits `fb77a74`, `e564163`, `5532602`):
+  - Fix critico middleware: aggiunto catch-all matcher per path EN senza prefisso (`/order`, `/calculator`, ecc. davano 404)
+  - IndexNow: API key + file verifica + route `/api/indexnow` (protetta da CRON_SECRET); ping inviato con 50 URL → HTTP 202
+  - Microsoft Clarity: script `vn1xc3jub1` nel root layout, session recording su tutte le pagine/lingue
+  - Google Search Console: sito verificato via Cloudflare DNS, sitemap sottomesso
+  - 3 migration SQL eseguite su Supabase: `05_leads_table`, `06_cart_recovery`, `08_order_locale`
 - [2026-02-25] **i18n completo + revisione traduzioni + SEO avanzato** (commit `c270906`):
   - Email multilingua: 5 template customer-facing tradotte in 10 lingue (`email-translations.ts` con ~50 chiavi × 10 lingue)
   - Migration `08_order_locale.sql`: colonna `locale` su tabella orders, salvata al checkout
@@ -617,11 +659,14 @@ supabase/migrations/                # 4 SQL migration files
 
 ## In Progress
 
-- Nessun task critico in corso
+- **GLP-1 Journal blog** (`glp1-journal/`) — blog editoriale separato su glp1journal.eu. Stack: Astro 5 + MDX + Tailwind CSS 4. Build: **615 pagine** (34 articoli IT + traduzioni EN/DE/FR/ES). Pronto per deploy su Vercel.
+  - TODO: tradurre i 14 nuovi articoli in EN, DE, FR, ES
 
 ## TODO / Planned
 
 - [ ] Configurare wallet XRP (attualmente placeholder `CRYPTAPI_XRP_WALLET`)
+- [ ] Deploy GLP-1 Journal su Vercel (dominio glp1journal.eu)
+- [ ] Registrare domini extra: glp1research.eu, glp1review.eu, glp1digest.eu, glp1insider.eu
 
 ---
 
