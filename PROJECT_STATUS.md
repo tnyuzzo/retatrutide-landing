@@ -10,7 +10,7 @@
 - **Last deploy**: 2026-02-26 (commit `5532602`)
 - **Branch**: main (up to date with origin/main)
 - **Build**: 84 static pages + 21 API routes, zero errors
-- **Analytics**: Microsoft Clarity (`vn1xc3jub1`) attivo su tutte le pagine
+- **Analytics**: Microsoft Clarity (`vn1xc3jub1`) session replay + heatmaps; PostHog eventi custom (session replay OFF); Sentry error tracking (`aurapep-eu` su EU server, org `neurosoft-af`)
 - **IndexNow**: configurato e inviato (50 URL → Bing/Yandex/Seznam/Naver)
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
 - **Domain**: aurapep.eu (Vercel, auto-deploy on push to main)
@@ -360,7 +360,9 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 | Google Places | Address autocomplete | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` |
 | 17Track | Tracking spedizioni | `TRACKING_API_KEY_17TRACK` |
 | Vercel | Hosting + CI/CD | Auto-deploy on push to main |
-| Microsoft Clarity | Session recording + heatmaps | Project ID `vn1xc3jub1` (script in layout) |
+| Microsoft Clarity | Session recording + heatmaps + custom tags | Project ID `vn1xc3jub1` (script in layout) |
+| PostHog | Eventi custom (funnel, conversioni). Session replay OFF | `NEXT_PUBLIC_POSTHOG_KEY` |
+| Sentry | Error tracking + performance (20% traces) | `NEXT_PUBLIC_SENTRY_DSN` (EU server, org `neurosoft-af`, project `aurapep-eu`) |
 | IndexNow | Instant search engine notification | Key `c85e4148...` (file in /public/) |
 | Google Search Console | SEO monitoring + sitemap | Verificato via Cloudflare DNS |
 
@@ -518,6 +520,38 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-03-01] **Analytics & Error tracking setup**:
+  - **Sentry**: progetto `aurapep-eu` creato (EU server, org `neurosoft-af`), SDK `@sentry/nextjs@10.40.0` installato e configurato (client/server/edge + instrumentation + global-error), traces 20%, session replay OFF, DSN su Vercel
+  - **Clarity custom tags**: 7 tag aggiunti (cta_clicked, faq_opened, crypto_selected, order_submitted, checkout_viewed, payment_confirmed, crypto/country) per filtrare sessioni nel replay
+  - **PostHog**: verificato session recording OFF via API (`session_recording_opt_in: false`), mantenuto per eventi custom
+  - File creati: `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`, `src/instrumentation.ts`, `src/app/global-error.tsx`
+  - File modificati: `next.config.ts` (withSentryConfig), `page.tsx` + `order/page.tsx` + `CheckoutTracker.tsx` (Clarity tags)
+- [2026-02-27] **GLP-1 Journal — Fix internal linking: orfani, underlinked, TRIPLE-G** (`glp1-journal/`):
+  - **TASK 1**: Risolti 4 articoli orfani (0 link in ingresso) aggiungendo 3 link ciascuno:
+    - `calcolatore-dosaggio-peptidi-perche-serve`: link aggiunti da calcolo-dosaggio-peptidi, come-ricostituire-peptidi, guida-siringhe-peptidi
+    - `cibi-evitare-preferire-protocollo-glp1`: link aggiunti da proteine-peptidi-glp1-alleato, carenze-nutrizionali-glp1-prevenzione, integratori-protocollo-glp1-guida
+    - `food-noise-voce-che-dice-mangiare`: link aggiunti da food-noise-cos-e-come-spegnerlo, perche-diete-falliscono, metabolismo-come-funziona-blocca
+    - `peptidi-dimagranti-news-2026`: link aggiunti da futuro-peptidi-anti-obesita, migliori-peptidi-perdita-peso-2026, cos-e-il-retatrutide
+  - **TASK 2**: Portati a 5+ link in uscita 3 articoli underlinked:
+    - `carenze-nutrizionali-glp1-prevenzione`: +2 link (cibi-evitare-preferire, cos-e-il-retatrutide)
+    - `integratori-protocollo-glp1-guida`: +2 link (cibi-evitare-preferire, conservazione-peptidi)
+    - `mounjaro-tirzepatide-guida-completa`: +2 link (effetti-collaterali-glp1, semaglutide-vs-tirzepatide-vs-retatrutide)
+  - **TASK 3**: Aggiunte 4 menzioni TRIPLE-G a `cibi-evitare-preferire-protocollo-glp1.mdx` (prima menzione con spiegazione completa, successive con nome breve)
+  - Totale: 12 articoli modificati, 18 nuovi link interni aggiunti
+- [2026-02-27] **GLP-1 Journal — UTM tracking + CTA editoriali su tutti i 44 articoli IT** (`glp1-journal/`):
+  - **TASK 1**: Aggiunto UTM parameters (`utm_source=glp1journal&utm_medium=content&utm_campaign={translationKey}`) ai 7 articoli che avevano link aurapep.eu senza tracking: confronto-peptidi-dimagranti, faq-peptidi-dimagranti, metabolismo-come-funziona-blocca, mounjaro-tirzepatide-guida-completa, ozempic-semaglutide-guida-completa, peptidi-glp1-benefici-oltre-peso, retatrutide-triple-g-guida-completa
+  - **TASK 2**: Aggiunta CTA editoriale con link aurapep.eu + UTM a 9 articoli che non ne avevano alcuna: come-dimagrire-guida-definitiva, dimagrire-donna-guida-completa, dimagrire-uomo-guida-completa, food-noise-cos-e-come-spegnerlo, food-noise-voce-che-dice-mangiare, peptidi-dimagranti-news-2026, perche-diete-falliscono, perche-non-riesco-dimagrire-non-colpa-tua, stile-vita-dimagrimento-abitudini
+  - Tutti i 44 articoli IT ora hanno almeno 1 link aurapep.eu con UTM tracking completo
+  - CTA posizionate nella parte finale degli articoli (mai nel primo 30%), tono editoriale non commerciale
+- [2026-02-27] **GLP-1 Journal — Audit SEO completo + 10 nuovi articoli + analisi mercato europeo** (`glp1-journal/`):
+  - Importati 9 articoli da blog-engine + 1 nuovo scritto da zero (calcolatore dosaggi)
+  - 10 immagini hero generate con Gemini Flash (16:9 editoriale scientifico)
+  - Build: **675 pagine** (da 615), zero errori
+  - **Audit SEO completo**: tecnico (meta tags, schema, hreflang OK; bug BreadcrumbJsonLd, no 404, no image opt) + contenuti (34/44 articoli con 0 link interni, 23 titoli >60 char) + SERP competitivo
+  - **Analisi SERP 6 query-tipo** ("retatrutide prezzo/dove comprare/effetti/peso") in IT/DE/FR/ES: vuoto competitivo enorme in tutte le lingue, unico competitor pan-EU è ZAVA (telemedicina)
+  - **Analisi mercato EU**: 5 lingue attuali coprono ~75% del potere d'acquisto EU. UK escluso (post-Brexit). EN = lingua ponte pan-europea, non per UK
+  - **Keyword opportunities** identificate: Ozempic Face, prezzi GLP-1 Italia, alimenti GLP-1 naturali, orforglipron, GLP-1 e alcol, Ozempic Babies
+  - Problemi bloccanti: sito NON indicizzato su Google, linking interno quasi assente, E-E-A-T debole
 - [2026-02-27] **GLP-1 Journal — migrazione 14 articoli da blog-engine** (`glp1-journal/`):
   - 14 articoli IT migrati da `/Copy Forever Slim/blog-engine/output/` al blog GLP-1 Journal
   - Conversione formato: `.md` → `.mdx`, frontmatter trasformato (rimosso slug/pillar/keywords, aggiunto locale/translationKey/category/tags/image)
@@ -659,14 +693,25 @@ supabase/migrations/                # 4 SQL migration files
 
 ## In Progress
 
-- **GLP-1 Journal blog** (`glp1-journal/`) — blog editoriale separato su glp1journal.eu. Stack: Astro 5 + MDX + Tailwind CSS 4. Build: **615 pagine** (34 articoli IT + traduzioni EN/DE/FR/ES). Pronto per deploy su Vercel.
-  - TODO: tradurre i 14 nuovi articoli in EN, DE, FR, ES
+- **GLP-1 Journal blog** (`glp1-journal/`) — blog editoriale separato su glp1journal.eu. Stack: Astro 5 + MDX + Tailwind CSS 4. Build: **676 pagine** (44 articoli IT + 20 traduzioni EN/DE/FR/ES + pagina 404). **Pronto per deploy.**
+  - DONE: tutti i fix SEO tecnici (BreadcrumbJsonLd, 404 page, OG meta, publisher logo, fetchpriority, H1 unico)
+  - DONE: 44/44 titoli ≤ 60 char, 44/44 descriptions 120-160 char
+  - DONE: 44/44 articoli con ≥ 5 link interni, 0 orfani, 0 link rotti
+  - DONE: 44/44 articoli con CTA aurapep.eu + UTM completi
+  - DONE: 97 link rotti fixati (/it/articles/ → /it/), 24 doppi H1 rimossi
+  - TODO: tradurre i 24 nuovi articoli IT-only in EN, DE, FR, ES (= 96 pagine)
+  - TODO: image optimization (sharp non compila, usare compressione esterna o CDN)
+  - TODO: FAQ schema su faq-peptidi-dimagranti.mdx
 
 ## TODO / Planned
 
 - [ ] Configurare wallet XRP (attualmente placeholder `CRYPTAPI_XRP_WALLET`)
 - [ ] Deploy GLP-1 Journal su Vercel (dominio glp1journal.eu)
 - [ ] Registrare domini extra: glp1research.eu, glp1review.eu, glp1digest.eu, glp1insider.eu
+- [ ] **SEO BLOCCANTE**: sito non indicizzato (site:glp1journal.eu = 0). Registrare su Google Search Console + submittare sitemap
+- [ ] **E-E-A-T**: creare pagina "Chi Siamo", aggiungere autore reale con credenziali, medical review badge
+- [ ] **Content gap**: articoli mancanti ad alto potenziale — Ozempic Face, prezzi GLP-1 Italia/Europa, alimenti GLP-1 naturali, orforglipron, approvazione retatrutide Europa
+- [ ] **Schema markup**: aggiungere FAQ/HowTo schema agli articoli pratici
 
 ---
 

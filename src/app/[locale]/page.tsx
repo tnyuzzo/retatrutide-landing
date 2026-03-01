@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, ShieldCheck, Zap, Lock, Truck, FlaskConical, Navigation, ChevronDown, Package, MessageCircle, Beaker, ArrowRight, Thermometer, CheckCircle2, User, Gift } from "lucide-react";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
+import { usePostHog } from "posthog-js/react";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { useState, useEffect } from "react";
 import { LiveInventoryBadge } from "@/components/ui/LiveInventoryBadge";
@@ -15,6 +16,7 @@ import { useStock } from "@/components/ui/useStock";
 export default function Home() {
   const t = useTranslations('Index');
   const locale = useLocale();
+  const posthog = usePostHog();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showCoaModal, setShowCoaModal] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
@@ -134,7 +136,7 @@ export default function Home() {
 
               <PremiumButton
                 className="shadow-[0_0_20px_rgba(255,215,0,0.2)] hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] hover:scale-105 transition-all duration-300 group relative overflow-hidden px-12 py-4 text-lg w-full sm:w-auto"
-                onClick={() => window.location.href = `/${locale}/order`}
+                onClick={() => { posthog?.capture('cta_clicked', { location: 'hero', locale }); (window as any).clarity?.("set", "cta_clicked", "hero"); window.location.href = `/${locale}/order`; }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-[shimmer_3s_ease-in-out_infinite]"></div>
                 <span className="relative z-10 flex items-center justify-center gap-2 w-full">
@@ -595,7 +597,7 @@ export default function Home() {
                 const isOpen = openFaq === num;
                 return (
                   <div key={num} className={`glass-panel overflow-hidden transition-all duration-300 border ${isOpen ? 'border-brand-gold/50' : 'border-white/5'}`}>
-                    <button onClick={() => setOpenFaq(isOpen ? null : num)} className="w-full flex justify-between items-center p-6 text-left">
+                    <button onClick={() => { if (!isOpen) { posthog?.capture('faq_opened', { question: num }); (window as any).clarity?.("set", "faq_opened", String(num)); } setOpenFaq(isOpen ? null : num); }} className="w-full flex justify-between items-center p-6 text-left">
                       <span className="font-medium text-white/90">{t(`faq_q${num}`)}</span>
                       <ChevronDown className={`w-5 h-5 text-brand-gold shrink-0 ml-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -619,7 +621,7 @@ export default function Home() {
                 const isOpen = openFaq === num;
                 return (
                   <div key={num} className={`glass-panel overflow-hidden transition-all duration-300 border ${isOpen ? 'border-brand-gold/50' : 'border-white/5'}`}>
-                    <button onClick={() => setOpenFaq(isOpen ? null : num)} className="w-full flex justify-between items-center p-6 text-left">
+                    <button onClick={() => { if (!isOpen) { posthog?.capture('faq_opened', { question: num }); (window as any).clarity?.("set", "faq_opened", String(num)); } setOpenFaq(isOpen ? null : num); }} className="w-full flex justify-between items-center p-6 text-left">
                       <span className="font-medium text-white/90">{t(`faq_q${num}`)}</span>
                       <ChevronDown className={`w-5 h-5 text-brand-gold shrink-0 ml-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
@@ -747,7 +749,7 @@ export default function Home() {
           </div>
           <PremiumButton
             className="shrink-0 !py-2.5 !px-10 !text-sm"
-            onClick={() => window.location.href = `/${locale}/order`}
+            onClick={() => { posthog?.capture('cta_clicked', { location: 'sticky_bar', locale }); (window as any).clarity?.("set", "cta_clicked", "sticky_bar"); window.location.href = `/${locale}/order`; }}
           >
             <span className="flex items-center gap-2">
               {t('hero_cta_hook')} <ArrowRight className="w-4 h-4" />

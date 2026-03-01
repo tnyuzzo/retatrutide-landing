@@ -5,6 +5,7 @@ import { ArrowLeft, Lock, Shield, ChevronRight, ChevronDown, Minus, Plus, MapPin
 import Link from "next/link";
 import { PremiumButton } from "@/components/ui/PremiumButton";
 import { useTranslations, useLocale } from "next-intl";
+import { usePostHog } from "posthog-js/react";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { OrderStructuredData } from "@/components/seo/OrderStructuredData";
 
@@ -63,6 +64,7 @@ const COUNTRY_TO_ISO: Record<string, string> = Object.fromEntries(
 export default function OrderPage() {
     const t = useTranslations('Index');
     const locale = useLocale();
+    const posthog = usePostHog();
     const [quantity, setQuantity] = useState(1);
     const [selectedCrypto, setSelectedCrypto] = useState("USDT");
     const [isProcessing, setIsProcessing] = useState(false);
@@ -303,6 +305,18 @@ export default function OrderPage() {
             const data = await res.json();
 
             if (data.reference_id) {
+                posthog?.capture('order_submitted', {
+                    locale,
+                    quantity,
+                    crypto: selectedCrypto,
+                    total_eur: totalPrice,
+                    discount_pct: discount,
+                    country,
+                    reference_id: data.reference_id,
+                });
+                (window as any).clarity?.("set", "order_submitted", "true");
+                (window as any).clarity?.("set", "crypto", selectedCrypto);
+                (window as any).clarity?.("set", "country", country);
                 window.location.href = `/${locale}/checkout/${data.reference_id}`;
             } else {
                 setFormError(data.error || 'Checkout failed');
@@ -756,7 +770,7 @@ export default function OrderPage() {
                                 <div className="relative h-10">
                                     <select
                                         value={selectedCrypto}
-                                        onChange={(e) => setSelectedCrypto(e.target.value)}
+                                        onChange={(e) => { setSelectedCrypto(e.target.value); posthog?.capture('crypto_selected', { crypto: e.target.value }); (window as any).clarity?.("set", "crypto_selected", e.target.value); }}
                                         className="w-full h-full bg-brand-void/80 border border-brand-gold/30 text-white text-sm rounded-lg px-4 appearance-none focus:outline-none focus:border-brand-gold tracking-wider cursor-pointer font-medium"
                                     >
                                         <option value="USDT">USDT — Stablecoin (TRC20) ✓</option>
@@ -873,7 +887,7 @@ export default function OrderPage() {
                     <span className="text-[10px] text-white/40 uppercase tracking-wider shrink-0">{t('order_payment_method')}:</span>
                     <select
                         value={selectedCrypto}
-                        onChange={(e) => setSelectedCrypto(e.target.value)}
+                        onChange={(e) => { setSelectedCrypto(e.target.value); posthog?.capture('crypto_selected', { crypto: e.target.value }); (window as any).clarity?.("set", "crypto_selected", e.target.value); }}
                         className="flex-1 h-7 bg-brand-void border border-brand-gold/30 text-white text-[11px] rounded-md px-2 appearance-none focus:outline-none focus:border-brand-gold cursor-pointer font-medium"
                     >
                         <option value="USDT">USDT ✓</option>
