@@ -97,17 +97,16 @@ export default function Home() {
             </p>
 
             {/* Mobile + Tablet product image — above the fold before CTA */}
-            <div className="lg:hidden relative h-36 md:h-52 w-full md:max-w-md mx-auto lg:mx-0 rounded-2xl overflow-hidden border border-brand-gold/20 bg-brand-void gold-glow">
-              <div className="absolute inset-0 bg-gradient-to-tr from-brand-void via-brand-void/80 to-[#1a1c1a]" />
+            <div className="lg:hidden relative h-36 md:h-52 w-full md:max-w-md mx-auto lg:mx-0 rounded-2xl overflow-hidden border border-brand-gold/20 bg-[#1a1c1a] gold-glow">
               <div className="absolute inset-0">
                 <Image
-                  src="/images/retatrutide_hero_gold.png"
+                  src="/images/product_hero_v5_wide.png"
                   alt="Retatrutide 10mg"
                   fill
-                  className="object-cover mix-blend-screen scale-110 opacity-90"
+                  className="object-cover object-center opacity-95"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-brand-void via-brand-void/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               </div>
               <div className="absolute bottom-3 inset-x-0 text-center z-10">
                 <p className="text-white text-sm font-light">Retatrutide <span className="text-brand-gold font-medium">10mg</span></p>
@@ -210,27 +209,25 @@ export default function Home() {
             className="hidden lg:flex lg:h-[700px] relative items-center justify-center perspective-1000 group"
           >
             <div className="relative w-full max-w-md aspect-[3/4] rounded-2xl overflow-hidden glass-panel border-brand-gold/20 p-2 gold-glow transition-all duration-700 group-hover:shadow-[0_0_40px_rgba(255,215,0,0.2)] group-hover:-translate-y-2 group-hover:border-brand-gold/40">
-              <div className="absolute inset-0 bg-gradient-to-tr from-brand-void via-brand-void/80 to-[#1a1c1a] z-0 transition-opacity duration-700 group-hover:opacity-80"></div>
-
               {/* Product Image Layer */}
               <div className="absolute inset-0 z-10 p-2">
                 <div className="relative w-full h-full rounded-xl overflow-hidden">
                   <Image
-                    src="/images/retatrutide_hero_gold.png"
+                    src="/images/product_hero_v5.png"
                     alt="Retatrutide 10mg premium research peptide vial - 99.8% HPLC verified purity - Aura Peptides Europe"
                     fill
-                    className="object-cover mix-blend-screen scale-110 opacity-90 transition-transform duration-1000 group-hover:scale-[1.15]"
+                    className="object-cover object-center opacity-95 transition-transform duration-1000 group-hover:scale-[1.04]"
                     priority
                   />
-                  {/* Overlay dark gradient to ensure text readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-void via-brand-void/30 to-transparent"></div>
+                  {/* Overlay dark gradient for text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                 </div>
               </div>
 
-              <div className="absolute inset-0 z-20 flex flex-col items-center justify-end p-8 text-center border border-brand-gold/10 rounded-xl m-2 bg-black/20 backdrop-blur-md pointer-events-none transition-all duration-700 group-hover:bg-black/10">
-                <h2 className="text-3xl font-light tracking-wide text-white">Retatrutide <span className="text-brand-gold font-medium">10mg</span></h2>
-                <p className="text-brand-gold/70 text-sm mt-2 font-mono">CAS: 2381089-83-2</p>
-                <p className="text-white/40 text-xs mt-4 transition-colors duration-700 group-hover:text-white/60">{t('vial_purity')}</p>
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-end p-8 text-center border border-brand-gold/10 rounded-xl m-2 pointer-events-none transition-all duration-700">
+                <h2 className="text-3xl font-light tracking-wide text-white drop-shadow-lg">Retatrutide <span className="text-brand-gold font-medium">10mg</span></h2>
+                <p className="text-brand-gold/80 text-sm mt-2 font-mono drop-shadow">CAS: 2381089-83-2</p>
+                <p className="text-white/60 text-xs mt-4 drop-shadow">{t('vial_purity')}</p>
               </div>
             </div>
 
