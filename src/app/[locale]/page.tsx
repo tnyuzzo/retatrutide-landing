@@ -97,7 +97,7 @@ export default function Home() {
             </p>
 
             {/* Mobile + Tablet product image — above the fold before CTA */}
-            <div className="lg:hidden relative h-44 sm:h-52 md:h-60 w-full md:max-w-2xl mx-auto lg:mx-0 rounded-2xl overflow-hidden border border-brand-gold/20 bg-[#1a1c1a] gold-glow">
+            <div className="lg:hidden relative h-44 sm:h-52 md:h-80 w-full md:max-w-2xl mx-auto lg:mx-0 rounded-2xl overflow-hidden border border-brand-gold/20 bg-[#1a1c1a] gold-glow">
               <div className="absolute inset-0">
                 <Image
                   src="/images/product_hero_v5_wide.png"
