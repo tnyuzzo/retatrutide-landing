@@ -9,7 +9,7 @@
 
 - **Last deploy**: 2026-02-26 (commit `5532602`)
 - **Branch**: main (up to date with origin/main)
-- **Build**: 84 static pages + 21 API routes, zero errors
+- **Build**: 86 static pages + 24 API routes, zero errors
 - **Analytics**: Microsoft Clarity (`vn1xc3jub1`) session replay + heatmaps; PostHog eventi custom (session replay OFF); Sentry error tracking (`aurapep-eu` su EU server, org `neurosoft-af`)
 - **IndexNow**: configurato e inviato (50 URL → Bing/Yandex/Seznam/Naver)
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
@@ -33,7 +33,7 @@
 
 ## Prodotto & Pricing
 
-**Prezzo base**: €197 per kit (`BASE_PRICE = 12` in `src/app/[locale]/order/page.tsx:10` per testing — ripristinare a 197 per produzione)
+**Prezzo base**: €197 per kit (`BASE_PRICE = 197` in `src/app/[locale]/order/page.tsx:12`)
 
 **Volume Discount (6 tier)**:
 
@@ -261,7 +261,7 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 
 ---
 
-## API Routes (17 totali)
+## API Routes (20 totali)
 
 ### Admin Routes (autenticati)
 
@@ -287,6 +287,8 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 | `/api/portal` | GET | None | Lookup ordine cliente (email + reference_id) |
 | `/api/c/[code]` | GET | None | Redirect short link + incrementa click |
 | `/api/short-link` | GET/POST | seller+ (POST) | Crea short link per marketing |
+| `/api/visitor` | POST/PATCH | None (rate limited) | Registrazione/aggiornamento visitatori (UTM, fbc, PII progressivo) |
+| `/api/fb-event` | POST | None (rate limited) | Relay eventi a Facebook CAPI (ViewContent, InitiateCheckout, AddPaymentInfo) |
 
 ### Webhooks & Cron
 
@@ -297,6 +299,7 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 | `/api/cron/expire-orders` | GET | CRON_SECRET | Daily 3AM UTC: scade ordini pending >72h |
 | `/api/cron/cart-recovery` | GET | CRON_SECRET | Hourly: invia email recovery (1h, 12h, 48h) a ordini pending |
 | `/api/indexnow` | GET | CRON_SECRET | Ping IndexNow con tutte le 50 URL (Bing/Yandex/Seznam/Naver) |
+| `/api/cron/cleanup-visitors` | GET | CRON_SECRET | Daily: elimina visitors >30 giorni |
 
 ---
 
@@ -314,6 +317,7 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 - `shipped_at`, `shipped_by` FK → auth.users
 - `tracking_status`, `tracking_events` JSONB
 - `sent_by` FK → auth.users (seller ref per ordini manuali)
+- `visitor_id` TEXT (FK → website_visitors.visitor_id, per Facebook CAPI attribution)
 - Indexes: reference_id, status, created_at, order_number, sent_by
 
 **`customers`** — Clienti (upsert automatico)
@@ -333,6 +337,14 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 
 **`store_settings`** — Configurazione store (key-value)
 - `key` TEXT PK, `value` JSONB, `updated_by` FK
+
+**`website_visitors`** — Facebook CAPI attribution (30-day retention)
+- `id` UUID PK, `visitor_id` TEXT UNIQUE
+- Attribution: `fbc`, `fbclid`, `utm_source/medium/campaign/content/term`, `campaign_id`, `adset_id`, `ad_id`, `placement`, `site_source_name`, `funnel`
+- Client: `ip`, `user_agent`
+- Progressive PII: `email`, `phone`, `first_name`, `last_name`, `city`, `postal_code`, `country`
+- Tracking: `events_sent` TEXT[], `created_at`, `updated_at`
+- Indexes: visitor_id, created_at
 
 **`short_links`** — URL shortener
 - `code` TEXT UNIQUE (7 chars), `target_url`, `clicks` INT, `created_by` FK
@@ -364,6 +376,7 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 | PostHog | Eventi custom (funnel, conversioni). Session replay OFF | `NEXT_PUBLIC_POSTHOG_KEY` |
 | Sentry | Error tracking + performance (20% traces) | `NEXT_PUBLIC_SENTRY_DSN` (EU server, org `neurosoft-af`, project `aurapep-eu`) |
 | IndexNow | Instant search engine notification | Key `c85e4148...` (file in /public/) |
+| Facebook CAPI | Conversions API server-side (cloaking, no pixel) | `FB_PIXEL_ID`, `FB_ACCESS_TOKEN` |
 | Google Search Console | SEO monitoring + sitemap | Verificato via Cloudflare DNS |
 
 ---
@@ -371,7 +384,7 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 ## Email System (9 template — 5 multilingua)
 
 Tutti definiti in `src/lib/email-templates.ts`. Design: dark theme, gold accent (#D4AF37), HTML responsive.
-From: `Aura Peptides <noreply@aurapep.eu>` — Reply-to: `support@aurapeptides.eu`
+From: `Aura Peptides <noreply@aurapep.eu>` — Reply-to: `info@aurapep.eu`
 Traduzioni email: `src/lib/email-translations.ts` — ~50 chiavi × 10 lingue, helper `getEmailString(locale, key, vars?)`
 
 **Customer-facing (multilingua, locale da ordine):**
@@ -403,6 +416,8 @@ Traduzioni email: `src/lib/email-translations.ts` — ~50 chiavi × 10 lingue, h
 | `src/lib/clicksend.ts` | SMS via ClickSend REST API con retry esponenziale |
 | `src/lib/tracking.ts` | 17Track integration: register, get status, save to order |
 | `src/lib/order-number.ts` | Generazione order number random (4-6 chars alfanumerici) |
+| `src/lib/facebook-capi.ts` | Facebook CAPI server-side: `sendFacebookEvent()` con SHA-256 PII hashing |
+| `src/lib/fb-tracking.ts` | Client-side tracking: `getVisitorId()`, `sendFbEvent()`, `updateVisitor()`, idempotenza sessionStorage |
 
 ---
 
@@ -520,6 +535,24 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-03-05] **Facebook CAPI server-side + locale prefix fix + email change + i18n badges**:
+  - **Facebook Conversions API**: implementazione completa server-side con cloaking (NO pixel client-side, NO _fbp, action_source: "system_generated")
+  - Tabella `website_visitors` su Supabase per attribution resiliente (sopravvive adblocker/ITP/cookie deletion)
+  - Script inline in layout.tsx: genera `visitor_id`, cookie `_fbc` da fbclid, salva UTM in localStorage, POST `/api/visitor`
+  - ViewContent su 4 pagine (homepage, order, crypto-guide, calculator) con naming specifico
+  - InitiateCheckout + AddPaymentInfo su order page, abandonment detection via `visibilitychange` + `sendBeacon`
+  - Purchase event dal webhook CryptAPI dopo conferma pagamento
+  - Progressive visitor enrichment: PATCH `/api/visitor` su blur dei campi form
+  - `funnel` parameter: sempre sovrascritto da IP (`eu_{code}` per EU 27, `{code}` per non-EU) via `x-vercel-ip-country`
+  - Idempotenza: event_id deterministici (`{visitorId}_{eventName}_{suffix}`) + sessionStorage guard client-side
+  - Cron cleanup visitatori >30 giorni
+  - File creati: `src/lib/facebook-capi.ts`, `src/lib/fb-tracking.ts`, `src/app/api/visitor/route.ts`, `src/app/api/fb-event/route.ts`, `src/app/api/cron/cleanup-visitors/route.ts`, `supabase/migrations/09_website_visitors.sql`
+  - File modificati: `layout.tsx`, `page.tsx`, `order/page.tsx`, `crypto-guide/page.tsx`, `calculator/page.tsx`, `checkout/route.ts`, `webhooks/cryptapi/route.ts`
+  - **Locale prefix**: cambiato da `as-needed` a `always` — tutte le lingue incluso EN ora con prefisso `/en/`. Aggiornati `seo.ts`, `sitemap.ts`, `indexnow/route.ts`
+  - **Email**: `support@aurapeptides.eu` → `info@aurapep.eu` in 18 file (10 messages, 6 API routes, 1 structured data, 1 cron)
+  - **i18n badges**: tradotte 3 trust badge testimonial (`review_badge_hplc/shipping/lab`) in 10 lingue. Fix IT step 5 qualità più dettagliato
+  - Env vars aggiunte: `FB_PIXEL_ID`, `FB_ACCESS_TOKEN` (da aggiungere su Vercel)
+  - Build: 86 pagine statiche + 24 API routes, zero errori
 - [2026-03-01] **Analytics & Error tracking setup**:
   - **Sentry**: progetto `aurapep-eu` creato (EU server, org `neurosoft-af`), SDK `@sentry/nextjs@10.40.0` installato e configurato (client/server/edge + instrumentation + global-error), traces 20%, session replay OFF, DSN su Vercel
   - **Clarity custom tags**: 7 tag aggiunti (cta_clicked, faq_opened, crypto_selected, order_submitted, checkout_viewed, payment_confirmed, crypto/country) per filtrare sessioni nel replay
@@ -690,6 +723,12 @@ supabase/migrations/                # 4 SQL migration files
 - [2026-02-22] Mobile Conversion Rate Optimization: UX Checkout in `order/page.tsx`
 - [2026-02-22] SEO full implementation (metadata, structured data, sitemap, robots, hreflang, 200 translation keys)
 - [2026-02-22] CLAUDE.md + PROJECT_STATUS.md creati
+- [2026-03-03] **Nuova immagine prodotto hero** (commit `622be16`, `e66496b`, `fcaef17`):
+  - Generata con Gemini 3.1 Flash — fiala TRIPLE-G 10mg, etichetta bianca stampabile (38×21cm), sfondo marmo antracite bokeh
+  - Desktop (3:4): `product_hero_v5.png` — tappo bianco, linea oro sul vetro
+  - Mobile/Tablet (16:9): `product_hero_v5_wide.png` — composizione landscape centrata
+  - Rimosso `mix-blend-screen` e `scale-110` (image ha proprio sfondo)
+  - Altezze responsive corrette: `h-44 sm:h-52 md:h-80` — fiala visibile su tutte le size (375px→768px)
 
 ## In Progress
 

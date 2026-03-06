@@ -94,7 +94,7 @@ export async function GET(req: Request) {
 
                 await resend.emails.send({
                     from: fromEmail,
-                    replyTo: 'support@aurapeptides.eu',
+                    replyTo: 'info@aurapep.eu',
                     to: order.email,
                     subject,
                     html,

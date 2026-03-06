@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { CalculatorStructuredData } from "@/components/seo/CalculatorStructuredData";
+import { sendFbEvent } from '@/lib/fb-tracking';
 
 export default function CalculatorPage() {
     const t = useTranslations("Index");
@@ -19,6 +20,13 @@ export default function CalculatorPage() {
     const [unitsToDraw, setUnitsToDraw] = useState(0);
     const [volumeToDrawMl, setVolumeToDrawMl] = useState(0);
     const [concentration, setConcentration] = useState(0);
+
+    useEffect(() => {
+        sendFbEvent('ViewContent', null, {
+            content_name: 'Dosage Calculator',
+            content_category: 'tool',
+        }, 'calculator');
+    }, []);
 
     useEffect(() => {
         const peptide = parseFloat(peptideAmountMg) || 0;

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreditCard, Copy, Shield, Clock, ChevronDown, ChevronUp, ArrowLeft, ExternalLink, AlertTriangle, CheckCircle, Ban, Eye, Zap } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { CryptoGuideStructuredData } from "@/components/seo/CryptoGuideStructuredData";
+import { sendFbEvent } from '@/lib/fb-tracking';
 
 const CHANGEHERO_URLS: Record<string, string> = {
     en: "https://changehero.io/buy/usdt",
@@ -26,6 +27,13 @@ export default function CryptoGuidePage() {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
 
     const changeHeroUrl = CHANGEHERO_URLS[locale] || CHANGEHERO_URLS.en;
+
+    useEffect(() => {
+        sendFbEvent('ViewContent', null, {
+            content_name: 'Payment Guide',
+            content_category: 'guide',
+        }, 'crypto-guide');
+    }, []);
 
     const faqs = [
         { q: t("crypto_faq_safe_q"), a: t("crypto_faq_safe_a") },

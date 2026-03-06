@@ -18,16 +18,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   for (const page of pages) {
     for (const locale of locales) {
-      const localePath = locale === defaultLocale ? '' : `/${locale}`;
-      const url = `${baseUrl}${localePath}${page.path}`;
+      const url = `${baseUrl}/${locale}${page.path}`;
 
       const alternates: Record<string, string> = {};
       for (const altLocale of locales) {
-        const altPath = altLocale === defaultLocale ? '' : `/${altLocale}`;
         const langCode = altLocale === 'uk' ? 'uk-UA' : altLocale;
-        alternates[langCode] = `${baseUrl}${altPath}${page.path}`;
+        alternates[langCode] = `${baseUrl}/${altLocale}${page.path}`;
       }
-      alternates['x-default'] = `${baseUrl}${page.path}`;
+      alternates['x-default'] = `${baseUrl}/en${page.path}`;
 
       entries.push({
         url,

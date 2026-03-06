@@ -8,6 +8,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { usePostHog } from "posthog-js/react";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { OrderStructuredData } from "@/components/seo/OrderStructuredData";
+import { sendFbEvent, sendFbEventBeacon, updateVisitor, getVisitorId } from '@/lib/fb-tracking';
 
 const BASE_PRICE = 197;
 
@@ -205,6 +206,44 @@ export default function OrderPage() {
         } catch {}
     }, [email, firstName, lastName, addressLine1, addressLine2, city, postalCode, country, phone, phoneCountryCode, selectedCrypto, quantity]);
 
+    const discount = getDiscount(quantity);
+    const unitPrice = Math.round(BASE_PRICE * (1 - discount / 100));
+    const totalPrice = unitPrice * quantity;
+    const savedAmount = (BASE_PRICE * quantity) - totalPrice;
+
+    // Facebook CAPI: ViewContent on page load
+    useEffect(() => {
+        sendFbEvent('ViewContent', null, {
+            content_name: 'Order Page',
+            content_category: 'checkout',
+            content_ids: ['RET-KIT-1'],
+            value: 197,
+            currency: 'EUR',
+        }, 'order');
+    }, []);
+
+    // Facebook CAPI: abandonment detection on tab hide
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden && email && email.includes('@')) {
+                const visitorId = getVisitorId();
+                sendFbEventBeacon('InitiateCheckout', `${visitorId}_InitiateCheckout`, {
+                    email,
+                    phone: phone ? `${phoneCountryCode} ${phone}` : undefined,
+                    first_name: firstName || undefined,
+                    last_name: lastName || undefined,
+                }, {
+                    content_ids: ['RET-KIT-1'],
+                    num_items: quantity,
+                    value: totalPrice,
+                    currency: 'EUR',
+                });
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [email, phone, phoneCountryCode, firstName, lastName, quantity, totalPrice]);
+
     // Progressive lead capture: send data to /api/leads on field blur
     const leadSentRef = useRef<string>(''); // tracks last sent payload hash
     const sendLead = useCallback(() => {
@@ -214,12 +253,15 @@ export default function OrderPage() {
         if (hash === leadSentRef.current) return; // no change
         leadSentRef.current = hash;
         fetch('/api/leads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: hash }).catch(() => {});
-    }, [email, firstName, lastName, phone, phoneCountryCode, country, city, locale]);
 
-    const discount = getDiscount(quantity);
-    const unitPrice = Math.round(BASE_PRICE * (1 - discount / 100));
-    const totalPrice = unitPrice * quantity;
-    const savedAmount = (BASE_PRICE * quantity) - totalPrice;
+        // Facebook CAPI: progressive visitor enrichment
+        const visitorData: Record<string, string | undefined> = {};
+        if (email) visitorData.email = email;
+        if (firstName) visitorData.first_name = firstName;
+        if (lastName) visitorData.last_name = lastName;
+        if (phone && phone.length > 5) visitorData.phone = `${phoneCountryCode} ${phone}`;
+        updateVisitor(visitorData);
+    }, [email, firstName, lastName, phone, phoneCountryCode, country, city, locale]);
 
     const validateForm = (): boolean => {
         if (!email || !email.includes('@')) {
@@ -284,6 +326,22 @@ export default function OrderPage() {
         }
 
         try {
+            // Facebook CAPI: InitiateCheckout (dedup by email)
+            sendFbEvent('InitiateCheckout', {
+                email,
+                phone: `${phoneCountryCode} ${phone}`,
+                first_name: firstName,
+                last_name: lastName,
+                city,
+                postal_code: postalCode,
+                country_code: COUNTRY_TO_ISO[country] || '',
+            }, {
+                content_ids: ['RET-KIT-1'],
+                num_items: quantity,
+                value: totalPrice,
+                currency: 'EUR',
+            }, email);
+
             const res = await fetch('/api/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -299,7 +357,8 @@ export default function OrderPage() {
                         phone: `${phoneCountryCode} ${phone}`,
                     },
                     quantity,
-                    crypto_currency: selectedCrypto
+                    crypto_currency: selectedCrypto,
+                    visitor_id: getVisitorId(),
                 })
             });
             const data = await res.json();
@@ -317,6 +376,24 @@ export default function OrderPage() {
                 (window as any).clarity?.("set", "order_submitted", "true");
                 (window as any).clarity?.("set", "crypto", selectedCrypto);
                 (window as any).clarity?.("set", "country", country);
+
+                // Facebook CAPI: AddPaymentInfo on successful order creation
+                sendFbEvent('AddPaymentInfo', {
+                    email,
+                    phone: `${phoneCountryCode} ${phone}`,
+                    first_name: firstName,
+                    last_name: lastName,
+                    city,
+                    postal_code: postalCode,
+                    country_code: COUNTRY_TO_ISO[country] || '',
+                }, {
+                    content_ids: ['RET-KIT-1'],
+                    num_items: quantity,
+                    value: totalPrice,
+                    currency: 'EUR',
+                    crypto_currency: selectedCrypto,
+                }, data.reference_id);
+
                 window.location.href = `/${locale}/checkout/${data.reference_id}`;
             } else {
                 setFormError(data.error || 'Checkout failed');

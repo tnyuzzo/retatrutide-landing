@@ -10,10 +10,11 @@ import {
     underpaidAlertEmail,
 } from '@/lib/email-templates';
 import { sendSMS } from '@/lib/clicksend';
+import { sendFacebookEvent } from '@/lib/facebook-capi';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
 const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
-const EMAIL_REPLY_TO = 'support@aurapeptides.eu';
+const EMAIL_REPLY_TO = 'info@aurapep.eu';
 
 /** Constant-time string comparison to prevent timing attacks */
 function safeCompare(a: string, b: string): boolean {
@@ -54,7 +55,7 @@ export async function GET(req: Request) {
             // First, read order to get expected amount and details
             const { data: order, error: fetchError } = await supabaseAdmin
                 .from('orders')
-                .select('id, status, email, shipping_address, items, fiat_amount, crypto_currency, crypto_amount, order_number, locale')
+                .select('id, status, email, shipping_address, items, fiat_amount, crypto_currency, crypto_amount, order_number, locale, visitor_id')
                 .eq('reference_id', order_id)
                 .single();
 
@@ -139,6 +140,77 @@ export async function GET(req: Request) {
             }
 
             console.log(`Webhook: Order ${order_id} marked as PAID!`);
+
+            // Facebook CAPI: Purchase event (fire-and-forget)
+            try {
+              let visitorFbc: string | undefined;
+              let visitorIp: string | undefined;
+              let visitorUa: string | undefined;
+              let visitorCampaignId: string | undefined;
+              let visitorAdsetId: string | undefined;
+              let visitorAdId: string | undefined;
+
+              if (order.visitor_id) {
+                const { data: visitor } = await supabaseAdmin
+                  .from('website_visitors')
+                  .select('fbc, ip, user_agent, campaign_id, adset_id, ad_id')
+                  .eq('visitor_id', order.visitor_id)
+                  .single();
+                if (visitor) {
+                  visitorFbc = visitor.fbc || undefined;
+                  visitorIp = visitor.ip || undefined;
+                  visitorUa = visitor.user_agent || undefined;
+                  visitorCampaignId = visitor.campaign_id || undefined;
+                  visitorAdsetId = visitor.adset_id || undefined;
+                  visitorAdId = visitor.ad_id || undefined;
+                }
+              }
+
+              const shipping = order.shipping_address || {};
+              const nameParts = (shipping.full_name || '').split(' ');
+              const firstName = nameParts[0] || '';
+              const lastName = nameParts.slice(1).join(' ') || '';
+
+              const EU_COUNTRIES: Record<string, string> = {
+                'Austria': 'at', 'Belgium': 'be', 'Bulgaria': 'bg', 'Croatia': 'hr',
+                'Cyprus': 'cy', 'Czech Republic': 'cz', 'Denmark': 'dk', 'Estonia': 'ee',
+                'Finland': 'fi', 'France': 'fr', 'Germany': 'de', 'Greece': 'gr',
+                'Hungary': 'hu', 'Ireland': 'ie', 'Italy': 'it', 'Latvia': 'lv',
+                'Lithuania': 'lt', 'Luxembourg': 'lu', 'Malta': 'mt', 'Netherlands': 'nl',
+                'Poland': 'pl', 'Portugal': 'pt', 'Romania': 'ro', 'Slovakia': 'sk',
+                'Slovenia': 'si', 'Spain': 'es', 'Sweden': 'se',
+              };
+              const countryIso = EU_COUNTRIES[shipping.country] || '';
+
+              sendFacebookEvent({
+                event_name: 'Purchase',
+                event_id: `purchase_${order_id}`,
+                user_data: {
+                  em: order.email || undefined,
+                  ph: shipping.phone || undefined,
+                  fn: firstName || undefined,
+                  ln: lastName || undefined,
+                  ct: shipping.city || undefined,
+                  zp: shipping.postal_code || undefined,
+                  country: countryIso || undefined,
+                  fbc: visitorFbc,
+                  client_ip_address: visitorIp,
+                  client_user_agent: visitorUa,
+                },
+                custom_data: {
+                  content_ids: ['RET-KIT-1'],
+                  value: order.fiat_amount,
+                  currency: 'EUR',
+                  num_items: order.items?.reduce((s: number, i: { quantity?: number }) => s + (i.quantity || 1), 0) || 1,
+                  order_id: order_id,
+                  ...(visitorCampaignId && { campaign_id: visitorCampaignId }),
+                  ...(visitorAdsetId && { adset_id: visitorAdsetId }),
+                  ...(visitorAdId && { ad_id: visitorAdId }),
+                },
+              }).catch(err => console.error('[Webhook] FB CAPI Purchase error:', err));
+            } catch (fbErr) {
+              console.error('[Webhook] FB CAPI Purchase failed:', fbErr);
+            }
 
             // 4. Atomic Inventory Decrement (optimistic concurrency with retry)
             let inventoryDecrementFailed = false;

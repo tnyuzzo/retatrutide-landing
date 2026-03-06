@@ -6,6 +6,7 @@ import { CheckoutPoller } from "@/components/ui/CheckoutPoller";
 import { CopyAddressButton } from "@/components/ui/CopyAddressButton";
 import { CopyAmountButton } from "@/components/ui/CopyAmountButton";
 import { CheckoutCountdown } from "@/components/ui/CheckoutCountdown";
+import { CheckoutTracker } from "@/components/ui/CheckoutTracker";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -33,6 +34,7 @@ export default async function CheckoutPage(props: {
         const isExpired = order.status === 'expired';
         return (
             <main className="min-h-screen bg-brand-void text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+                <CheckoutTracker referenceId={order.reference_id} crypto={order.crypto_currency} fiatAmount={order.fiat_amount} status={order.status} />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-500/5 blur-[100px] rounded-full pointer-events-none"></div>
                 <div className="z-10 max-w-md w-full flex flex-col items-center gap-6 text-center">
                     {isExpired
@@ -67,6 +69,7 @@ export default async function CheckoutPage(props: {
 
         return (
             <main className="min-h-screen bg-brand-void text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+                <CheckoutTracker referenceId={order.reference_id} crypto={order.crypto_currency} fiatAmount={order.fiat_amount} status={order.status} />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
 
                 <div className="z-10 max-w-md w-full flex flex-col items-center gap-6">
@@ -135,6 +138,7 @@ export default async function CheckoutPage(props: {
 
     return (
         <main className="min-h-screen bg-brand-void text-white font-sans flex flex-col items-center justify-center p-4 md:p-6 relative overflow-hidden">
+            <CheckoutTracker referenceId={order.reference_id} crypto={order.crypto_currency} fiatAmount={order.fiat_amount} status={order.status} />
             <CheckoutPoller referenceId={order.reference_id} />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
 

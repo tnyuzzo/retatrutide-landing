@@ -10,8 +10,7 @@ function getAllUrls(): string[] {
 
   for (const page of pages) {
     for (const locale of routing.locales) {
-      const localePath = locale === routing.defaultLocale ? '' : `/${locale}`;
-      urls.push(`${BASE_URL}${localePath}${page}`);
+      urls.push(`${BASE_URL}/${locale}${page}`);
     }
   }
 

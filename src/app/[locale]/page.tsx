@@ -12,6 +12,7 @@ import { LiveInventoryBadge } from "@/components/ui/LiveInventoryBadge";
 import { RecentSalesPopup } from "@/components/ui/RecentSalesPopup";
 import { HomeStructuredData } from "@/components/seo/HomeStructuredData";
 import { useStock } from "@/components/ui/useStock";
+import { sendFbEvent } from '@/lib/fb-tracking';
 
 export default function Home() {
   const t = useTranslations('Index');
@@ -40,6 +41,16 @@ export default function Home() {
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (data?.totalOrders > 0) setOrderCount(data.totalOrders); })
       .catch(() => {/* fallback to static */});
+  }, []);
+
+  useEffect(() => {
+    sendFbEvent('ViewContent', null, {
+      content_name: 'Triple-G',
+      content_category: 'product',
+      content_ids: ['RET-KIT-1'],
+      value: 197,
+      currency: 'EUR',
+    }, 'homepage');
   }, []);
 
   return (
@@ -423,15 +434,15 @@ export default function Home() {
           <div className="flex flex-wrap justify-center gap-3 mb-12">
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full text-xs text-white/70 font-medium">
               <span className="w-2 h-2 rounded-full bg-brand-gold shrink-0"></span>
-              HPLC ≥99.8% Verified
+              {t('review_badge_hplc')}
             </div>
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full text-xs text-white/70 font-medium">
               <span className="w-2 h-2 rounded-full bg-green-400 shrink-0"></span>
-              EU Direct Shipping
+              {t('review_badge_shipping')}
             </div>
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full text-xs text-white/70 font-medium">
               <span className="w-2 h-2 rounded-full bg-brand-gold shrink-0"></span>
-              Lab Tested
+              {t('review_badge_lab')}
             </div>
           </div>
           <motion.div

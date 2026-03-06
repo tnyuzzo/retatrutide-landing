@@ -6,7 +6,7 @@ import { refundConfirmationEmail } from '@/lib/email-templates';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
 const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
-const EMAIL_REPLY_TO = 'support@aurapeptides.eu';
+const EMAIL_REPLY_TO = 'info@aurapep.eu';
 
 export async function POST(req: NextRequest) {
     try {

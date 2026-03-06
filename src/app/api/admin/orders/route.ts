@@ -13,7 +13,7 @@ import { registerTracking } from '@/lib/tracking';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
 const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
-const EMAIL_REPLY_TO = 'support@aurapeptides.eu';
+const EMAIL_REPLY_TO = 'info@aurapep.eu';
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
     pending: ['paid', 'cancelled'],

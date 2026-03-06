@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePostHog } from "posthog-js/react";
 import { Copy, Check } from "lucide-react";
 
 interface CopyAddressButtonProps {
@@ -11,8 +12,10 @@ interface CopyAddressButtonProps {
 
 export function CopyAddressButton({ address, labelCopy, labelCopied }: CopyAddressButtonProps) {
     const [copied, setCopied] = useState(false);
+    const posthog = usePostHog();
 
     const handleCopy = async () => {
+        posthog?.capture('checkout_address_copied');
         try {
             await navigator.clipboard.writeText(address);
         } catch {

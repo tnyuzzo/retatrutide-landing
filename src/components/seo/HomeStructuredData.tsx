@@ -18,7 +18,7 @@ export function HomeStructuredData() {
       "Premium research peptides for the European market. ≥99.8% HPLC-verified purity, independently tested.",
     contactPoint: {
       "@type": "ContactPoint",
-      email: "support@aurapeptides.eu",
+      email: "info@aurapep.eu",
       contactType: "customer service",
       availableLanguage: [
         "English",

@@ -9,11 +9,10 @@ const BASE_URL = 'https://aurapep.eu';
 export function getAlternateLanguages(path: string): Record<string, string> {
   const alternates: Record<string, string> = {};
   for (const locale of routing.locales) {
-    const localePath = locale === routing.defaultLocale ? '' : `/${locale}`;
     const langCode = locale === 'uk' ? 'uk-UA' : locale;
-    alternates[langCode] = `${BASE_URL}${localePath}${path}`;
+    alternates[langCode] = `${BASE_URL}/${locale}${path}`;
   }
-  alternates['x-default'] = `${BASE_URL}${path}`;
+  alternates['x-default'] = `${BASE_URL}/en${path}`;
   return alternates;
 }
 
@@ -21,8 +20,7 @@ export function getAlternateLanguages(path: string): Record<string, string> {
  * Build canonical URL for a given locale and path
  */
 export function getCanonicalUrl(locale: string, path: string): string {
-  const localePath = locale === routing.defaultLocale ? '' : `/${locale}`;
-  return `${BASE_URL}${localePath}${path}`;
+  return `${BASE_URL}/${locale}${path}`;
 }
 
 /**
