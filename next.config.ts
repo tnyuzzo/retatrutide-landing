@@ -7,6 +7,14 @@ const withNextIntl = createNextIntlPlugin(
 );
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      // PostHog reverse proxy — bypasses adblockers
+      { source: '/ingest/static/:path*', destination: 'https://eu-assets.i.posthog.com/static/:path*' },
+      { source: '/ingest/:path*', destination: 'https://eu.i.posthog.com/:path*' },
+      { source: '/ingest/decide', destination: 'https://eu.i.posthog.com/decide' },
+    ];
+  },
   async headers() {
     return [
       {

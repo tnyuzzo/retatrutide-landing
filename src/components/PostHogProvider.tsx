@@ -7,7 +7,7 @@ import { useEffect, Suspense } from "react";
 
 if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-    api_host: "https://eu.i.posthog.com",
+    api_host: "/ingest",
     ui_host: "https://eu.posthog.com",
     capture_pageview: false, // manual pageview for SPA routing
     capture_pageleave: true,
