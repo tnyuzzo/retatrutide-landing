@@ -254,6 +254,18 @@ export default function OrderPage() {
         leadSentRef.current = hash;
         fetch('/api/leads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: hash }).catch(() => {});
 
+        // PostHog: identify user + set person properties
+        if (email && email.includes('@')) {
+            posthog?.identify(email, {
+                email,
+                ...(firstName && { first_name: firstName }),
+                ...(lastName && { last_name: lastName }),
+                ...(country && { country }),
+                ...(city && { city }),
+                locale,
+            });
+        }
+
         // Facebook CAPI: progressive visitor enrichment
         const visitorData: Record<string, string | undefined> = {};
         if (email) visitorData.email = email;
@@ -450,7 +462,7 @@ export default function OrderPage() {
                             </div>
                             <div className="flex items-center gap-4">
                                 <button
-                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                    onClick={() => { const q = Math.max(1, quantity - 1); setQuantity(q); posthog?.capture('quantity_changed', { quantity: q }); }}
                                     className="w-12 h-12 rounded-xl border border-white/20 flex items-center justify-center hover:border-brand-gold hover:bg-brand-gold/10 transition-all active:scale-95"
                                 >
                                     <Minus className="w-5 h-5" />
@@ -467,7 +479,7 @@ export default function OrderPage() {
                                     className="w-20 h-12 text-center text-2xl font-light bg-transparent border border-white/20 rounded-xl focus:border-brand-gold focus:outline-none text-white"
                                 />
                                 <button
-                                    onClick={() => setQuantity(Math.min(100, quantity + 1))}
+                                    onClick={() => { const q = Math.min(100, quantity + 1); setQuantity(q); posthog?.capture('quantity_changed', { quantity: q }); }}
                                     className="w-12 h-12 rounded-xl border border-white/20 flex items-center justify-center hover:border-brand-gold hover:bg-brand-gold/10 transition-all active:scale-95"
                                 >
                                     <Plus className="w-5 h-5" />

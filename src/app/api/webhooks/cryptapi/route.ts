@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { Resend } from 'resend';
 import crypto from 'crypto';
@@ -46,6 +47,10 @@ export async function GET(req: Request) {
             console.warn(`Webhook: Invalid secret for order ${order_id}. Rejecting.`);
             return new NextResponse('*ok*', { status: 200 });
         }
+
+        // Sentry context for this webhook
+        Sentry.setTag('order_ref', order_id);
+        Sentry.setContext('webhook', { order_id, value_forwarded_coin, pending });
 
         if (pending === '0') {
             // 1. Atomic status update: only transition pending → paid/underpaid
@@ -444,6 +449,7 @@ export async function GET(req: Request) {
 
     } catch (error) {
         console.error("CryptAPI Webhook error:", error);
+        Sentry.captureException(error);
         return new NextResponse('*ok*', { status: 200 });
     }
 }

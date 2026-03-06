@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
@@ -110,6 +111,12 @@ export async function POST(req: Request) {
 
         const { email, shipping_address, quantity, crypto_currency, locale, visitor_id } = parsed.data;
 
+        // Sentry context for this checkout
+        Sentry.setUser({ email });
+        Sentry.setTag('crypto', crypto_currency);
+        Sentry.setTag('locale', locale || 'unknown');
+        Sentry.setContext('checkout', { quantity, crypto_currency, fiat_amount: 197 * quantity, country: shipping_address.country });
+
         // ── Price Calculation (must match frontend tiers) ──
         const basePrice = 197;
         const discountPercent = getDiscount(quantity);
@@ -163,6 +170,7 @@ export async function POST(req: Request) {
 
         if (cryptapiData.status !== 'success') {
             console.error("CryptAPI Error:", JSON.stringify(cryptapiData), "URL:", cryptapiUrl);
+            Sentry.captureMessage('CryptAPI address generation failed', { level: 'error', extra: { cryptapiData, crypto_currency } });
             return NextResponse.json({ error: 'Failed to generate crypto address', debug: cryptapiData }, { status: 500 });
         }
 
@@ -288,6 +296,7 @@ export async function POST(req: Request) {
 
     } catch (error) {
         console.error("Checkout API error:", error);
+        Sentry.captureException(error);
         return NextResponse.json({ error: 'Server error processing checkout' }, { status: 500 });
     }
 }

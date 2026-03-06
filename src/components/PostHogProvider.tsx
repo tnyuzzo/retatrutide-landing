@@ -27,6 +27,14 @@ function PostHogPageview() {
       const search = searchParams?.toString();
       if (search) url += "?" + search;
       ph.capture("$pageview", { $current_url: url });
+
+      // Set person properties on every pageview
+      const locale = pathname?.split("/")[1] || "en";
+      ph.setPersonPropertiesForFlags({ locale });
+      ph.capture("$set", {
+        $set: { locale, last_seen_page: pathname },
+        $set_once: { landing_page: pathname, first_locale: locale },
+      });
     }
   }, [pathname, searchParams, ph]);
 

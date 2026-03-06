@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Syringe, FlaskConical, Droplet, Info, AlertTriangle, Settings, ArrowLeft } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
+import { usePostHog } from "posthog-js/react";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { CalculatorStructuredData } from "@/components/seo/CalculatorStructuredData";
 import { sendFbEvent } from '@/lib/fb-tracking';
@@ -20,6 +21,8 @@ export default function CalculatorPage() {
     const [unitsToDraw, setUnitsToDraw] = useState(0);
     const [volumeToDrawMl, setVolumeToDrawMl] = useState(0);
     const [concentration, setConcentration] = useState(0);
+    const posthog = usePostHog();
+    const calcTrackedRef = useRef(false);
 
     useEffect(() => {
         sendFbEvent('ViewContent', null, {
@@ -38,7 +41,12 @@ export default function CalculatorPage() {
         const volMl = conc > 0 ? dose / conc : 0;
         setVolumeToDrawMl(volMl);
         setUnitsToDraw(volMl * 100);
-    }, [peptideAmountMg, waterAmountMl, desiredDoseMcg]);
+        // Track first meaningful interaction
+        if (!calcTrackedRef.current && (peptideAmountMg !== "10" || waterAmountMl !== "2" || desiredDoseMcg !== "250")) {
+            calcTrackedRef.current = true;
+            posthog?.capture('calculator_used', { dose_mcg: dose, peptide_mg: peptide, water_ml: water });
+        }
+    }, [peptideAmountMg, waterAmountMl, desiredDoseMcg, posthog]);
 
     const maxUnits = syringeSize * 100;
     const fillPercent = Math.min((unitsToDraw / maxUnits) * 100, 100);
