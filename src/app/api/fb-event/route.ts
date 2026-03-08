@@ -86,10 +86,10 @@ export async function POST(req: Request) {
     // Record event in visitor's events_sent for dedup tracking
     if (visitor_id) {
       try {
-        await supabaseAdmin
-          .from('website_visitors')
-          .update({ updated_at: new Date().toISOString() })
-          .eq('visitor_id', visitor_id);
+        await supabaseAdmin.rpc('append_event_sent', {
+          p_visitor_id: visitor_id,
+          p_event_id: finalEventId,
+        });
       } catch {
         // Non-critical, ignore
       }
