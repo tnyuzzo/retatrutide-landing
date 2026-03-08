@@ -10,9 +10,12 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       // PostHog reverse proxy — bypasses adblockers
+      // Locale-prefixed paths (e.g. /fr/ingest/e, /de/ingest/flags)
+      { source: '/:locale(en|it|fr|de|es|pt|pl|ru|uk|ar)/ingest/static/:path*', destination: 'https://eu-assets.i.posthog.com/static/:path*' },
+      { source: '/:locale(en|it|fr|de|es|pt|pl|ru|uk|ar)/ingest/:path*', destination: 'https://eu.i.posthog.com/:path*' },
+      // Non-prefixed paths (direct access)
       { source: '/ingest/static/:path*', destination: 'https://eu-assets.i.posthog.com/static/:path*' },
       { source: '/ingest/:path*', destination: 'https://eu.i.posthog.com/:path*' },
-      { source: '/ingest/decide', destination: 'https://eu.i.posthog.com/decide' },
     ];
   },
   async headers() {
