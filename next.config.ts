@@ -7,6 +7,9 @@ const withNextIntl = createNextIntlPlugin(
 );
 
 const nextConfig: NextConfig = {
+  // Prevent 308 redirects on trailing slashes — sendBeacon (used by PostHog)
+  // does not follow redirects, causing lost analytics events
+  skipTrailingSlashRedirect: true,
   async rewrites() {
     return [
       // PostHog reverse proxy — bypasses adblockers
