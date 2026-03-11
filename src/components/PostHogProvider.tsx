@@ -13,6 +13,7 @@ if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
     capture_pageleave: true,
     autocapture: true,
     persistence: "localStorage+cookie",
+    advanced_disable_feature_flags: true,
   });
 }
 
@@ -26,11 +27,8 @@ function PostHogPageview() {
       let url = window.origin + pathname;
       const search = searchParams?.toString();
       if (search) url += "?" + search;
-      ph.capture("$pageview", { $current_url: url });
-
-      // Set person properties on every pageview
       const locale = pathname?.split("/")[1] || "en";
-      ph.setPersonPropertiesForFlags({ locale });
+      ph.capture("$pageview", { $current_url: url });
       ph.capture("$set", {
         $set: { locale, last_seen_page: pathname },
         $set_once: { landing_page: pathname, first_locale: locale },
