@@ -70,7 +70,7 @@ export function FaqSection() {
 
         {/* Support CTA */}
         <div className="mt-12 text-center">
-          <p className="text-white/40 text-sm">{t('faq_contact_pre')}<a href="mailto:support@retatrutide-research.com" className="text-brand-gold hover:text-brand-gold-light underline underline-offset-4 decoration-brand-gold/30 transition-colors">{t('faq_contact_link')}</a></p>
+          <p className="text-white/40 text-sm">{t('faq_contact_pre')}<a href="mailto:info@aurapep.eu" className="text-brand-gold hover:text-brand-gold-light underline underline-offset-4 decoration-brand-gold/30 transition-colors">{t('faq_contact_link')}</a></p>
         </div>
       </div>
     </section>

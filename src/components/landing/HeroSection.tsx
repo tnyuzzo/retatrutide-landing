@@ -61,13 +61,13 @@ export function HeroSection() {
           {/* Mobile/Tablet: info strip sopra il CTA */}
           <div className="lg:hidden flex items-center flex-wrap justify-center gap-x-1.5 gap-y-0.5 px-1">
             <span className="text-brand-gold font-semibold text-sm">99€</span>
-            <span className="text-white/40 text-xs">/fiala</span>
+            <span className="text-white/40 text-xs">/{t('hero_per_vial')}</span>
             <span className="text-white/20 text-xs">·</span>
-            <span className="text-white/50 text-xs">min. 3 box</span>
+            <span className="text-white/50 text-xs">{t('hero_min_qty')}</span>
             <span className="text-white/20 text-xs">·</span>
             <span className="flex items-center gap-1 text-xs text-white/50">
               <Gift className="w-3 h-3 text-brand-gold shrink-0" />
-              Acqua batteriostatica 3ml omaggio
+              {t('hero_free_bac_water')}
             </span>
           </div>
 
