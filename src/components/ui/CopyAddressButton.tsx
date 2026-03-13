@@ -36,8 +36,8 @@ export function CopyAddressButton({ address, labelCopy, labelCopied }: CopyAddre
     return (
         <div className="w-full flex flex-col gap-3">
             {/* Address display — readable, selectable */}
-            <div className="bg-black/50 border border-white/15 rounded-2xl px-4 py-4">
-                <p className="font-mono text-sm text-white/80 break-all leading-relaxed select-all text-center">
+            <div className="bg-t-bg-subtle border border-t-border rounded-2xl px-4 py-4">
+                <p className="font-mono text-sm text-t-text-2 break-all leading-relaxed select-all text-center">
                     {address}
                 </p>
             </div>
@@ -49,7 +49,7 @@ export function CopyAddressButton({ address, labelCopy, labelCopied }: CopyAddre
                 className={`w-full flex items-center justify-center gap-3 py-5 rounded-2xl text-lg font-bold transition-all duration-300 active:scale-95 ${
                     copied
                         ? "bg-green-500 text-white shadow-[0_0_25px_rgba(34,197,94,0.5)]"
-                        : "bg-brand-gold text-brand-void shadow-[0_0_25px_rgba(212,175,55,0.4)] hover:bg-brand-gold-light"
+                        : "bg-t-btn text-t-btn-text shadow-[0_0_25px_rgba(212,175,55,0.4)] hover:bg-t-accent-hover"
                 }`}
             >
                 {copied ? (

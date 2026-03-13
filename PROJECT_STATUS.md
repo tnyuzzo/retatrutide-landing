@@ -9,7 +9,8 @@
 
 - **Last deploy**: 2026-02-26 (commit `5532602`)
 - **Branch**: main (up to date with origin/main)
-- **Build**: 86 static pages + 24 API routes, zero errors
+- **Build**: 99 static pages + 24 API routes, zero errors
+- **Theming**: CSS variable-based light/dark theme system. Dark = default. Light attivato da cookie `theme=light` → `data-theme="light"` su `<html>`
 - **Analytics**: Microsoft Clarity (`vn1xc3jub1`) session replay + heatmaps; PostHog eventi custom (session replay OFF); Sentry error tracking (`aurapep-eu` su EU server, org `neurosoft-af`)
 - **IndexNow**: configurato e inviato (50 URL → Bing/Yandex/Seznam/Naver)
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
@@ -147,22 +148,45 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 
 ## Design System
 
-**Palette colori** (definiti in `src/app/globals.css` @theme):
-- `brand-void`: `#0A0F16` — background principale (near-black)
-- `brand-gold`: `#D4AF37` — accent primario (premium gold)
-- `brand-gold-light`: `#F5D061` — gold chiaro per hover
-- `brand-cyan`: `#00E5FF` — accent secondario (poco usato)
-- `brand-glass`: `rgba(20, 30, 45, 0.6)` — pannelli semi-trasparenti
+**Theme system** (CSS variables in `src/app/globals.css`):
+- Dark theme = default (`:root`), Light theme = `[data-theme="light"]` su `<html>`
+- Attivazione: cookie `theme=light` letto in `layout.tsx` via `cookies()` next/headers
+- Admin pages escluse (usano `brand-*` colors direttamente)
+
+**Semantic color tokens** (usare `t-*` nelle classi Tailwind):
+| Token | Dark | Light | Uso |
+|-------|------|-------|-----|
+| `t-bg` | `#0A0F16` | `#FFFFFF` | Page background |
+| `t-bg-alt` | `#0A0F16` | `#F8F7F4` | Sezioni alternate |
+| `t-bg-card` | `rgba(20,30,45,0.6)` | `#FFFFFF` | Card/pannelli |
+| `t-bg-subtle` | `rgba(255,255,255,0.05)` | `rgba(0,0,0,0.03)` | Bg sottile |
+| `t-bg-input` | `rgba(0,0,0,0.4)` | `#FFFFFF` | Form input |
+| `t-text` | `#ffffff` | `#1A2744` | Testo primario |
+| `t-text-2` | `rgba(255,255,255,0.7)` | `#475569` | Testo secondario |
+| `t-text-3` | `rgba(255,255,255,0.5)` | `#8C919A` | Testo muted |
+| `t-text-4` | `rgba(255,255,255,0.4)` | `#A8ABB3` | Testo subtle |
+| `t-accent` | `#D4AF37` | `#C09B2D` | Accent gold |
+| `t-accent-hover` | `#F5D061` | `#A8871F` | Accent hover |
+| `t-border` | `rgba(255,255,255,0.1)` | `#E0DDD6` | Bordi standard |
+| `t-border-subtle` | `rgba(255,255,255,0.05)` | `#ECEAE4` | Bordi sottili |
+| `t-btn` | `#D4AF37` | `#1A2744` | Bottone primario bg |
+| `t-btn-text` | `#0A0F16` | `#FFFFFF` | Bottone primario text |
+| `t-success` | `#4ade80` | `#1B6B40` | Colore successo |
+| `t-success-dim` | `rgba(74,222,128,0.1)` | `rgba(27,107,64,0.1)` | Successo bg |
+
+**Legacy brand-* colors** (solo per admin, non usare nelle pagine pubbliche):
+- `brand-void`, `brand-gold`, `brand-gold-light`, `brand-cyan`, `brand-glass`
 
 **Tipografia**: Geist Sans (Google Font), pesi: 200-600
 
-**Utility CSS custom**:
-- `.glass-panel` — glassmorphism: `bg-brand-glass backdrop-blur-md border border-white/10 rounded-2xl`
-- `.gold-glow` — `box-shadow: 0 0 20px rgba(212, 175, 55, 0.3)`
-- `.text-gradient-gold` — gradiente text da gold a gold-light
+**Utility CSS custom** (theme-aware):
+- `.glass-panel` — bg/blur/border/shadow variabili: card opache in dark, card bianche con shadow in light
+- `.gold-glow` — gold glow shadow in dark, subtle shadow in light
+- `.text-gradient-gold` — gradiente da `t-accent` a `t-accent-hover`
+- `.theme-dark-only` / `.theme-light-only` — visibilità condizionale per tema
 - `@keyframes shimmer` — effetto shine sui bottoni
 
-**Pattern ricorrenti**: `bg-brand-void`, `text-white/50`, `border-white/10`, `rounded-2xl`, Framer Motion `whileInView`
+**Pattern ricorrenti**: `bg-t-bg`, `text-t-text-3`, `border-t-border`, `rounded-2xl`, Framer Motion `whileInView`
 
 ---
 
@@ -535,6 +559,40 @@ supabase/migrations/                # 4 SQL migration files
 
 ## Recently Completed
 
+- [2026-03-13] **FAQ dosaggi + light theme tutte le pagine** (non committato):
+  - **Nuova FAQ #10**: "Dove posso trovare informazioni sui dosaggi e i protocolli?" — rimanda a glp1journal.eu e YouTube, chiude con disclaimer responsabilità ricercatore. Tradotta in 10 lingue. Aggiunta sia in FaqSection (dark) che FaqSectionLight (light)
+  - **Light theme pagine secondarie**: fixati tutti i colori hardcoded dark su Calculator, Crypto Guide, Order, Checkout e CopyAddressButton. Tutte le pagine ora usano esclusivamente `t-*` semantic tokens
+    - Calculator: `bg-black/20` → `bg-t-bg-subtle`, siringa: bordi/tick marks/indicatore ora theme-aware
+    - Crypto Guide: `bg-[#0c1933]` → `bg-t-bg-subtle`, callout blue → gold accent tokens
+    - Order: `bg-white/[0.02]` → `bg-t-bg-subtle`, Google Places autocomplete CSS ora theme-aware (detect `data-theme`)
+    - Checkout: `border-green-500/20 bg-green-500/5` → `t-success` tokens, `text-green-300/80` → `text-t-success`
+    - CopyAddressButton: `bg-black/50` → `bg-t-bg-subtle`
+    - Portal: già ok, nessuna modifica necessaria
+  - **Stato attuale**: dark = default, light = cookie `theme=light`. Tutte le 6 pagine pubbliche supportano entrambi i temi
+  - **TODO**: decidere gestione online (A/B test PostHog, toggle utente, o default light)
+- [2026-03-13] **Blog CTA card in LightPage** (non committato):
+  - Card tra Buyer Protection e FAQ in `LightPage.tsx` che invita a visitare glp1journal.eu
+  - Presentato come risorsa indipendente/imparziale (zero riferimenti ad Aura Peptides)
+  - UTM tracking: `utm_source=aurapep&utm_medium=landing&utm_campaign=blog_cta&utm_content={locale}`
+  - Email collection opzionale (POST a `/api/leads` esistente) con PostHog + Clarity tracking
+  - Mapping locale aurapep → blog locale (it/en/de/fr/es supportati, fallback en)
+  - 7 chiavi traduzione `blog_cta_*` aggiunte solo in `messages/en.json`
+  - **TODO**: tradurre `blog_cta_*` nelle altre 9 lingue (it, fr, de, es, pt, pl, ru, uk, ar)
+  - **TODO**: tradurre altre chiavi mancanti in LightPage (review_4-8, qa_description, faq_q1-q9/faq_a1-a9, light_stat_support) nelle 9 lingue
+- [2026-03-12] **Light/Dark theme system (CSS variables)**:
+  - **Infrastructure**: 20 semantic CSS custom properties in `globals.css` sotto `:root` (dark default) e `[data-theme="light"]`
+  - **Tailwind 4 @theme**: 17 color tokens registrati (`t-bg`, `t-text`, `t-accent`, `t-border`, `t-btn`, `t-success`, ecc.) con supporto opacity modifier via `color-mix()`
+  - **Utility classes aggiornate**: `.glass-panel` (bg + blur + border + shadow variabili), `.gold-glow` (shadow variabile), `.text-gradient-gold` (gradient variabile)
+  - **Theme visibility**: classi `.theme-dark-only` / `.theme-light-only` per swap condizionale (es. product image)
+  - **Componenti refactored**: 14 landing components + 7 UI components + 6 page files (~200 sostituzioni di classi Tailwind)
+  - **Theme switching**: cookie `theme=light` → `data-theme="light"` su `<html>` in `layout.tsx` (via `cookies()` next/headers)
+  - **Product image swap**: HeroSection mostra dark vial (`product_hero_v5.png`, `theme-dark-only`) o light vial (`vial_v7_white.png`, `theme-light-only`)
+  - **Admin escluso**: `admin/page.tsx` usa ancora `brand-*` colors diretti, non toccato dal theming
+  - **Palette chiara**: BG #FFFFFF, BG_ALT #F8F7F4, Navy #1A2744, Gold #C09B2D, Border #E0DDD6, Success #1B6B40
+  - **Pagina test2 rimossa** (sostituita dal tema system)
+  - **Build**: 99 pagine statiche + 24 API routes, zero errori. Dark theme visivamente invariato, light theme verificato su homepage + order page
+  - Piano in `docs/superpowers/plans/2026-03-12-light-dark-theme.md`
+  - **TODO prossimo**: integrare PostHog feature flag per A/B test automatico dark vs light
 - [2026-03-05] **Facebook CAPI server-side + locale prefix fix + email change + i18n badges**:
   - **Facebook Conversions API**: implementazione completa server-side con cloaking (NO pixel client-side, NO _fbp, action_source: "system_generated")
   - Tabella `website_visitors` su Supabase per attribution resiliente (sopravvive adblocker/ITP/cookie deletion)
@@ -732,20 +790,12 @@ supabase/migrations/                # 4 SQL migration files
 
 ## In Progress
 
-- **GLP-1 Journal blog** (`glp1-journal/`) — blog editoriale separato su glp1journal.eu. Stack: Astro 5 + MDX + Tailwind CSS 4. Build: **676 pagine** (44 articoli IT + 20 traduzioni EN/DE/FR/ES + pagina 404). **Pronto per deploy.**
-  - DONE: tutti i fix SEO tecnici (BreadcrumbJsonLd, 404 page, OG meta, publisher logo, fetchpriority, H1 unico)
-  - DONE: 44/44 titoli ≤ 60 char, 44/44 descriptions 120-160 char
-  - DONE: 44/44 articoli con ≥ 5 link interni, 0 orfani, 0 link rotti
-  - DONE: 44/44 articoli con CTA aurapep.eu + UTM completi
-  - DONE: 97 link rotti fixati (/it/articles/ → /it/), 24 doppi H1 rimossi
-  - TODO: tradurre i 24 nuovi articoli IT-only in EN, DE, FR, ES (= 96 pagine)
-  - TODO: image optimization (sharp non compila, usare compressione esterna o CDN)
-  - TODO: FAQ schema su faq-peptidi-dimagranti.mdx
+- **Light theme online strategy** — decidere come servire dark/light in produzione (A/B test PostHog, toggle utente, default light, per campagna)
+- **Blog CTA traduzioni** — 7 chiavi `blog_cta_*` da tradurre in 9 lingue + altre chiavi LightPage mancanti
 
 ## TODO / Planned
 
 - [ ] Configurare wallet XRP (attualmente placeholder `CRYPTAPI_XRP_WALLET`)
-- [ ] Deploy GLP-1 Journal su Vercel (dominio glp1journal.eu)
 - [ ] Registrare domini extra: glp1research.eu, glp1review.eu, glp1digest.eu, glp1insider.eu
 - [ ] **SEO BLOCCANTE**: sito non indicizzato (site:glp1journal.eu = 0). Registrare su Google Search Console + submittare sitemap
 - [ ] **E-E-A-T**: creare pagina "Chi Siamo", aggiungere autore reale con credenziali, medical review badge

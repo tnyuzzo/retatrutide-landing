@@ -149,9 +149,12 @@ export default function OrderPage() {
             script.addEventListener('load', initAutocomplete);
             document.head.appendChild(script);
 
-            // Dark theme for autocomplete dropdown
+            // Theme-aware autocomplete dropdown
+            const isLight = document.documentElement.dataset.theme === 'light';
             const style = document.createElement('style');
-            style.textContent = `.pac-container{background:#0a0a14;border:1px solid rgba(255,255,255,0.1);border-radius:12px;margin-top:4px;box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:9999}.pac-item{color:rgba(255,255,255,0.7);border-top:1px solid rgba(255,255,255,0.05);padding:8px 12px;cursor:pointer;font-size:14px}.pac-item:hover{background:rgba(255,255,255,0.1)}.pac-item-query{color:#d4af37}.pac-icon{display:none}`;
+            style.textContent = isLight
+                ? `.pac-container{background:#FFFFFF;border:1px solid #E0DDD6;border-radius:12px;margin-top:4px;box-shadow:0 8px 32px rgba(0,0,0,0.1);z-index:9999}.pac-item{color:#475569;border-top:1px solid #ECEAE4;padding:8px 12px;cursor:pointer;font-size:14px}.pac-item:hover{background:#F8F7F4}.pac-item-query{color:#1A2744}.pac-icon{display:none}`
+                : `.pac-container{background:#0a0a14;border:1px solid rgba(255,255,255,0.1);border-radius:12px;margin-top:4px;box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:9999}.pac-item{color:rgba(255,255,255,0.7);border-top:1px solid rgba(255,255,255,0.05);padding:8px 12px;cursor:pointer;font-size:14px}.pac-item:hover{background:rgba(255,255,255,0.1)}.pac-item-query{color:#d4af37}.pac-icon{display:none}`;
             document.head.appendChild(style);
         }
     }, []);
@@ -419,16 +422,16 @@ export default function OrderPage() {
     };
 
     return (
-        <main className="min-h-screen bg-brand-void text-white font-sans flex flex-col overflow-x-hidden">
+        <main className="min-h-screen bg-t-bg text-t-text font-sans flex flex-col overflow-x-hidden">
             {/* HEADER */}
-            <header className="w-full py-6 px-6 md:px-12 flex justify-between items-center border-b border-white/5 bg-brand-void/50 backdrop-blur-md sticky top-0 z-50">
+            <header className="w-full py-6 px-6 md:px-12 flex justify-between items-center border-b border-t-border-subtle bg-t-bg/50 backdrop-blur-md sticky top-0 z-50">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => window.location.href = `/${locale}`} className="text-white/50 hover:text-white transition-colors">
+                    <button onClick={() => window.location.href = `/${locale}`} className="text-t-text-3 hover:text-t-text transition-colors">
                         <ArrowLeft className="w-4 h-4" />
                     </button>
                     <div className="flex items-center gap-1.5">
-                        <Lock className="w-3.5 h-3.5 text-green-400" />
-                        <span className="text-xs text-green-400 font-medium tracking-wider uppercase whitespace-nowrap">{t('order_secure')}</span>
+                        <Lock className="w-3.5 h-3.5 text-t-success" />
+                        <span className="text-xs text-t-success font-medium tracking-wider uppercase whitespace-nowrap">{t('order_secure')}</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -437,33 +440,33 @@ export default function OrderPage() {
             </header>
 
             <div className="flex-1 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 p-6 md:p-12 pb-28 lg:pb-12 relative">
-                <div className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-gold/5 blur-[120px] rounded-full pointer-events-none"></div>
+                <div className="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-t-accent/5 blur-[120px] rounded-full pointer-events-none"></div>
 
                 {/* LEFT COLUMN */}
                 <div className="lg:col-span-7 flex flex-col gap-8 relative z-10">
                     {/* Step indicator */}
-                    <div className="flex items-center gap-2 text-xs text-white/40">
-                        <span className="w-5 h-5 rounded-full bg-brand-gold/20 border border-brand-gold/40 flex items-center justify-center text-brand-gold text-[10px] font-semibold">1</span>
+                    <div className="flex items-center gap-2 text-xs text-t-text-4">
+                        <span className="w-5 h-5 rounded-full bg-t-accent/20 border border-t-accent/40 flex items-center justify-center text-t-accent text-[10px] font-semibold">1</span>
                         <span>{t('order_step_indicator')}</span>
                     </div>
 
                     <div>
-                        <h1 className="text-3xl md:text-5xl font-light mb-2">{t('order_select_title')} <span className="font-medium text-brand-gold">{t('order_select_highlight')}</span></h1>
-                        <p className="text-white/50 text-sm">{t('order_select_desc')}</p>
+                        <h1 className="text-3xl md:text-5xl font-light mb-2">{t('order_select_title')} <span className="font-medium text-t-accent">{t('order_select_highlight')}</span></h1>
+                        <p className="text-t-text-3 text-sm">{t('order_select_desc')}</p>
                     </div>
 
                     {/* QUANTITY SELECTOR */}
-                    <div className="glass-panel p-8 border-brand-gold/20">
+                    <div className="glass-panel p-8 border-t-accent/20">
                         <div className="flex flex-col sm:flex-row justify-between items-center gap-6">
                             <div className="flex flex-col gap-1">
-                                <span className="text-sm text-white/50 uppercase tracking-widest">{t('order_quantity')}</span>
-                                <span className="text-white/40 text-xs">Retatrutide 10mg</span>
-                                <span className="text-green-400/70 text-xs">+ {t('order_free_bac_water')}</span>
+                                <span className="text-sm text-t-text-3 uppercase tracking-widest">{t('order_quantity')}</span>
+                                <span className="text-t-text-4 text-xs">Retatrutide 10mg</span>
+                                <span className="text-t-success/70 text-xs">+ {t('order_free_bac_water')}</span>
                             </div>
                             <div className="flex items-center gap-4">
                                 <button
                                     onClick={() => { const q = Math.max(1, quantity - 1); setQuantity(q); posthog?.capture('quantity_changed', { quantity: q }); }}
-                                    className="w-12 h-12 rounded-xl border border-white/20 flex items-center justify-center hover:border-brand-gold hover:bg-brand-gold/10 transition-all active:scale-95"
+                                    className="w-12 h-12 rounded-xl border border-t-border flex items-center justify-center hover:border-t-accent hover:bg-t-accent/10 transition-all active:scale-95"
                                 >
                                     <Minus className="w-5 h-5" />
                                 </button>
@@ -476,11 +479,11 @@ export default function OrderPage() {
                                         const val = parseInt(e.target.value) || 1;
                                         setQuantity(Math.max(1, Math.min(100, val)));
                                     }}
-                                    className="w-20 h-12 text-center text-2xl font-light bg-transparent border border-white/20 rounded-xl focus:border-brand-gold focus:outline-none text-white"
+                                    className="w-20 h-12 text-center text-2xl font-light bg-transparent border border-t-border rounded-xl focus:border-t-accent focus:outline-none text-t-text"
                                 />
                                 <button
                                     onClick={() => { const q = Math.min(100, quantity + 1); setQuantity(q); posthog?.capture('quantity_changed', { quantity: q }); }}
-                                    className="w-12 h-12 rounded-xl border border-white/20 flex items-center justify-center hover:border-brand-gold hover:bg-brand-gold/10 transition-all active:scale-95"
+                                    className="w-12 h-12 rounded-xl border border-t-border flex items-center justify-center hover:border-t-accent hover:bg-t-accent/10 transition-all active:scale-95"
                                 >
                                     <Plus className="w-5 h-5" />
                                 </button>
@@ -488,39 +491,39 @@ export default function OrderPage() {
                         </div>
 
                         {/* LIVE PRICING BREAKDOWN */}
-                        <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-3 gap-4 text-center">
+                        <div className="mt-6 pt-6 border-t border-t-border grid grid-cols-3 gap-4 text-center">
                             <div className="flex flex-col">
-                                <span className="text-xs text-white/40 uppercase tracking-wider">{t('order_unit_price')}</span>
-                                <span className="text-2xl font-light text-white mt-1">{unitPrice}€</span>
+                                <span className="text-xs text-t-text-4 uppercase tracking-wider">{t('order_unit_price')}</span>
+                                <span className="text-2xl font-light text-t-text mt-1">{unitPrice}€</span>
                                 {discount > 0 && (
-                                    <span className="text-xs text-white/30 line-through">{BASE_PRICE}€</span>
+                                    <span className="text-xs text-t-text-4 line-through">{BASE_PRICE}€</span>
                                 )}
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-xs text-white/40 uppercase tracking-wider">{t('order_discount_label')}</span>
-                                <span className={`text-2xl font-light mt-1 ${discount > 0 ? 'text-green-400' : 'text-white/30'}`}>
+                                <span className="text-xs text-t-text-4 uppercase tracking-wider">{t('order_discount_label')}</span>
+                                <span className={`text-2xl font-light mt-1 ${discount > 0 ? 'text-t-success' : 'text-t-text-4'}`}>
                                     {discount > 0 ? `-${discount}%` : '—'}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-xs text-white/40 uppercase tracking-wider">{t('order_total')}</span>
-                                <span className="text-2xl font-light text-brand-gold mt-1">{totalPrice}€</span>
+                                <span className="text-xs text-t-text-4 uppercase tracking-wider">{t('order_total')}</span>
+                                <span className="text-2xl font-light text-t-accent mt-1">{totalPrice}€</span>
                                 {savedAmount > 0 && (
-                                    <span className="text-xs text-green-400">{t('order_save')} {savedAmount}€</span>
+                                    <span className="text-xs text-t-success">{t('order_save')} {savedAmount}€</span>
                                 )}
                             </div>
                         </div>
                     </div>
 
                     {/* DISCOUNT TIERS TABLE */}
-                    <div className="glass-panel border-white/10 overflow-hidden">
+                    <div className="glass-panel border-t-border overflow-hidden">
                         <button
                             type="button"
                             onClick={() => setIsDiscountOpen(prev => !prev)}
-                            className="w-full px-6 py-4 border-b border-white/10 bg-white/5 flex items-center justify-between hover:bg-white/10 transition-colors"
+                            className="w-full px-6 py-4 border-b border-t-border bg-t-bg-subtle flex items-center justify-between hover:bg-t-bg-subtle transition-colors"
                         >
-                            <h3 className="text-sm font-medium uppercase tracking-widest text-brand-gold">{t('order_volume_discounts')}</h3>
-                            <ChevronDown className={`w-4 h-4 text-brand-gold/60 transition-transform duration-200 ${isDiscountOpen ? 'rotate-180' : ''}`} />
+                            <h3 className="text-sm font-medium uppercase tracking-widest text-t-accent">{t('order_volume_discounts')}</h3>
+                            <ChevronDown className={`w-4 h-4 text-t-accent/60 transition-transform duration-200 ${isDiscountOpen ? 'rotate-180' : ''}`} />
                         </button>
 
                         {isDiscountOpen && (<>
@@ -531,20 +534,20 @@ export default function OrderPage() {
                             if (nextTierData && nextTierPrice !== null) {
                                 return (
                                     <div
-                                        className="mx-4 mt-4 flex items-center gap-2 bg-brand-gold/5 border border-brand-gold/20 rounded-xl px-4 py-3 cursor-pointer hover:bg-brand-gold/10 transition-colors"
+                                        className="mx-4 mt-4 flex items-center gap-2 bg-t-accent/5 border border-t-accent/20 rounded-xl px-4 py-3 cursor-pointer hover:bg-t-accent/10 transition-colors"
                                         onClick={() => setQuantity(nextTierData.min)}
                                     >
-                                        <ArrowRight className="w-4 h-4 text-brand-gold shrink-0" />
-                                        <span className="text-sm text-white/80">
+                                        <ArrowRight className="w-4 h-4 text-t-accent shrink-0" />
+                                        <span className="text-sm text-t-text-2">
                                             {t('order_upsell_msg', { qty: nextTierData.min - quantity, price: nextTierPrice, discount: nextTierData.discount })}
                                         </span>
                                     </div>
                                 );
                             }
                             return (
-                                <div className="mx-4 mt-4 flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3">
-                                    <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
-                                    <span className="text-sm text-green-400">
+                                <div className="mx-4 mt-4 flex items-center gap-2 bg-t-success-dim border border-green-500/20 rounded-xl px-4 py-3">
+                                    <CheckCircle2 className="w-4 h-4 text-t-success shrink-0" />
+                                    <span className="text-sm text-t-success">
                                         {t('order_max_discount', { save: savedAmount })}
                                     </span>
                                 </div>
@@ -565,53 +568,53 @@ export default function OrderPage() {
                                         key={tier.min}
                                         onClick={() => setQuantity(tier.min)}
                                         className={`relative flex flex-col p-4 rounded-xl border transition-all cursor-pointer overflow-hidden ${isActive
-                                            ? 'bg-brand-gold/10 border-brand-gold shadow-[0_0_15px_rgba(212,175,55,0.15)]'
-                                            : 'bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/10'
+                                            ? 'bg-t-accent/10 border-t-accent shadow-[0_0_15px_rgba(212,175,55,0.15)]'
+                                            : 'bg-t-bg-subtle border-t-border hover:border-t-border hover:bg-t-bg-subtle'
                                             }`}
                                     >
-                                        {isActive && <div className="absolute top-0 left-0 w-full h-1 bg-brand-gold"></div>}
+                                        {isActive && <div className="absolute top-0 left-0 w-full h-1 bg-t-accent"></div>}
 
                                         {/* Range label + badge + sconto % — tutto inline, nessuna sovrapposizione */}
                                         <div className="flex items-center gap-1.5 mb-2">
-                                            <span className={`text-sm font-medium flex-1 ${isActive ? 'text-white' : 'text-white/70'}`}>
+                                            <span className={`text-sm font-medium flex-1 ${isActive ? 'text-t-text' : 'text-t-text-2'}`}>
                                                 {tier.min === 1 ? `1–2 ${t('order_pieces')}` :
                                                     nextTier ? `${tier.min}–${nextTier.min - 1} ${t('order_pieces')}` :
                                                         `${tier.min}+ ${t('order_pieces')}`}
                                             </span>
                                             {isPopular && (
-                                                <span className="text-[9px] bg-brand-gold text-black px-1.5 py-0.5 rounded font-bold tracking-wide uppercase shrink-0">
+                                                <span className="text-[9px] bg-t-btn text-t-btn-text px-1.5 py-0.5 rounded font-bold tracking-wide uppercase shrink-0">
                                                     {t('order_popular')}
                                                 </span>
                                             )}
                                             {isBestValue && !isPopular && (
-                                                <span className="text-[9px] bg-green-500/20 text-green-400 border border-green-500/30 px-1.5 py-0.5 rounded font-bold tracking-wide uppercase shrink-0">
+                                                <span className="text-[9px] bg-t-success-dim text-t-success border border-green-500/30 px-1.5 py-0.5 rounded font-bold tracking-wide uppercase shrink-0">
                                                     {t('order_best_value')}
                                                 </span>
                                             )}
                                             {tier.discount > 0 ? (
-                                                <span className={`text-sm font-bold shrink-0 ${isActive ? 'text-green-400' : 'text-green-400/70'}`}>-{tier.discount}%</span>
+                                                <span className={`text-sm font-bold shrink-0 ${isActive ? 'text-t-success' : 'text-t-success/70'}`}>-{tier.discount}%</span>
                                             ) : (
-                                                <span className="text-sm text-white/30 shrink-0">—</span>
+                                                <span className="text-sm text-t-text-4 shrink-0">—</span>
                                             )}
                                         </div>
 
                                         {/* Prezzo unitario */}
-                                        <span className={`text-[1.3rem] leading-none font-light ${isActive ? 'text-brand-gold' : 'text-white/60'}`}>
-                                            {tierPrice}€<span className="text-xs text-white/40">/{t('order_piece_short')}</span>
+                                        <span className={`text-[1.3rem] leading-none font-light ${isActive ? 'text-t-accent' : 'text-t-text-2'}`}>
+                                            {tierPrice}€<span className="text-xs text-t-text-4">/{t('order_piece_short')}</span>
                                         </span>
 
                                         {/* Risparmio per unità (card inattive) */}
                                         {tierSavingPerUnit > 0 && (
-                                            <span className={`text-xs mt-1 ${isActive ? 'text-green-400' : 'text-green-400/60'}`}>
+                                            <span className={`text-xs mt-1 ${isActive ? 'text-t-success' : 'text-t-success/60'}`}>
                                                 {t('order_save')} €{tierSavingPerUnit}/{t('order_piece_short')}
                                             </span>
                                         )}
 
                                         {/* Totale (solo card attiva) */}
                                         {isActive && (
-                                            <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between">
-                                                <span className="text-xs text-white/40">{t('order_total')}</span>
-                                                <span className="text-sm font-medium text-white">€{totalPrice}</span>
+                                            <div className="mt-2 pt-2 border-t border-t-border flex items-center justify-between">
+                                                <span className="text-xs text-t-text-4">{t('order_total')}</span>
+                                                <span className="text-sm font-medium text-t-text">€{totalPrice}</span>
                                             </div>
                                         )}
                                     </div>
@@ -622,18 +625,18 @@ export default function OrderPage() {
                     </div>
 
                     {/* SHIPPING FORM */}
-                    <div className="glass-panel border-white/10 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-white/10 bg-white/5 flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-brand-gold" />
-                            <h3 className="text-sm font-medium uppercase tracking-widest text-brand-gold">{t('order_shipping_details')}</h3>
+                    <div className="glass-panel border-t-border overflow-hidden">
+                        <div className="px-6 py-4 border-b border-t-border bg-t-bg-subtle flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-t-accent" />
+                            <h3 className="text-sm font-medium uppercase tracking-widest text-t-accent">{t('order_shipping_details')}</h3>
                         </div>
                         <div className="p-6 flex flex-col gap-4">
                             {/* Contact Box (Group 1) */}
-                            <div className="flex flex-col gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/5">
-                                <span className="text-[10px] uppercase tracking-widest text-brand-gold font-medium mb-1">{t('order_form_contact')}</span>
+                            <div className="flex flex-col gap-3 p-4 bg-t-bg-subtle rounded-xl border border-t-border-subtle">
+                                <span className="text-[10px] uppercase tracking-widest text-t-accent font-medium mb-1">{t('order_form_contact')}</span>
                                 {/* Email */}
                                 <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-t-text-4" />
                                     <input
                                         type="email"
                                         autoComplete="email"
@@ -641,14 +644,14 @@ export default function OrderPage() {
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         onBlur={sendLead}
-                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                        className="w-full h-12 bg-t-bg-subtle border border-t-border rounded-xl pl-11 pr-4 text-sm text-t-text placeholder:text-t-text-4 focus:border-t-accent focus:outline-none transition-colors"
                                     />
                                 </div>
 
                                 {/* First Name + Last Name */}
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-t-text-4" />
                                         <input
                                             type="text"
                                             autoComplete="given-name"
@@ -656,7 +659,7 @@ export default function OrderPage() {
                                             value={firstName}
                                             onChange={(e) => setFirstName(e.target.value)}
                                             onBlur={sendLead}
-                                            className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                            className="w-full h-12 bg-t-bg-subtle border border-t-border rounded-xl pl-11 pr-4 text-sm text-t-text placeholder:text-t-text-4 focus:border-t-accent focus:outline-none transition-colors"
                                         />
                                     </div>
                                     <div className="relative">
@@ -667,7 +670,7 @@ export default function OrderPage() {
                                             value={lastName}
                                             onChange={(e) => setLastName(e.target.value)}
                                             onBlur={sendLead}
-                                            className="w-full h-12 bg-white/5 border border-white/10 rounded-xl pl-4 pr-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                            className="w-full h-12 bg-t-bg-subtle border border-t-border rounded-xl pl-4 pr-4 text-sm text-t-text placeholder:text-t-text-4 focus:border-t-accent focus:outline-none transition-colors"
                                         />
                                     </div>
                                 </div>
@@ -677,10 +680,10 @@ export default function OrderPage() {
                                     {/* Prefix selector — visual overlay trick: display shows only "+39", options show "IT +39" */}
                                     <div className="relative w-[88px] shrink-0 h-12">
                                         {/* Visual layer (pointer-events-none) */}
-                                        <div className="absolute inset-0 flex items-center rounded-xl bg-white/5 border border-white/10 pointer-events-none">
-                                            <Phone className="ml-3 w-4 h-4 text-white/30 shrink-0" />
-                                            <span className="ml-2 text-sm text-white flex-1 truncate">{phoneCountryCode}</span>
-                                            <ChevronDown className="mr-2 w-3 h-3 text-white/30 shrink-0" />
+                                        <div className="absolute inset-0 flex items-center rounded-xl bg-t-bg-subtle border border-t-border pointer-events-none">
+                                            <Phone className="ml-3 w-4 h-4 text-t-text-4 shrink-0" />
+                                            <span className="ml-2 text-sm text-t-text flex-1 truncate">{phoneCountryCode}</span>
+                                            <ChevronDown className="mr-2 w-3 h-3 text-t-text-4 shrink-0" />
                                         </div>
                                         {/* Invisible native select on top — opens with full "IT +39" options */}
                                         <select
@@ -701,14 +704,14 @@ export default function OrderPage() {
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         onBlur={sendLead}
-                                        className="flex-1 min-w-0 h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                        className="flex-1 min-w-0 h-12 bg-t-bg-subtle border border-t-border rounded-xl px-4 text-sm text-t-text placeholder:text-t-text-4 focus:border-t-accent focus:outline-none transition-colors"
                                     />
                                 </div>
                             </div>
 
                             {/* Shipping Box (Group 2) */}
-                            <div className="flex flex-col gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/5">
-                                <span className="text-[10px] uppercase tracking-widest text-brand-gold font-medium mb-1">{t('order_form_destination')}</span>
+                            <div className="flex flex-col gap-3 p-4 bg-t-bg-subtle rounded-xl border border-t-border-subtle">
+                                <span className="text-[10px] uppercase tracking-widest text-t-accent font-medium mb-1">{t('order_form_destination')}</span>
                                 {/* Country */}
                                 <div className="relative">
                                     <select
@@ -721,14 +724,14 @@ export default function OrderPage() {
                                             if (prefix) setPhoneCountryCode(prefix);
                                         }}
                                         onBlur={sendLead}
-                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white appearance-none focus:border-brand-gold focus:outline-none transition-colors cursor-pointer"
+                                        className="w-full h-12 bg-t-bg-subtle border border-t-border rounded-xl px-4 text-sm text-t-text appearance-none focus:border-t-accent focus:outline-none transition-colors cursor-pointer"
                                     >
-                                        <option value="" className="bg-brand-void">{t('order_field_country')}</option>
+                                        <option value="" className="bg-t-bg">{t('order_field_country')}</option>
                                         {EU_COUNTRIES.map(c => (
-                                            <option key={c} value={c} className="bg-brand-void">{c}</option>
+                                            <option key={c} value={c} className="bg-t-bg">{c}</option>
                                         ))}
                                     </select>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/30 text-xs">▼</div>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-t-text-4 text-xs">▼</div>
                                 </div>
 
                                 {/* Address Line 1 */}
@@ -739,7 +742,7 @@ export default function OrderPage() {
                                     placeholder={t('order_field_address1')}
                                     value={addressLine1}
                                     onChange={(e) => setAddressLine1(e.target.value)}
-                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                    className="w-full h-12 bg-t-bg-subtle border border-t-border rounded-xl px-4 text-sm text-t-text placeholder:text-t-text-4 focus:border-t-accent focus:outline-none transition-colors"
                                 />
 
                                 {/* Address Line 2 */}
@@ -749,7 +752,7 @@ export default function OrderPage() {
                                     placeholder={t('order_field_address2')}
                                     value={addressLine2}
                                     onChange={(e) => setAddressLine2(e.target.value)}
-                                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                    className="w-full h-12 bg-t-bg-subtle border border-t-border rounded-xl px-4 text-sm text-t-text placeholder:text-t-text-4 focus:border-t-accent focus:outline-none transition-colors"
                                 />
 
                                 {/* City + Postal Code */}
@@ -761,7 +764,7 @@ export default function OrderPage() {
                                         value={city}
                                         onChange={(e) => setCity(e.target.value)}
                                         onBlur={sendLead}
-                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                        className="w-full h-12 bg-t-bg-subtle border border-t-border rounded-xl px-4 text-sm text-t-text placeholder:text-t-text-4 focus:border-t-accent focus:outline-none transition-colors"
                                     />
                                     <input
                                         type="text"
@@ -769,19 +772,19 @@ export default function OrderPage() {
                                         placeholder={t('order_field_postal')}
                                         value={postalCode}
                                         onChange={(e) => setPostalCode(e.target.value)}
-                                        className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm text-white placeholder:text-white/30 focus:border-brand-gold focus:outline-none transition-colors"
+                                        className="w-full h-12 bg-t-bg-subtle border border-t-border rounded-xl px-4 text-sm text-t-text placeholder:text-t-text-4 focus:border-t-accent focus:outline-none transition-colors"
                                     />
                                 </div>
                             </div>
-                            <p className="text-xs text-white/40 px-1">{t('order_privacy_note')}</p>
+                            <p className="text-xs text-t-text-4 px-1">{t('order_privacy_note')}</p>
                         </div>
                     </div>
 
                     {/* GUARANTEE */}
-                    <div className="flex items-start gap-4 p-6 glass-panel border-white/10">
-                        <Shield className="w-8 h-8 text-brand-gold shrink-0" />
-                        <div className="flex flex-col gap-1 text-sm text-white/70">
-                            <span className="font-semibold text-white">{t('order_guarantee_title')}</span>
+                    <div className="flex items-start gap-4 p-6 glass-panel border-t-border">
+                        <Shield className="w-8 h-8 text-t-accent shrink-0" />
+                        <div className="flex flex-col gap-1 text-sm text-t-text-2">
+                            <span className="font-semibold text-t-text">{t('order_guarantee_title')}</span>
                             <p>{t('order_guarantee_desc')}</p>
                         </div>
                     </div>
@@ -789,58 +792,58 @@ export default function OrderPage() {
 
                 {/* RIGHT COLUMN: Order Summary & Payment */}
                 <div className="lg:col-span-5 relative z-10">
-                    <div className="glass-panel border-brand-gold/20 p-8 flex flex-col gap-6 sticky top-24">
-                        <h2 className="text-xl font-medium border-b border-white/10 pb-4">{t('order_summary')}</h2>
+                    <div className="glass-panel border-t-accent/20 p-8 flex flex-col gap-6 sticky top-24">
+                        <h2 className="text-xl font-medium border-b border-t-border pb-4">{t('order_summary')}</h2>
 
                         <div className="flex flex-col gap-3 text-sm">
-                            <div className="flex justify-between text-white/70">
+                            <div className="flex justify-between text-t-text-2">
                                 <span>{t('order_product')}</span>
                                 <span>Retatrutide 10mg × {quantity}</span>
                             </div>
-                            <div className="flex justify-between text-green-400/80 text-xs">
+                            <div className="flex justify-between text-t-success/80 text-xs">
                                 <span>{t('order_free_bac_water')}</span>
                                 <span>× {quantity}</span>
                             </div>
-                            <div className="flex justify-between text-white/70">
+                            <div className="flex justify-between text-t-text-2">
                                 <span>{t('order_unit_price')}</span>
                                 <span className="flex items-baseline gap-1.5">
-                                    {discount > 0 && <span className="text-white/30 line-through text-xs">{BASE_PRICE}€</span>}
+                                    {discount > 0 && <span className="text-t-text-4 line-through text-xs">{BASE_PRICE}€</span>}
                                     <span>{unitPrice}€</span>
                                 </span>
                             </div>
-                            <div className="flex justify-between text-white/70">
+                            <div className="flex justify-between text-t-text-2">
                                 <span>{t('order_shipping')}</span>
                                 <span className="flex items-baseline gap-2">
-                                    <span className="text-white/35 text-xs">{t('order_free_stealth')}</span>
-                                    <span className="text-white/70">0€</span>
+                                    <span className="text-t-text-4 text-xs">{t('order_free_stealth')}</span>
+                                    <span className="text-t-text-2">0€</span>
                                 </span>
                             </div>
 
                             {discount > 0 && (
-                                <div className="flex justify-between text-green-400">
+                                <div className="flex justify-between text-t-success">
                                     <span>{t('order_bulk_discount')} ({discount}%)</span>
                                     <span>- {savedAmount}€</span>
                                 </div>
                             )}
                         </div>
 
-                        <div className="flex justify-between items-end border-t border-white/10 pt-4">
+                        <div className="flex justify-between items-end border-t border-t-border pt-4">
                             <span className="text-lg">{t('order_total')}</span>
                             <div className="flex flex-col items-end">
-                                <span className="text-3xl font-light text-brand-gold">{totalPrice}€</span>
+                                <span className="text-3xl font-light text-t-accent">{totalPrice}€</span>
                             </div>
                         </div>
 
                         {/* NO CRYPTO CARD - Prominent, right after total */}
-                        <div className="rounded-xl p-4 border border-brand-gold/40 bg-brand-gold/5">
+                        <div className="rounded-xl p-4 border border-t-accent/40 bg-t-accent/5">
                             <div className="flex items-center gap-2 mb-2">
-                                <CreditCard className="w-4 h-4 text-brand-gold shrink-0" />
-                                <p className="text-sm font-semibold text-white">{t('order_no_crypto_title')}</p>
+                                <CreditCard className="w-4 h-4 text-t-accent shrink-0" />
+                                <p className="text-sm font-semibold text-t-text">{t('order_no_crypto_title')}</p>
                             </div>
-                            <p className="text-xs text-white/60 leading-relaxed mb-3">{t('order_no_crypto_desc')}</p>
+                            <p className="text-xs text-t-text-2 leading-relaxed mb-3">{t('order_no_crypto_desc')}</p>
                             <a
                                 href={`/${locale}/crypto-guide`}
-                                className="w-full flex items-center justify-center gap-2 text-xs font-semibold bg-brand-gold/15 hover:bg-brand-gold/25 border border-brand-gold/40 text-brand-gold py-3 px-4 rounded-lg transition-colors"
+                                className="w-full flex items-center justify-center gap-2 text-xs font-semibold bg-t-accent/15 hover:bg-t-accent/25 border border-t-accent/40 text-t-accent py-3 px-4 rounded-lg transition-colors"
                             >
                                 {t('order_no_crypto_cta')} <ArrowRight className="w-3.5 h-3.5" />
                             </a>
@@ -848,19 +851,19 @@ export default function OrderPage() {
 
                         {/* PAYMENT SELECTION + CRYPTO SELECTOR */}
                         <div className="flex flex-col gap-4 mt-4">
-                            <h3 className="text-sm font-medium text-white/70 uppercase tracking-widest">{t('order_payment_method')}</h3>
+                            <h3 className="text-sm font-medium text-t-text-2 uppercase tracking-widest">{t('order_payment_method')}</h3>
 
-                            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                            <div className="bg-t-bg-subtle rounded-xl p-4 border border-t-border">
                                 <div className="flex items-center gap-3 mb-3">
-                                    <Lock className="w-4 h-4 text-brand-gold" />
-                                    <span className="text-xs font-medium text-brand-gold">{t('order_crypto_native')}</span>
+                                    <Lock className="w-4 h-4 text-t-accent" />
+                                    <span className="text-xs font-medium text-t-accent">{t('order_crypto_native')}</span>
                                 </div>
-                                <p className="text-xs text-white/50 mb-3">{t('order_crypto_desc')}</p>
+                                <p className="text-xs text-t-text-3 mb-3">{t('order_crypto_desc')}</p>
                                 <div className="relative h-10">
                                     <select
                                         value={selectedCrypto}
                                         onChange={(e) => { setSelectedCrypto(e.target.value); posthog?.capture('crypto_selected', { crypto: e.target.value }); (window as any).clarity?.("set", "crypto_selected", e.target.value); }}
-                                        className="w-full h-full bg-brand-void/80 border border-brand-gold/30 text-white text-sm rounded-lg px-4 appearance-none focus:outline-none focus:border-brand-gold tracking-wider cursor-pointer font-medium"
+                                        className="w-full h-full bg-t-bg/80 border border-t-accent/30 text-t-text text-sm rounded-lg px-4 appearance-none focus:outline-none focus:border-t-accent tracking-wider cursor-pointer font-medium"
                                     >
                                         <option value="USDT">USDT — Stablecoin (TRC20) ✓</option>
                                         <option value="BTC">Bitcoin (BTC)</option>
@@ -869,35 +872,35 @@ export default function OrderPage() {
                                         <option value="SOL">Solana (SOL)</option>
                                         <option value="XMR">Monero (XMR)</option>
                                     </select>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-brand-gold/50 text-xs">▼</div>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-t-accent/50 text-xs">▼</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* WHY CRYPTO — collapsed accordion */}
-                        <details className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-                            <summary className="flex items-center gap-2 px-4 py-3 cursor-pointer text-xs font-medium uppercase tracking-widest text-brand-gold hover:bg-white/5 transition-colors">
+                        <details className="bg-t-bg-subtle rounded-xl border border-t-border overflow-hidden">
+                            <summary className="flex items-center gap-2 px-4 py-3 cursor-pointer text-xs font-medium uppercase tracking-widest text-t-accent hover:bg-t-bg-subtle transition-colors">
                                 <Zap className="w-3.5 h-3.5" />
                                 {t('order_why_crypto')}
                             </summary>
                             <div className="px-4 pb-4 flex flex-col gap-3">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-brand-gold/10 flex items-center justify-center shrink-0 mt-0.5">
-                                        <Zap className="w-3 h-3 text-brand-gold" />
+                                    <div className="w-6 h-6 rounded-full bg-t-accent/10 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Zap className="w-3 h-3 text-t-accent" />
                                     </div>
-                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_1')}</p>
+                                    <p className="text-xs text-t-text-2 leading-relaxed">{t('order_why_crypto_1')}</p>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-brand-gold/10 flex items-center justify-center shrink-0 mt-0.5">
-                                        <Eye className="w-3 h-3 text-brand-gold" />
+                                    <div className="w-6 h-6 rounded-full bg-t-accent/10 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Eye className="w-3 h-3 text-t-accent" />
                                     </div>
-                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_2')}</p>
+                                    <p className="text-xs text-t-text-2 leading-relaxed">{t('order_why_crypto_2')}</p>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                                        <Shield className="w-3 h-3 text-green-400" />
+                                    <div className="w-6 h-6 rounded-full bg-t-success-dim flex items-center justify-center shrink-0 mt-0.5">
+                                        <Shield className="w-3 h-3 text-t-success" />
                                     </div>
-                                    <p className="text-xs text-white/70 leading-relaxed">{t('order_why_crypto_3')}</p>
+                                    <p className="text-xs text-t-text-2 leading-relaxed">{t('order_why_crypto_3')}</p>
                                 </div>
                             </div>
                         </details>
@@ -930,7 +933,7 @@ export default function OrderPage() {
                                         <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-sm font-semibold text-white">{t('order_pending_banner_title')}</h3>
+                                        <h3 className="text-sm font-semibold text-t-text">{t('order_pending_banner_title')}</h3>
                                         <p className="text-xs text-amber-200/60 mt-0.5 leading-relaxed">
                                             {t('order_pending_banner_desc', {
                                                 number: pendingOrder.order_number || pendingOrder.reference_id.slice(-8).toUpperCase(),
@@ -943,13 +946,13 @@ export default function OrderPage() {
                                 <div className="flex flex-col sm:flex-row gap-2">
                                     <Link
                                         href={`/${locale}/checkout/${pendingOrder.reference_id}`}
-                                        className="flex-1 flex items-center justify-center gap-2 bg-brand-gold text-brand-void font-semibold py-3 rounded-xl hover:bg-brand-gold-light transition-colors text-sm"
+                                        className="flex-1 flex items-center justify-center gap-2 bg-t-btn text-t-btn-text font-semibold py-3 rounded-xl hover:bg-t-accent-hover transition-colors text-sm"
                                     >
                                         {t('order_pending_resume_cta')}
                                     </Link>
                                     <button
                                         onClick={() => { setPendingOrder(null); handleCheckout(true); }}
-                                        className="flex-1 flex items-center justify-center gap-2 bg-white/5 border border-white/15 text-white/60 hover:text-white hover:border-white/30 py-3 rounded-xl transition-colors text-sm"
+                                        className="flex-1 flex items-center justify-center gap-2 bg-t-bg-subtle border border-t-border text-t-text-2 hover:text-t-text hover:border-t-border py-3 rounded-xl transition-colors text-sm"
                                     >
                                         {t('order_pending_new_cta')}
                                     </button>
@@ -959,25 +962,25 @@ export default function OrderPage() {
 
                         {/* TRUST SIGNALS UNDER PAY BUTTON */}
                         <div className="flex flex-col items-center justify-center gap-2 mt-4 text-center">
-                            <div className="flex items-center gap-2 text-green-400">
+                            <div className="flex items-center gap-2 text-t-success">
                                 <Shield className="w-4 h-4" />
                                 <span className="text-[11px] font-medium tracking-wide">{t('order_trust_headline')}</span>
                             </div>
-                            <span className="text-[10px] text-white/40 max-w-xs leading-relaxed">{t('order_trust_subtext')}</span>
+                            <span className="text-[10px] text-t-text-4 max-w-xs leading-relaxed">{t('order_trust_subtext')}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* MOBILE STICKY CHECKOUT BAR */}
-            <div className="fixed bottom-0 left-0 w-full bg-brand-void/97 backdrop-blur-xl border-t border-brand-gold/20 z-50 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.6)]">
+            <div className="fixed bottom-0 left-0 w-full bg-t-bg/97 backdrop-blur-xl border-t border-t-accent/20 z-50 lg:hidden shadow-[0_-10px_40px_rgba(0,0,0,0.6)]">
                 {/* Crypto selector row */}
                 <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
-                    <span className="text-[10px] text-white/40 uppercase tracking-wider shrink-0">{t('order_payment_method')}:</span>
+                    <span className="text-[10px] text-t-text-4 uppercase tracking-wider shrink-0">{t('order_payment_method')}:</span>
                     <select
                         value={selectedCrypto}
                         onChange={(e) => { setSelectedCrypto(e.target.value); posthog?.capture('crypto_selected', { crypto: e.target.value }); (window as any).clarity?.("set", "crypto_selected", e.target.value); }}
-                        className="flex-1 h-7 bg-brand-void border border-brand-gold/30 text-white text-[11px] rounded-md px-2 appearance-none focus:outline-none focus:border-brand-gold cursor-pointer font-medium"
+                        className="flex-1 h-7 bg-t-bg border border-t-accent/30 text-t-text text-[11px] rounded-md px-2 appearance-none focus:outline-none focus:border-t-accent cursor-pointer font-medium"
                     >
                         <option value="USDT">USDT ✓</option>
                         <option value="BTC">Bitcoin</option>
@@ -990,10 +993,10 @@ export default function OrderPage() {
                 {/* Price + CTA row */}
                 <div className="flex items-center justify-between gap-3 px-4 pb-4 pt-1.5">
                     <div className="flex flex-col min-w-0">
-                        <span className="text-[10px] text-white/50 uppercase tracking-widest">{t('order_total')}</span>
-                        <span className="text-xl font-medium text-brand-gold leading-tight">{totalPrice}€</span>
+                        <span className="text-[10px] text-t-text-3 uppercase tracking-widest">{t('order_total')}</span>
+                        <span className="text-xl font-medium text-t-accent leading-tight">{totalPrice}€</span>
                         {discount > 0 && (
-                            <span className="text-[10px] text-green-400 leading-none">{t('order_bulk_discount')} -{discount}%</span>
+                            <span className="text-[10px] text-t-success leading-none">{t('order_bulk_discount')} -{discount}%</span>
                         )}
                     </div>
                     <PremiumButton
