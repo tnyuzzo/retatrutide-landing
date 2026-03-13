@@ -5,8 +5,10 @@ import { PostHogProvider as PHProvider, usePostHog } from "posthog-js/react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, Suspense } from "react";
 
-if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY?.trim();
+
+if (typeof window !== "undefined" && POSTHOG_KEY) {
+  posthog.init(POSTHOG_KEY, {
     api_host: "/ingest",
     ui_host: "https://eu.posthog.com",
     capture_pageview: false, // manual pageview for SPA routing
@@ -40,7 +42,7 @@ function PostHogPageview() {
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) {
+  if (!POSTHOG_KEY) {
     return <>{children}</>;
   }
 
