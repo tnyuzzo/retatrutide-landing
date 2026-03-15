@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 512 512">
+  <title>Aura Peptides</title>
+  <rect width="512" height="512" fill="#0F1B2D"/>
+  <!-- Outer A -->
+  <polygon fill="#D4AF37" points="256,80 420,420 370,420 256,150 142,420 92,420"/>
+  <!-- Inner cutout -->
+  <polygon fill="#0F1B2D" points="256,160 350,390 310,390 256,230 202,390 162,390"/>
+  <!-- Glow dot at peak -->
+  <circle cx="256" cy="78" r="8" fill="#F5D061" opacity="0.9"/>
+  <circle cx="256" cy="78" r="14" fill="#F5D061" opacity="0.3"/>
+</svg>
