@@ -2,20 +2,20 @@
 
 > **File condiviso tra Claude Code e Gemini.** Leggere SEMPRE prima di lavorare sul progetto.
 > Aggiornare dopo ogni modifica significativa.
+> Per il changelog dettagliato vedi `PROJECT_HISTORY.md`.
 
 ---
 
 ## Current State
 
-- **Last deploy**: 2026-02-26 (commit `5532602`)
+- **Last deploy**: 2026-03-15 (commit `43f393a`)
 - **Branch**: main (up to date with origin/main)
 - **Build**: 99 static pages + 24 API routes, zero errors
 - **Theming**: CSS variable-based light/dark theme system. Dark = default. Light attivato da cookie `theme=light` → `data-theme="light"` su `<html>`
-- **Analytics**: Microsoft Clarity (`vn1xc3jub1`) session replay + heatmaps; PostHog eventi custom (session replay OFF); Sentry error tracking (`aurapep-eu` su EU server, org `neurosoft-af`)
+- **Analytics**: Microsoft Clarity (`vn1xc3jub1`) session replay + heatmaps; PostHog eventi custom (session replay OFF); Sentry error tracking (`aurapep-eu` su EU server, org `neurosoft-af`); **Ahrefs** site verification + analytics (`ECL265EZNoHAwvuR19Pwaw`)
 - **IndexNow**: configurato e inviato (50 URL → Bing/Yandex/Seznam/Naver)
 - **Sitemap**: 50 URLs (5 pages × 10 locales) con hreflang cross-references
 - **Domain**: aurapep.eu (Vercel, auto-deploy on push to main)
-- **Untracked files**: `addShipKeys.js`
 
 ---
 
@@ -61,58 +61,20 @@
 |--------|---------|--------|
 | BTC    | Bitcoin | `bc1qcwpmw65ucscvgstppgty03n4xufmsztvr6mx3j` |
 | ETH    | ERC20   | `0x0605C80Fc5bB9e65264bD562B528b1f3cB3432C0` |
-| XMR    | Monero  | `44AFFq5kSiGBoZ4NMDwYtN18obc8AemS33DBLWs3H7otXft3XjrpDtQGv7SqSsaBYBb98uNbr2VBBEt7f2wfn3RVGQBEP3A` |
+| XMR    | Monero  | `44AFFq5kSiGBoZ4...RVGQBEP3A` |
 | SOL    | Solana  | `5fmrMg776oUFyX71Yi9qzqcwPcEU3AvaL7e6nUK8kQaR` |
 | USDT   | TRC20   | `TUjXYc8uJ85FGJs2QCqv9Co5SV9bFhebdC` |
 | USDC   | ERC20   | `0x0605C80Fc5bB9e65264bD562B528b1f3cB3432C0` |
 | XRP    | BEP20   | **NON CONFIGURATO** |
 
 **Payment flow**:
-1. Customer seleziona crypto nella order page
-2. `POST /api/checkout` → CryptAPI genera indirizzo di pagamento unico
-3. Email immediata al customer con indirizzo, importo crypto, link checkout e istruzioni
-4. QR code + indirizzo mostrati nella checkout page
-5. Customer invia crypto → CryptAPI webhook conferma → ordine → "paid"
-6. Buffer volatilità 1% aggiunto automaticamente
-7. Se non paga: email recovery a 1h, 12h, 48h. Dopo 72h → status "expired"
-8. Pagamenti in ritardo su ordini expired vengono comunque accettati
+1. Customer seleziona crypto → `POST /api/checkout` → CryptAPI genera indirizzo unico
+2. Email immediata con indirizzo, importo crypto, link checkout
+3. QR code + indirizzo mostrati nella checkout page → customer invia crypto
+4. CryptAPI webhook conferma → status "paid" → email receipt + admin alert + warehouse SMS
+5. Buffer volatilità 1%. Recovery email a 1h/12h/48h. Dopo 72h → "expired" (pagamenti tardivi accettati)
 
----
-
-## Order Flow (7 fasi)
-
-```
-1. CREATION    → Customer compila form (nome, indirizzo, email, phone, quantità, crypto)
-                 Google Places autocomplete per validazione indirizzo (EU only)
-                 Rate limit: 5 req/min per IP
-
-2. PAYMENT     → CryptAPI genera indirizzo unico, customer invia crypto
-                 CheckoutPoller (10s interval) monitora status
-
-3. CONFIRMATION → Webhook CryptAPI → /api/webhooks/cryptapi
-                  Verifica WEBHOOK_SECRET, idempotenza check
-                  Status → "paid"
-
-4. AUTOMATION  → Inventory decrementato (optimistic concurrency, 3 retry)
-                 Customer upsert in DB
-                 Email: admin alert + customer receipt + warehouse notice
-                 SMS: warehouse notification (ClickSend)
-                 Low stock alert se <20 unità
-
-5. FULFILLMENT → Admin seleziona carrier + tracking number + shipping cost
-                 Status → "shipped"
-                 Email + SMS customer con tracking link
-
-6. TRACKING    → 17Track API registra tracking number
-                 Cron job daily controlla status
-                 Auto-update "delivered" quando confermato
-
-7. DELIVERY    → Customer vede status nel portal
-                 Order completato
-```
-
-**Status possibili**: `pending → paid → processing → shipped → delivered`
-Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati), `refunded`, `partially_refunded`, `underpaid`
+**Status possibili**: `pending → paid → processing → shipped → delivered` | `cancelled`, `expired`, `refunded`, `partially_refunded`, `underpaid`
 
 ---
 
@@ -125,23 +87,18 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 | Tailwind CSS | 4 | Styling (@theme block, postcss) |
 | next-intl | 4.8.3 | i18n (10 locales, RTL Arabic) |
 | Framer Motion | 12.34.2 | Animazioni |
-| Lucide React | 0.575.0 | Icone |
 | Supabase JS | 2.97.0 | Database + Auth |
 | Resend | 6.9.2 | Email transazionali |
 | Zod | 4.3.6 | Validazione input |
-| qrcode.react | 4.2.0 | QR code per pagamenti |
-| uuid | 13.0.0 | Generazione ID |
-| clsx + tailwind-merge | — | Utility CSS |
 
 ---
 
 ## i18n
 
 - **10 locales**: en (default), it, fr, de, es, pt, pl, ru, uk, ar
-- **Routing**: `src/i18n/routing.ts` — `localePrefix: 'as-needed'` (en senza prefisso)
+- **Routing**: `src/i18n/routing.ts` — `localePrefix: 'always'` (tutte le lingue con prefisso)
 - **Traduzioni**: `messages/{locale}.json` — tutto sotto namespace `"Index"`
 - **Arabic (ar)**: RTL gestito in root layout `dir` attribute
-- **Ukrainian**: mappato come `uk-UA` nelle hreflang tags
 - **SEO keys per locale**: keyword transazionali (buy/kaufen/acheter/comprare/comprar/kupić/купить)
 
 ---
@@ -160,388 +117,116 @@ Alternative: `cancelled`, `expired` (72h timeout, pagamenti tardivi riaccettati)
 | `t-bg-alt` | `#0A0F16` | `#F8F7F4` | Sezioni alternate |
 | `t-bg-card` | `rgba(20,30,45,0.6)` | `#FFFFFF` | Card/pannelli |
 | `t-bg-subtle` | `rgba(255,255,255,0.05)` | `rgba(0,0,0,0.03)` | Bg sottile |
-| `t-bg-input` | `rgba(0,0,0,0.4)` | `#FFFFFF` | Form input |
 | `t-text` | `#ffffff` | `#1A2744` | Testo primario |
 | `t-text-2` | `rgba(255,255,255,0.7)` | `#475569` | Testo secondario |
 | `t-text-3` | `rgba(255,255,255,0.5)` | `#8C919A` | Testo muted |
-| `t-text-4` | `rgba(255,255,255,0.4)` | `#A8ABB3` | Testo subtle |
 | `t-accent` | `#D4AF37` | `#C09B2D` | Accent gold |
-| `t-accent-hover` | `#F5D061` | `#A8871F` | Accent hover |
 | `t-border` | `rgba(255,255,255,0.1)` | `#E0DDD6` | Bordi standard |
-| `t-border-subtle` | `rgba(255,255,255,0.05)` | `#ECEAE4` | Bordi sottili |
 | `t-btn` | `#D4AF37` | `#1A2744` | Bottone primario bg |
 | `t-btn-text` | `#0A0F16` | `#FFFFFF` | Bottone primario text |
 | `t-success` | `#4ade80` | `#1B6B40` | Colore successo |
-| `t-success-dim` | `rgba(74,222,128,0.1)` | `rgba(27,107,64,0.1)` | Successo bg |
 
-**Legacy brand-* colors** (solo per admin, non usare nelle pagine pubbliche):
-- `brand-void`, `brand-gold`, `brand-gold-light`, `brand-cyan`, `brand-glass`
-
+**Utility CSS custom**: `.glass-panel`, `.gold-glow`, `.text-gradient-gold`, `.theme-dark-only`/`.theme-light-only`
 **Tipografia**: Geist Sans (Google Font), pesi: 200-600
-
-**Utility CSS custom** (theme-aware):
-- `.glass-panel` — bg/blur/border/shadow variabili: card opache in dark, card bianche con shadow in light
-- `.gold-glow` — gold glow shadow in dark, subtle shadow in light
-- `.text-gradient-gold` — gradiente da `t-accent` a `t-accent-hover`
-- `.theme-dark-only` / `.theme-light-only` — visibilità condizionale per tema
-- `@keyframes shimmer` — effetto shine sui bottoni
-
-**Pattern ricorrenti**: `bg-t-bg`, `text-t-text-3`, `border-t-border`, `rounded-2xl`, Framer Motion `whileInView`
-
----
-
-## UI Components
-
-| Componente | Path | Scopo |
-|-----------|------|-------|
-| PremiumButton | `src/components/ui/` | Bottone con 3 varianti (primary/secondary/outline), shimmer hover |
-| LanguageSwitcher | `src/components/ui/` | Selettore 10 lingue, gold per attiva |
-| LiveInventoryBadge | `src/components/ui/` | Stock counter rosso (47→12), decrementa ogni 45s |
-| RecentSalesPopup | `src/components/ui/` | Notifica acquisto recente (bottom-left), nome/città random |
-| PortalForm | `src/components/ui/` | Form tracking ordine (email + reference ID) con status pipeline |
-| CheckoutPoller | `src/components/ui/` | Polling background (10s) per status checkout |
-| HomeStructuredData | `src/components/seo/` | JSON-LD: Organization, Product, FAQPage, BreadcrumbList |
-| CalculatorStructuredData | `src/components/seo/` | JSON-LD: WebApplication, HowTo, BreadcrumbList |
-| CryptoGuideStructuredData | `src/components/seo/` | JSON-LD: HowTo, FAQPage, BreadcrumbList |
-| OrderStructuredData | `src/components/seo/` | JSON-LD: Product, AggregateOffer (6 tier), BreadcrumbList |
-| PortalStructuredData | `src/components/seo/` | JSON-LD: WebApplication, BreadcrumbList |
-| JsonLd | `src/components/seo/` | Componente generico JSON-LD wrapper |
 
 ---
 
 ## Landing Page Sections (in ordine)
 
-1. **Header/Nav** — Logo "RETATRUTIDE", nav links (Science, Lab, Order), LanguageSwitcher, Portal CTA
-2. **Hero** — Badge "Premium Quality", heading con gradiente, LiveInventoryBadge, CTA "Secure Your Vial", prezzo "Starting at 97€", trust elements (shipping timeline, COA link, sterility/HPLC), vial image con purity badge
-3. **Features** (#science) — 3 card: Premium Quality, Crypto Checkout (gold highlighted), Next-Day Shipping
+1. **Header/Nav** — Logo "RETATRUTIDE", nav links, LanguageSwitcher, Portal CTA
+2. **Hero** — Badge, heading con gradiente, LiveInventoryBadge, CTA, prezzo "Starting at 97€", trust elements, vial image
+3. **Features** (#science) — 3 card: Premium Quality, Crypto Checkout (gold), Next-Day Shipping
 4. **Trust Ticker** — Scrolling infinito: 99.8% HPLC, Lab Verified, Stealth Packaging, 2-day Guarantee
-5. **Quality Pipeline** (#quality) — 5 step: Source → Extract → Synthesize → Test → Verify + View COA button
-6. **Testimonials** (#testimonials) — 3 review cards con 5 stelle, "Verified Buyer" badge
-7. **Why Aura** — 2×2 grid, 4 benefit cards numerati
-8. **Product Specs** — Tabella 6 righe: Format, Purity, Storage, Reconstituted, Solvent, CAS (2381089-83-2)
+5. **Quality Pipeline** (#quality) — 5 step + View COA button
+6. **Testimonials** (#testimonials) — 3 review cards + trust micro-badges
+7. **Why Aura** — 2×2 grid, 4 benefit cards
+8. **Product Specs** — Tabella 6 righe (Format, Purity, Storage, ecc.)
 9. **Calculator CTA** — Link alla pagina calculator
-10. **Buyer Protection** — 3 garanzie: Secure payment, EU shipping, Satisfaction guarantee
-11. **FAQ** (#faq) — 2 categorie expand/collapse: Ordering & Payment (6 Q), Policy & Legal (3 Q)
-12. **Footer** — Logo, office info, disclaimer legale, copyright, language switcher
+10. **Buyer Protection** — 3 garanzie
+11. **FAQ** (#faq) — 2 categorie expand/collapse: Ordering & Payment (6+1 Q), Policy & Legal (3 Q)
+12. **Footer** — Logo, office info, disclaimer, copyright, language switcher
 13. **Modali** — COA image viewer + download, RecentSalesPopup auto-trigger
 
 ---
 
 ## Pagine Secondarie
 
-### Calculator (`/calculator`)
-- Calcolatore dosaggio peptide per ricostituzione
-- Input: peptide amount (mg), water amount (ml), desired dose (mcg)
-- Preset rapidi: 250, 500, 750, 1000, 1250, 1500, 1750, 2000 mcg
-- Output: siringa visuale animata con livello fill (gold/red overflow), unità da prelevare (IU), volume (ml)
-- Selettore siringa: 0.3ml (30u), 0.5ml (50u), 1.0ml (100u)
-
-### Crypto Guide (`/crypto-guide`)
-- Guida educativa per pagamenti crypto
-- 3 benefit: no restrizioni, privacy, velocità
-- 2-step: invia fondi + converti via ChangeHero (link locale-specific)
-- 3 info card: no KYC, no wallet setup, usa il tuo wallet
-- 3 FAQ expandable + amount warning
-
-### Order (`/order`)
-- Step indicator "1 di 2" sopra titolo
-- Form completo: shipping info (Contatto + Destinazione) + quantità + selezione crypto
-- Volume discount live, Google Places autocomplete
-- Phone country code auto-select per paese
-- Card "No crypto?" prominente dopo prezzo totale
-- Crypto selector semplificato (USDT prima, nomi brevi), Why Crypto in accordion
-- Trust signals tradotti sotto CTA + idempotenza check ordini pending
-
-### Portal (`/portal`)
-- Lookup ordine: email + reference ID
-- Status tracker 5 fasi con progress bar animata
-- Dettagli ordine: date, amounts, crypto info, items
-- Info spedizione: carrier, tracking number (copiabile)
+| Pagina | Path | Descrizione |
+|--------|------|-------------|
+| Calculator | `/calculator` | Calcolatore dosaggio peptide, siringa visuale animata, 3 siringhe |
+| Crypto Guide | `/crypto-guide` | Guida pagamenti crypto per senior, ChangeHero flow |
+| Order | `/order` | Form completo + volume discount + crypto selector + Google Places |
+| Portal | `/portal` | Lookup ordine (email + ref ID), status tracker 5 fasi |
+| Checkout | `/checkout/[id]` | QR code + indirizzo crypto + countdown 72h |
 
 ---
 
 ## Admin Dashboard
 
-**Accesso**: `/[locale]/admin/` — protetto da Supabase auth (login email + password)
-**Noindex**: X-Robots-Tag header in next.config.ts
+**Accesso**: `/[locale]/admin/` — protetto da Supabase auth. Noindex via X-Robots-Tag.
 
-### RBAC (4 ruoli)
+**RBAC (4 ruoli)**: super_admin (full), manager (no settings), seller (own orders), warehouse (view+ship+inventory)
 
-| Ruolo | Dashboard | Orders | Inventory | Customers | Team | Settings |
-|-------|-----------|--------|-----------|-----------|------|----------|
-| super_admin | ✅ | ✅ full | ✅ full | ✅ | ✅ full | ✅ |
-| manager | ✅ | ✅ full | ✅ full | ✅ | ✅ invite seller | ❌ |
-| seller | ❌ | ✅ own orders | ❌ | ❌ | ❌ | ❌ |
-| warehouse | ❌ | ✅ view + ship | ✅ add only | ❌ | ❌ | ❌ |
-
-### 6 Tab
-
-1. **Dashboard** — KPI: revenue (today/week/month), total orders, orders to ship, current stock, customers, avg order value, shipping costs
-2. **Orders** — Filtro per status/data/search, order detail drawer (click su riga), modali Ship/Refund/Cancel, paginazione (20/pagina), mobile card layout, CSV export (super_admin), status timeline, tracking events
-3. **Inventory** — Stock corrente RET-KIT-1, add/remove stock, cronologia movimenti
-4. **Customers** — LTV metrics, lista clienti, dettaglio con ordini, repeat purchase rate
-5. **Team** — Invita membri, assegna ruoli, rimuovi accesso, workflow approvazione rimozione
-6. **Settings** — Nome store, email, soglia low stock, carriers disponibili (BRT, GLS, SDA, DHL, UPS, POSTE, FEDEX)
+**6 Tab**: Dashboard (KPI), Orders (CRUD+filter+export), Inventory (stock), Customers (LTV), Team (invite/roles), Settings (store config)
 
 ---
 
-## API Routes (20 totali)
+## API Routes
 
-### Admin Routes (autenticati)
+### Admin (autenticati)
+`/api/admin/` — dashboard, orders, inventory, customers, manual-order, refund, team, settings, tracking
 
-| Route | Method | Auth | Scopo |
-|-------|--------|------|-------|
-| `/api/admin/dashboard` | GET | manager+ | KPI e metriche dashboard |
-| `/api/admin/orders` | GET/POST | seller+ | Lista/dettaglio ordini, update status, fulfill |
-| `/api/admin/inventory` | GET/POST | warehouse+ | Stock, movimenti inventario, add/remove |
-| `/api/admin/customers` | GET | manager+ | Lista clienti con LTV, dettaglio + ordini |
-| `/api/admin/manual-order` | POST | seller+ | Creazione ordine manuale |
-| `/api/admin/refund` | POST | manager+ | Rimborso totale/parziale + ripristino inventario |
-| `/api/admin/team` | GET/POST | varia | Gestione team: invite, revoke, set-role |
-| `/api/admin/settings` | GET/POST | super_admin | Impostazioni store (key-value) |
-| `/api/admin/tracking` | GET | warehouse+ | Lookup tracking da 17Track API |
-
-### Public Routes
-
-| Route | Method | Auth | Scopo |
-|-------|--------|------|-------|
-| `/api/checkout` | POST | None (rate limited) | Crea ordine + genera indirizzo crypto |
-| `/api/checkout/pending` | GET | None | Idempotenza: cerca ordini pending per email (ultimi 72h) |
-| `/api/checkout/status` | GET | None | Poll status ordine (per CheckoutPoller) |
-| `/api/portal` | GET | None | Lookup ordine cliente (email + reference_id) |
-| `/api/c/[code]` | GET | None | Redirect short link + incrementa click |
-| `/api/short-link` | GET/POST | seller+ (POST) | Crea short link per marketing |
-| `/api/visitor` | POST/PATCH | None (rate limited) | Registrazione/aggiornamento visitatori (UTM, fbc, PII progressivo) |
-| `/api/fb-event` | POST | None (rate limited) | Relay eventi a Facebook CAPI (ViewContent, InitiateCheckout, AddPaymentInfo) |
+### Public
+- `/api/checkout` POST — Crea ordine + genera indirizzo crypto (rate limited)
+- `/api/checkout/pending` GET — Idempotenza ordini pending
+- `/api/checkout/status` GET — Poll status (CheckoutPoller)
+- `/api/portal` GET — Lookup ordine cliente
+- `/api/c/[code]` GET — Short link redirect
+- `/api/short-link` GET/POST — URL shortener
+- `/api/visitor` POST/PATCH — Facebook CAPI visitor tracking
+- `/api/fb-event` POST — Facebook CAPI event relay
 
 ### Webhooks & Cron
-
-| Route | Method | Auth | Scopo |
-|-------|--------|------|-------|
-| `/api/webhooks/cryptapi` | GET | WEBHOOK_SECRET | Conferma pagamento crypto (accetta anche expired) |
-| `/api/cron/check-tracking` | GET | CRON_SECRET | Daily: aggiorna tracking spedizioni |
-| `/api/cron/expire-orders` | GET | CRON_SECRET | Daily 3AM UTC: scade ordini pending >72h |
-| `/api/cron/cart-recovery` | GET | CRON_SECRET | Hourly: invia email recovery (1h, 12h, 48h) a ordini pending |
-| `/api/indexnow` | GET | CRON_SECRET | Ping IndexNow con tutte le 50 URL (Bing/Yandex/Seznam/Naver) |
-| `/api/cron/cleanup-visitors` | GET | CRON_SECRET | Daily: elimina visitors >30 giorni |
+- `/api/webhooks/cryptapi` GET — Conferma pagamento crypto
+- `/api/cron/check-tracking` — Daily: aggiorna tracking
+- `/api/cron/expire-orders` — Daily 3AM: scade ordini >72h
+- `/api/cron/cart-recovery` — Hourly: email recovery 1h/12h/48h
+- `/api/cron/cleanup-visitors` — Daily: elimina visitors >30gg
+- `/api/indexnow` — Ping IndexNow (50 URL)
 
 ---
 
 ## Database Schema (Supabase PostgreSQL)
 
-### Tabelle
-
-**`orders`** — Ordini
-- `id` UUID PK, `reference_id` VARCHAR UNIQUE, `order_number` TEXT UNIQUE
-- `status`: pending | paid | processing | shipped | delivered | cancelled | refunded | partially_refunded
-- `crypto_currency`, `crypto_amount` DECIMAL, `fiat_amount` DECIMAL (EUR)
-- `email`, `shipping_address` JSONB (full_name, address, city, postal_code, country, phone)
-- `items` JSONB (array di {sku, name, quantity, price})
-- `payment_url`, `tracking_number`, `carrier`, `shipping_cost`
-- `shipped_at`, `shipped_by` FK → auth.users
-- `tracking_status`, `tracking_events` JSONB
-- `sent_by` FK → auth.users (seller ref per ordini manuali)
-- `visitor_id` TEXT (FK → website_visitors.visitor_id, per Facebook CAPI attribution)
-- Indexes: reference_id, status, created_at, order_number, sent_by
-
-**`customers`** — Clienti (upsert automatico)
-- `id` UUID PK, `email` TEXT UNIQUE, `full_name`, `phone`
-
-**`inventory`** — Stock prodotti
-- `sku` VARCHAR UNIQUE ('RET-KIT-1'), `quantity` INT, `reorder_level` INT (default 50)
-
-**`inventory_movements`** — Cronologia movimenti
-- `type`: add | remove | edit | sale | refund
-- `quantity`, `previous_quantity`, `new_quantity`, `reason`
-- `performed_by` FK, `performed_by_name`, `order_id` FK
-
-**`profiles`** — RBAC utenti
-- `id` FK → auth.users, `role`: customer | super_admin | manager | seller | warehouse
-- `is_active`, `pending_removal`, `removal_requested_by/at`, `invited_by`
-
-**`store_settings`** — Configurazione store (key-value)
-- `key` TEXT PK, `value` JSONB, `updated_by` FK
-
-**`website_visitors`** — Facebook CAPI attribution (30-day retention)
-- `id` UUID PK, `visitor_id` TEXT UNIQUE
-- Attribution: `fbc`, `fbclid`, `utm_source/medium/campaign/content/term`, `campaign_id`, `adset_id`, `ad_id`, `placement`, `site_source_name`, `funnel`
-- Client: `ip`, `user_agent`
-- Progressive PII: `email`, `phone`, `first_name`, `last_name`, `city`, `postal_code`, `country`
-- Tracking: `events_sent` TEXT[], `created_at`, `updated_at`
-- Indexes: visitor_id, created_at
-
-**`short_links`** — URL shortener
-- `code` TEXT UNIQUE (7 chars), `target_url`, `clicks` INT, `created_by` FK
-
-### RPCs
-- `get_customer_ltv(search, limit, offset, sort)` — Clienti con metriche LTV
-- `get_ltv_aggregates()` — Metriche aggregate (total customers, avg LTV, repeat rate)
-
-### RLS
-- Orders: service_role full; staff select/update; anyone insert (checkout)
-- Inventory: all read; staff update
-- Customers: staff read; service_role full
-- Profiles: users read own; staff read all; super_admin manage
+| Tabella | Scopo | Campi chiave |
+|---------|-------|-------------|
+| `orders` | Ordini | reference_id, status, crypto_currency/amount, fiat_amount, email, shipping_address JSONB, items JSONB, tracking_number, carrier |
+| `customers` | Clienti (upsert auto) | email UNIQUE, full_name, phone |
+| `inventory` | Stock prodotti | sku ('RET-KIT-1'), quantity, reorder_level (50) |
+| `inventory_movements` | Cronologia stock | type (add/remove/sale/refund), quantity, performed_by, order_id |
+| `profiles` | RBAC utenti | role (customer/super_admin/manager/seller/warehouse), is_active |
+| `store_settings` | Config store | key TEXT PK, value JSONB |
+| `website_visitors` | Facebook CAPI attribution | visitor_id, UTM params, progressive PII, events_sent |
+| `short_links` | URL shortener | code (7 chars), target_url, clicks |
 
 ---
 
 ## Integrazioni Third-Party
 
-| Servizio | Scopo | Env Var |
-|----------|-------|---------|
-| CryptAPI | Payment gateway crypto | Wallet vars (`CRYPTAPI_*_WALLET`) |
-| Supabase | Database + Auth | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
-| Resend | Email transazionali | `RESEND_API_KEY` |
-| ClickSend | SMS notifiche | `CLICKSEND_USERNAME`, `CLICKSEND_API_KEY` |
-| Google Places | Address autocomplete | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` |
-| 17Track | Tracking spedizioni | `TRACKING_API_KEY_17TRACK` |
-| Vercel | Hosting + CI/CD | Auto-deploy on push to main |
-| Microsoft Clarity | Session recording + heatmaps + custom tags | Project ID `vn1xc3jub1` (script in layout) |
-| PostHog | Eventi custom (funnel, conversioni). Session replay OFF | `NEXT_PUBLIC_POSTHOG_KEY` |
-| Sentry | Error tracking + performance (20% traces) | `NEXT_PUBLIC_SENTRY_DSN` (EU server, org `neurosoft-af`, project `aurapep-eu`) |
-| IndexNow | Instant search engine notification | Key `c85e4148...` (file in /public/) |
-| Facebook CAPI | Conversions API server-side (cloaking, no pixel) | `FB_PIXEL_ID`, `FB_ACCESS_TOKEN` |
-| Google Search Console | SEO monitoring + sitemap | Verificato via Cloudflare DNS |
-
----
-
-## Email System (9 template — 5 multilingua)
-
-Tutti definiti in `src/lib/email-templates.ts`. Design: dark theme, gold accent (#D4AF37), HTML responsive.
-From: `Aura Peptides <noreply@aurapep.eu>` — Reply-to: `info@aurapep.eu`
-Traduzioni email: `src/lib/email-translations.ts` — ~50 chiavi × 10 lingue, helper `getEmailString(locale, key, vars?)`
-
-**Customer-facing (multilingua, locale da ordine):**
-1. **Order Created** — Email immediata alla creazione ordine con indirizzo crypto, importo, link checkout e istruzioni → customer email
-2. **Customer Confirmation** — Ricevuta ordine post-pagamento con reference number → customer email
-3. **Shipment Notification** — Ordine spedito + tracking link → customer
-4. **Refund Confirmation** — Conferma rimborso con importo → customer
-5. **Cart Recovery** — 3 varianti (1h/12h/48h) con urgenza crescente → customer
-
-**Admin/Warehouse (italiano, non tradotte):**
-6. **Admin Order Alert** — Notifica nuovo ordine pagato → admin@aurapeptides.eu
-7. **Low Stock Alert** — Stock sotto 20 unità → admin
-8. **Warehouse Notice** — Dettagli ordine per fulfillment → warehouse staff
-9. **Underpaid Alert** — Pagamento incompleto con confronto importi → admin
-
----
-
-## Lib Utilities
-
-| File | Scopo |
-|------|-------|
-| `src/lib/seo.ts` | `getAlternateLanguages()`, `getCanonicalUrl()`, `buildPageMetadata()` |
-| `src/lib/auth.ts` | `verifyAuth(req)` JWT validation, `requireRole()` RBAC check |
-| `src/lib/supabase.ts` | Browser/public Supabase client |
-| `src/lib/supabase-admin.ts` | Server-side admin client (lazy singleton, service role) |
-| `src/lib/supabase-browser.ts` | Client component auth client con session refresh |
-| `src/lib/email-templates.ts` | 9 HTML email template (5 multilingua + 4 admin italiano) |
-| `src/lib/email-translations.ts` | Dizionario traduzioni email (~50 chiavi × 10 lingue) + `getEmailString()` |
-| `src/lib/clicksend.ts` | SMS via ClickSend REST API con retry esponenziale |
-| `src/lib/tracking.ts` | 17Track integration: register, get status, save to order |
-| `src/lib/order-number.ts` | Generazione order number random (4-6 chars alfanumerici) |
-| `src/lib/facebook-capi.ts` | Facebook CAPI server-side: `sendFacebookEvent()` con SHA-256 PII hashing |
-| `src/lib/fb-tracking.ts` | Client-side tracking: `getVisitorId()`, `sendFbEvent()`, `updateVisitor()`, idempotenza sessionStorage |
-
----
-
-## Environment Variables
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://ihjxbrjtcuyfiuulczlc.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
-SUPABASE_SERVICE_ROLE_KEY=<service role key>
-
-# Crypto Wallets
-CRYPTAPI_BTC_WALLET=bc1qcwpmw65ucscvgstppgty03n4xufmsztvr6mx3j
-CRYPTAPI_ETH_WALLET=0x0605C80Fc5bB9e65264bD562B528b1f3cB3432C0
-CRYPTAPI_XMR_WALLET=44AFFq5kSiGBoZ4NMDwYtN18obc8AemS33DBLWs3H7otXft3XjrpDtQGv7SqSsaBYBb98uNbr2VBBEt7f2wfn3RVGQBEP3A
-CRYPTAPI_SOL_WALLET=5fmrMg776oUFyX71Yi9qzqcwPcEU3AvaL7e6nUK8kQaR
-CRYPTAPI_USDT_TRC20_WALLET=TUjXYc8uJ85FGJs2QCqv9Co5SV9bFhebdC
-CRYPTAPI_USDC_WALLET=0x0605C80Fc5bB9e65264bD562B528b1f3cB3432C0
-CRYPTAPI_XRP_WALLET=<non configurato>
-
-# Email & SMS
-RESEND_API_KEY=<resend api key>
-RESEND_FROM_EMAIL=Aura Peptides <noreply@aurapep.eu>
-ADMIN_NOTIFICATION_EMAIL=admin@aurapeptides.eu
-CLICKSEND_USERNAME=<clicksend username>
-CLICKSEND_API_KEY=<clicksend api key>
-
-# Tracking
-TRACKING_API_KEY_17TRACK=<17track api key>
-
-# APIs
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=<google maps key>
-
-# Security
-WEBHOOK_SECRET=<uuid per CryptAPI callbacks>
-CRON_SECRET=<uuid per scheduled jobs>
-
-# Site
-NEXT_PUBLIC_SITE_URL=https://aurapep.eu
-```
-
----
-
-## Project Structure
-
-```
-src/
-├── app/
-│   ├── [locale]/
-│   │   ├── layout.tsx              # Root metadata + generateMetadata()
-│   │   ├── page.tsx                # Landing page (use client)
-│   │   ├── admin/
-│   │   │   ├── layout.tsx          # Auth guard + admin shell (use client)
-│   │   │   └── page.tsx            # Dashboard 6-tab (use client)
-│   │   ├── calculator/
-│   │   │   ├── layout.tsx          # SEO metadata
-│   │   │   └── page.tsx            # Dosage calculator (use client)
-│   │   ├── checkout/[id]/
-│   │   │   └── page.tsx            # Payment page con QR (use client)
-│   │   ├── crypto-guide/
-│   │   │   ├── layout.tsx          # SEO metadata
-│   │   │   └── page.tsx            # Crypto guide (use client)
-│   │   ├── order/
-│   │   │   ├── layout.tsx          # SEO metadata
-│   │   │   └── page.tsx            # Order form (use client)
-│   │   └── portal/
-│   │       ├── layout.tsx          # SEO metadata
-│   │       └── page.tsx            # Order tracking (server component)
-│   ├── api/
-│   │   ├── admin/                  # 9 admin API routes
-│   │   ├── checkout/               # Checkout + status polling
-│   │   ├── c/[code]/               # Short link redirect
-│   │   ├── cron/                   # 2 scheduled jobs
-│   │   ├── portal/                 # Customer order lookup
-│   │   ├── short-link/             # URL shortener
-│   │   └── webhooks/cryptapi/      # Payment webhook
-│   ├── robots.ts                   # Dynamic robots.txt
-│   └── sitemap.ts                  # Dynamic sitemap (50 URLs)
-├── components/
-│   ├── seo/                        # 5 JSON-LD structured data components
-│   └── ui/                         # 6 UI components
-├── lib/
-│   ├── auth.ts                     # JWT verification + RBAC
-│   ├── seo.ts                      # SEO utilities
-│   ├── email-templates.ts          # 6 email template
-│   ├── clicksend.ts                # SMS integration
-│   ├── tracking.ts                 # 17Track integration
-│   ├── order-number.ts             # Order ID generation
-│   ├── supabase.ts                 # Public client
-│   ├── supabase-admin.ts           # Server admin client
-│   └── supabase-browser.ts         # Browser auth client
-└── i18n/
-    ├── routing.ts                  # Locale config (10 locales)
-    └── request.ts                  # Message loader
-messages/                           # 10 × {locale}.json
-public/
-├── images/                         # Product images (vials, hero)
-└── assets/                         # Janoshik COA report
-supabase/migrations/                # 4 SQL migration files
-```
+| Servizio | Scopo |
+|----------|-------|
+| CryptAPI | Payment gateway crypto |
+| Supabase | Database + Auth |
+| Resend | Email transazionali (9 template, 5 multilingua) |
+| ClickSend | SMS notifiche warehouse |
+| Google Places | Address autocomplete |
+| 17Track | Tracking spedizioni |
+| Microsoft Clarity | Session recording + heatmaps + custom tags |
+| PostHog | Eventi custom (session replay OFF) |
+| Sentry | Error tracking + performance (20% traces, EU server) |
+| Facebook CAPI | Conversions API server-side (cloaking, no pixel) |
+| IndexNow | Search engine notification |
+| Google Search Console | SEO monitoring |
 
 ---
 
@@ -549,258 +234,58 @@ supabase/migrations/                # 4 SQL migration files
 
 - `src/lib/seo.ts` → `buildPageMetadata()` con `title: { absolute: title }`
 - Root layout: `generateMetadata()` con title template `%s | Aura Peptides`
-- Child routes: `layout.tsx` wrapper esporta `generateMetadata()` (pages sono "use client")
-- Structured data: componenti client in `src/components/seo/` con `<script type="application/ld+json">`
-- Translation keys SEO: pattern `seo_{page}_{field}` (4 chiavi per pagina × 5 pagine × 10 locales = 200 keys)
-- robots.ts: block /admin/, /api/, /checkout/ + sitemap URL
-- sitemap.ts: 50 URLs con hreflang cross-references e priority hierarchy
+- Child routes: `layout.tsx` wrapper esporta `generateMetadata()`
+- Structured data: componenti client in `src/components/seo/`
+- Translation keys SEO: pattern `seo_{page}_{field}` (4 chiavi × 5 pagine × 10 locales)
+- robots.ts: block /admin/, /api/, /checkout/
+- sitemap.ts: 50 URLs con hreflang cross-references
 
 ---
 
 ## Recently Completed
 
-- [2026-03-13] **FAQ dosaggi + light theme tutte le pagine** (non committato):
-  - **Nuova FAQ #10**: "Dove posso trovare informazioni sui dosaggi e i protocolli?" — rimanda a glp1journal.eu e YouTube, chiude con disclaimer responsabilità ricercatore. Tradotta in 10 lingue. Aggiunta sia in FaqSection (dark) che FaqSectionLight (light)
-  - **Light theme pagine secondarie**: fixati tutti i colori hardcoded dark su Calculator, Crypto Guide, Order, Checkout e CopyAddressButton. Tutte le pagine ora usano esclusivamente `t-*` semantic tokens
-    - Calculator: `bg-black/20` → `bg-t-bg-subtle`, siringa: bordi/tick marks/indicatore ora theme-aware
-    - Crypto Guide: `bg-[#0c1933]` → `bg-t-bg-subtle`, callout blue → gold accent tokens
-    - Order: `bg-white/[0.02]` → `bg-t-bg-subtle`, Google Places autocomplete CSS ora theme-aware (detect `data-theme`)
-    - Checkout: `border-green-500/20 bg-green-500/5` → `t-success` tokens, `text-green-300/80` → `text-t-success`
-    - CopyAddressButton: `bg-black/50` → `bg-t-bg-subtle`
-    - Portal: già ok, nessuna modifica necessaria
-  - **Stato attuale**: dark = default, light = cookie `theme=light`. Tutte le 6 pagine pubbliche supportano entrambi i temi
-  - **TODO**: decidere gestione online (A/B test PostHog, toggle utente, o default light)
-- [2026-03-13] **Blog CTA card in LightPage** (non committato):
-  - Card tra Buyer Protection e FAQ in `LightPage.tsx` che invita a visitare glp1journal.eu
-  - Presentato come risorsa indipendente/imparziale (zero riferimenti ad Aura Peptides)
-  - UTM tracking: `utm_source=aurapep&utm_medium=landing&utm_campaign=blog_cta&utm_content={locale}`
-  - Email collection opzionale (POST a `/api/leads` esistente) con PostHog + Clarity tracking
-  - Mapping locale aurapep → blog locale (it/en/de/fr/es supportati, fallback en)
-  - 7 chiavi traduzione `blog_cta_*` aggiunte solo in `messages/en.json`
-  - **TODO**: tradurre `blog_cta_*` nelle altre 9 lingue (it, fr, de, es, pt, pl, ru, uk, ar)
-  - **TODO**: tradurre altre chiavi mancanti in LightPage (review_4-8, qa_description, faq_q1-q9/faq_a1-a9, light_stat_support) nelle 9 lingue
-- [2026-03-12] **Light/Dark theme system (CSS variables)**:
-  - **Infrastructure**: 20 semantic CSS custom properties in `globals.css` sotto `:root` (dark default) e `[data-theme="light"]`
-  - **Tailwind 4 @theme**: 17 color tokens registrati (`t-bg`, `t-text`, `t-accent`, `t-border`, `t-btn`, `t-success`, ecc.) con supporto opacity modifier via `color-mix()`
-  - **Utility classes aggiornate**: `.glass-panel` (bg + blur + border + shadow variabili), `.gold-glow` (shadow variabile), `.text-gradient-gold` (gradient variabile)
-  - **Theme visibility**: classi `.theme-dark-only` / `.theme-light-only` per swap condizionale (es. product image)
-  - **Componenti refactored**: 14 landing components + 7 UI components + 6 page files (~200 sostituzioni di classi Tailwind)
-  - **Theme switching**: cookie `theme=light` → `data-theme="light"` su `<html>` in `layout.tsx` (via `cookies()` next/headers)
-  - **Product image swap**: HeroSection mostra dark vial (`product_hero_v5.png`, `theme-dark-only`) o light vial (`vial_v7_white.png`, `theme-light-only`)
-  - **Admin escluso**: `admin/page.tsx` usa ancora `brand-*` colors diretti, non toccato dal theming
-  - **Palette chiara**: BG #FFFFFF, BG_ALT #F8F7F4, Navy #1A2744, Gold #C09B2D, Border #E0DDD6, Success #1B6B40
-  - **Pagina test2 rimossa** (sostituita dal tema system)
-  - **Build**: 99 pagine statiche + 24 API routes, zero errori. Dark theme visivamente invariato, light theme verificato su homepage + order page
-  - Piano in `docs/superpowers/plans/2026-03-12-light-dark-theme.md`
-  - **TODO prossimo**: integrare PostHog feature flag per A/B test automatico dark vs light
-- [2026-03-05] **Facebook CAPI server-side + locale prefix fix + email change + i18n badges**:
-  - **Facebook Conversions API**: implementazione completa server-side con cloaking (NO pixel client-side, NO _fbp, action_source: "system_generated")
-  - Tabella `website_visitors` su Supabase per attribution resiliente (sopravvive adblocker/ITP/cookie deletion)
-  - Script inline in layout.tsx: genera `visitor_id`, cookie `_fbc` da fbclid, salva UTM in localStorage, POST `/api/visitor`
-  - ViewContent su 4 pagine (homepage, order, crypto-guide, calculator) con naming specifico
-  - InitiateCheckout + AddPaymentInfo su order page, abandonment detection via `visibilitychange` + `sendBeacon`
-  - Purchase event dal webhook CryptAPI dopo conferma pagamento
-  - Progressive visitor enrichment: PATCH `/api/visitor` su blur dei campi form
-  - `funnel` parameter: sempre sovrascritto da IP (`eu_{code}` per EU 27, `{code}` per non-EU) via `x-vercel-ip-country`
-  - Idempotenza: event_id deterministici (`{visitorId}_{eventName}_{suffix}`) + sessionStorage guard client-side
-  - Cron cleanup visitatori >30 giorni
-  - File creati: `src/lib/facebook-capi.ts`, `src/lib/fb-tracking.ts`, `src/app/api/visitor/route.ts`, `src/app/api/fb-event/route.ts`, `src/app/api/cron/cleanup-visitors/route.ts`, `supabase/migrations/09_website_visitors.sql`
-  - File modificati: `layout.tsx`, `page.tsx`, `order/page.tsx`, `crypto-guide/page.tsx`, `calculator/page.tsx`, `checkout/route.ts`, `webhooks/cryptapi/route.ts`
-  - **Locale prefix**: cambiato da `as-needed` a `always` — tutte le lingue incluso EN ora con prefisso `/en/`. Aggiornati `seo.ts`, `sitemap.ts`, `indexnow/route.ts`
-  - **Email**: `support@aurapeptides.eu` → `info@aurapep.eu` in 18 file (10 messages, 6 API routes, 1 structured data, 1 cron)
-  - **i18n badges**: tradotte 3 trust badge testimonial (`review_badge_hplc/shipping/lab`) in 10 lingue. Fix IT step 5 qualità più dettagliato
-  - Env vars aggiunte: `FB_PIXEL_ID`, `FB_ACCESS_TOKEN` (da aggiungere su Vercel)
-  - Build: 86 pagine statiche + 24 API routes, zero errori
-- [2026-03-01] **Analytics & Error tracking setup**:
-  - **Sentry**: progetto `aurapep-eu` creato (EU server, org `neurosoft-af`), SDK `@sentry/nextjs@10.40.0` installato e configurato (client/server/edge + instrumentation + global-error), traces 20%, session replay OFF, DSN su Vercel
-  - **Clarity custom tags**: 7 tag aggiunti (cta_clicked, faq_opened, crypto_selected, order_submitted, checkout_viewed, payment_confirmed, crypto/country) per filtrare sessioni nel replay
-  - **PostHog**: verificato session recording OFF via API (`session_recording_opt_in: false`), mantenuto per eventi custom
-  - File creati: `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`, `src/instrumentation.ts`, `src/app/global-error.tsx`
-  - File modificati: `next.config.ts` (withSentryConfig), `page.tsx` + `order/page.tsx` + `CheckoutTracker.tsx` (Clarity tags)
-- [2026-02-27] **GLP-1 Journal — Fix internal linking: orfani, underlinked, TRIPLE-G** (`glp1-journal/`):
-  - **TASK 1**: Risolti 4 articoli orfani (0 link in ingresso) aggiungendo 3 link ciascuno:
-    - `calcolatore-dosaggio-peptidi-perche-serve`: link aggiunti da calcolo-dosaggio-peptidi, come-ricostituire-peptidi, guida-siringhe-peptidi
-    - `cibi-evitare-preferire-protocollo-glp1`: link aggiunti da proteine-peptidi-glp1-alleato, carenze-nutrizionali-glp1-prevenzione, integratori-protocollo-glp1-guida
-    - `food-noise-voce-che-dice-mangiare`: link aggiunti da food-noise-cos-e-come-spegnerlo, perche-diete-falliscono, metabolismo-come-funziona-blocca
-    - `peptidi-dimagranti-news-2026`: link aggiunti da futuro-peptidi-anti-obesita, migliori-peptidi-perdita-peso-2026, cos-e-il-retatrutide
-  - **TASK 2**: Portati a 5+ link in uscita 3 articoli underlinked:
-    - `carenze-nutrizionali-glp1-prevenzione`: +2 link (cibi-evitare-preferire, cos-e-il-retatrutide)
-    - `integratori-protocollo-glp1-guida`: +2 link (cibi-evitare-preferire, conservazione-peptidi)
-    - `mounjaro-tirzepatide-guida-completa`: +2 link (effetti-collaterali-glp1, semaglutide-vs-tirzepatide-vs-retatrutide)
-  - **TASK 3**: Aggiunte 4 menzioni TRIPLE-G a `cibi-evitare-preferire-protocollo-glp1.mdx` (prima menzione con spiegazione completa, successive con nome breve)
-  - Totale: 12 articoli modificati, 18 nuovi link interni aggiunti
-- [2026-02-27] **GLP-1 Journal — UTM tracking + CTA editoriali su tutti i 44 articoli IT** (`glp1-journal/`):
-  - **TASK 1**: Aggiunto UTM parameters (`utm_source=glp1journal&utm_medium=content&utm_campaign={translationKey}`) ai 7 articoli che avevano link aurapep.eu senza tracking: confronto-peptidi-dimagranti, faq-peptidi-dimagranti, metabolismo-come-funziona-blocca, mounjaro-tirzepatide-guida-completa, ozempic-semaglutide-guida-completa, peptidi-glp1-benefici-oltre-peso, retatrutide-triple-g-guida-completa
-  - **TASK 2**: Aggiunta CTA editoriale con link aurapep.eu + UTM a 9 articoli che non ne avevano alcuna: come-dimagrire-guida-definitiva, dimagrire-donna-guida-completa, dimagrire-uomo-guida-completa, food-noise-cos-e-come-spegnerlo, food-noise-voce-che-dice-mangiare, peptidi-dimagranti-news-2026, perche-diete-falliscono, perche-non-riesco-dimagrire-non-colpa-tua, stile-vita-dimagrimento-abitudini
-  - Tutti i 44 articoli IT ora hanno almeno 1 link aurapep.eu con UTM tracking completo
-  - CTA posizionate nella parte finale degli articoli (mai nel primo 30%), tono editoriale non commerciale
-- [2026-02-27] **GLP-1 Journal — Audit SEO completo + 10 nuovi articoli + analisi mercato europeo** (`glp1-journal/`):
-  - Importati 9 articoli da blog-engine + 1 nuovo scritto da zero (calcolatore dosaggi)
-  - 10 immagini hero generate con Gemini Flash (16:9 editoriale scientifico)
-  - Build: **675 pagine** (da 615), zero errori
-  - **Audit SEO completo**: tecnico (meta tags, schema, hreflang OK; bug BreadcrumbJsonLd, no 404, no image opt) + contenuti (34/44 articoli con 0 link interni, 23 titoli >60 char) + SERP competitivo
-  - **Analisi SERP 6 query-tipo** ("retatrutide prezzo/dove comprare/effetti/peso") in IT/DE/FR/ES: vuoto competitivo enorme in tutte le lingue, unico competitor pan-EU è ZAVA (telemedicina)
-  - **Analisi mercato EU**: 5 lingue attuali coprono ~75% del potere d'acquisto EU. UK escluso (post-Brexit). EN = lingua ponte pan-europea, non per UK
-  - **Keyword opportunities** identificate: Ozempic Face, prezzi GLP-1 Italia, alimenti GLP-1 naturali, orforglipron, GLP-1 e alcol, Ozempic Babies
-  - Problemi bloccanti: sito NON indicizzato su Google, linking interno quasi assente, E-E-A-T debole
-- [2026-02-27] **GLP-1 Journal — migrazione 14 articoli da blog-engine** (`glp1-journal/`):
-  - 14 articoli IT migrati da `/Copy Forever Slim/blog-engine/output/` al blog GLP-1 Journal
-  - Conversione formato: `.md` → `.mdx`, frontmatter trasformato (rimosso slug/pillar/keywords, aggiunto locale/translationKey/category/tags/image)
-  - 14 immagini hero generate con Gemini 3 Pro (una per articolo, 16:9, stile editoriale scientifico)
-  - Fix compatibilità MDX: escape `<` e `>` usati come comparatori in 3 file
-  - Build: **615 pagine** (da 522), zero errori
-  - Articoli: confronto peptidi, FAQ, food noise, metabolismo, Mounjaro, Ozempic, retatrutide TRIPLE-G, benefici GLP-1, news 2026, dimagrire donna/uomo, come dimagrire, perché diete falliscono, stile di vita
-  - Categorie usate: glp1-agonists (4), advanced-science (5), research-guides (4), comparisons (1)
-  - Traduzioni EN/DE/FR/ES da fare in sessione successiva
-- [2026-02-26] **GLP-1 Journal — revisione editoriale completa 100 articoli** (`glp1-journal/`):
-  - Creato `ARTICLE-GUIDELINES.md` con 15 sezioni di linee guida editoriali
-  - **TRIPLE-G naming**: aggiunto a tutti i 100 articoli (min 3 menzioni/articolo, 106 totali solo IT)
-  - **Parole vietate eliminate**: farmaco→peptide (69 occorrenze IT), iniezione→somministrazione (30), effetti collaterali→segnali di adattamento (10), comprare→procurarsi (12)
-  - **Framework effetti collaterali 5 livelli**: riscrittura completa `effetti-collaterali-glp1.mdx` con analogia banana, confronto OTC, analogia digiuno, protocollo pratico
-  - **CTA editoriali**: tutte le menzioni "Aura Peptides" (lab-oriented) sostituite con "su aurapep.eu trovi..." (editoriale)
-  - **Tono conversazionale**: tutti gli articoli convertiti al "tu" informale
-  - **Argomento liofilizzato vs penna**: aggiunto negli articoli comparison/buying
-  - **Progressione generazionale**: semaglutide (1a gen) → tirzepatide (2a gen) → TRIPLE-G (3a gen)
-  - **Traduzioni aggiornate**: EN, DE, FR, ES — tutte allineate ai nuovi contenuti IT
-  - Build: 522 pagine, zero errori
-- [2026-02-26] **GLP-1 Journal blog completato** (`glp1-journal/`):
-  - Blog editoriale Astro 5 + MDX + Tailwind CSS 4 per glp1journal.eu
-  - 20 articoli strategici in italiano (lingua primaria) + 80 traduzioni (EN, DE, FR, ES) = 100 articoli totali
-  - 522 pagine statiche generate (articoli + homepage + categorie + tag per 5 lingue)
-  - SEO completo: hreflang 6-way per articolo, canonical, OG/Twitter, JSON-LD (BlogPosting + BreadcrumbList)
-  - Sitemap con 523 URL
-  - Sistema funnel 3-tier toggleabile via `PUBLIC_FUNNEL_TIER` env var
-  - Design light-theme clinico-scientifico (Source Serif 4 + Inter, self-hosted GDPR ok)
-  - 5 categorie: Agonisti GLP-1, Guide alla Ricerca, Confronti, Acquisto e Regolamentazione, Scienza Avanzata
-  - Distribuzione contenuti: 70% editoriale puro, 20% soft sell, 10% commercial
-- [2026-02-26] **IndexNow + Clarity analytics + middleware fix** (commits `fb77a74`, `e564163`, `5532602`):
-  - Fix critico middleware: aggiunto catch-all matcher per path EN senza prefisso (`/order`, `/calculator`, ecc. davano 404)
-  - IndexNow: API key + file verifica + route `/api/indexnow` (protetta da CRON_SECRET); ping inviato con 50 URL → HTTP 202
-  - Microsoft Clarity: script `vn1xc3jub1` nel root layout, session recording su tutte le pagine/lingue
-  - Google Search Console: sito verificato via Cloudflare DNS, sitemap sottomesso
-  - 3 migration SQL eseguite su Supabase: `05_leads_table`, `06_cart_recovery`, `08_order_locale`
-- [2026-02-25] **i18n completo + revisione traduzioni + SEO avanzato** (commit `c270906`):
-  - Email multilingua: 5 template customer-facing tradotte in 10 lingue (`email-translations.ts` con ~50 chiavi × 10 lingue)
-  - Migration `08_order_locale.sql`: colonna `locale` su tabella orders, salvata al checkout
-  - Refactor `email-templates.ts`: tutte le funzioni customer-facing accettano `locale`, admin restano in italiano
-  - Revisione completa traduzioni 8 lingue (390 chiavi × 8 = 3120 chiavi revisionate):
-    - FR: 80+ fix capitalizzazione francese, FAQ espanse, SEO "acheter retatrutide europe"
-    - DE: Checkout→Bestellvorgang, FAQ espanse, Sie-form, SEO "retatrutide kaufen europa"
-    - ES: tu→usted (80+ istanze), wallet→monedero, FAQ espanse, SEO "comprar retatrutide europa"
-    - PT: PT-PT consistency (pedido→encomenda, pesquisa→investigação), FAQ espanse
-    - PL: capitalizzazione polacca, fix JSON typographic quotes, FAQ espanse
-    - RU: TRIPLE-G tradotto, 40+ fix naturalezza frasi, FAQ espanse da 1 riga a paragrafi completi
-    - UK: ВЕРХ→HPLC (7 occorrenze), Russianismi corretti, FAQ espanse
-    - AR: punteggiatura araba (·→ثم), TRIPLE-G tradotto, genere corretto, FAQ espanse
-  - SEO structured data: OrderStructuredData con Product + 6 AggregateOffer; PortalStructuredData (nuovo) con BreadcrumbList + WebApplication; HomeStructuredData fix prezzi (97→197) + AggregateOffer con 6 tier
-  - SEO keyword optimization per tutte le lingue: chiavi transazionali localizzate
-- [2026-02-25] **Admin dashboard upgrade — feature parity con Forever Slim** (commit `df4fa82`):
-  - Order Detail Drawer: pannello slide-in da destra con info complete ordine, indirizzo spedizione, tracking, timeline
-  - Ship/Refund/Cancel Modali: sostituiscono input inline con dialog modali centrati
-  - Date Range Filters: `date_from`/`date_to` API params + date picker UI dark theme
-  - Paginazione: 20 ordini/pagina con contatore e navigazione pagine
-  - Mobile Order Cards: layout card responsive per ordini su mobile (<md)
-  - CSV Export: download ordini filtrati come CSV UTF-8 (solo super_admin)
-  - StatusTimeline: timeline verticale con dots gold/gray per lifecycle ordine
-  - Tracking Events: display eventi tracking con timestamp nel drawer
-  - Refactor azioni ordine da input inline a workflow basato su modali
-- [2026-02-25] **Admin dashboard audit fix** (commit `57fdde6`):
-  - Auth fallback to profiles table, RBAC layout blocking, expired order actions, refund inventory fix, BASE_PRICE 197
-- [2026-02-25] **72h order lifecycle + instant payment email + cart recovery** (commit `03f4afa`):
-  - Ordini pending ora validi 72h (era 24h) — expire-orders cron + checkout/pending cutoff aggiornati
-  - Email immediata alla creazione ordine con indirizzo crypto, importo, link checkout e istruzioni ChangeHero
-  - Cart recovery cron (hourly): 3 email a 1h/12h/48h con urgenza crescente per ordini non pagati
-  - Webhook accetta pagamenti su ordini expired (li riattiva automaticamente)
-  - Admin: filtro "Scaduti" + badge nel tab ordini
-  - Migration `06_cart_recovery.sql`: colonne `recovery_emails_sent` + `last_recovery_email_at`
-  - 3 nuovi template email: Order Created, Cart Recovery (3 varianti), Underpaid Alert
-- [2026-02-25] **Lead capture + security audit + social proof** (commit `beca08e`):
-  - Progressive lead capture: `/api/leads` POST endpoint, onBlur handlers su form ordine
-  - Security: timing-safe webhook secret, atomic status update, inventory failure alert, email XSS escaping
-  - RecentSalesPopup: geo-aware (15 città per locale), privacy-first ("Un ricercatore da {city}")
-  - LiveInventoryBadge: real-time timestamp con timezone visitatore, useStock hook condiviso
-  - Sticky bar sincronizzata con stock counter via modulo-level singleton
-- [2026-02-25] **Tablet layout fix — color bands + hero image** (commit `b6940f4`):
-  - `page.tsx`: `bg-black` → `bg-brand-void` (features section); `bg-[#0a0a0a]` → `bg-brand-void` (ticker sections); `from-[#0a0a0a]` → `from-brand-void` (ticker gradients); `bg-brand-gold/5` → `bg-brand-void` (calculator CTA)
-  - Hero product image: `h-36` → `h-36 md:h-52` con `md:max-w-md`; badge `self-center` → `self-center md:self-start`
-- [2026-02-25] **QR code checkout fix** (commit `d3b55dc`):
-  - `checkout/[id]/page.tsx`: rimosso doppio bordo bianco (CSS padding `p-4→p-2` + `includeMargin false`), QR size `180→220`, `rounded-2xl→rounded-xl` — più facile da scansionare
-- [2026-02-25] **Crypto-guide senior-friendly copy + Order page UX** (commit `c4c05d0`):
-  - Crypto-guide: titolo cambiato a "Come Pagare con Carta in 5 Minuti" pattern su tutte 10 locali; copy ottimizzata per target senior (linguaggio semplice, no gergo crypto)
-  - Order page 6 miglioramenti UX: step indicator sopra titolo; label form tradotte ("Contatto"/"Destinazione"); trust signals tradotti sotto CTA; card "No crypto?" spostata dopo prezzo totale; crypto selector semplificato (USDT prima con ✓); Why Crypto collassato in accordion `<details>`
-  - `messages` (10 locali): +5 chiavi order page (`order_trust_headline`, `order_trust_subtext`, `order_form_contact`, `order_form_destination`, `order_step_indicator`)
-- [2026-02-25] **Order summary fix + underpaid handling** (commit `bd8111e`, `954f461`):
-  - Order summary: prezzo barrato prima del prezzo reale, spedizione con label grigia + "0€"
-  - Underpaid payment handling: gestione pagamenti parziali crypto
-  - Crypto guide: step layout migliorato
-- [2026-02-25] **Idempotenza ordini pending + UX checkout polish**:
-  - Nuova API `GET /api/checkout/pending?email=...`: cerca ordini `pending` con stessa email nelle ultime 24h
-  - `order/page.tsx`: al submit, check idempotenza → se trovato, alert inline ambra con pulsing dot sotto il bottone CTA; bottoni affiancati (sm:flex-row); scroll automatico su mobile; `handleCheckout(skipPendingCheck?: boolean)`
-  - `messages` (10 locali): +4 chiavi pending order + aggiornamenti `checkout_address_label`, `checkout_qr_label`, `checkout_detection_note` (con parametro `{crypto}` dinamico)
-  - `checkout/[id]/page.tsx`: etichetta Step 2 → "Indirizzo a cui inviare l'importo..."; QR step senza numero 3; sezione status più grande (`text-base px-6 py-3`); spinner più grande; nota corsivo con link portale
-  - `CheckoutCountdown`: aggiunto prop `className` per override dimensioni
-  - `CheckoutCountdown`: fix hydration mismatch SSR/client (`useState<number|null>(null)` + init in `useEffect`)
-  - `CopyAddressButton`: redesign con address display + bottone gigante gold/green
-  - Rimozione Janoshik: 10 messages + 2 TSX files
-  - Hero mobile spacing: `items-start md:items-center`, `md:min-h-screen`, `gap-5 lg:gap-6`
-  - Crypto guide: ChangeHero URL → `/buy/usdt`, Step 2 con callout visivo indirizzo wallet
-  - Order page: sezione "WHY CRYPTO" con benefit-focus, card "No crypto?" prominente
-- [2026-02-23] **Tablet audit & fix (768px)** (commit `3f32dae`):
-  - Nav: `md:px-12` → `md:px-8 lg:px-12` — risolve collisione 673px in 672px (logo+link+right)
-  - Nav links: `gap-8` → `gap-6 lg:gap-8` + `whitespace-nowrap` — "ORDER NOW" non si spezza più a 768px
-  - Hero subtitle: `lg:line-clamp-none` → `md:line-clamp-none` — testo completo visibile a tablet (non più troncato con "...")
-  - Mini shipping timeline: `lg:hidden` → `md:hidden` — elimina duplicato (trust card mostra stessa info a md+)
-- [2026-02-22] **Piano 1.2 + 1.4 — Checkout countdown + Hero mobile timeline** (commit `3617079`):
-  - `CheckoutCountdown` (nuovo client component): countdown live da `created_at + 24h`; 3 stati colore (bianco→ambra <1h→rosso <15min); tabular-nums per smooth update; si ferma a 0
-  - `checkout/[id]/page.tsx`: countdown integrato tra CopyAddressButton e spinner di attesa
-  - `page.tsx`: mini shipping timeline mobile-only (`lg:hidden`) sotto LiveInventoryBadge — icona Truck + 3 step `whitespace-nowrap`, truncate sull'ultimo
-  - `messages` (10 locali): +3 chiavi countdown (`checkout_valid_for`, `checkout_expires_in`, `checkout_expired_label`)
-- [2026-02-22] **CRO Tier 2.2 — Dynamic order counter** (commit `8f5760c`):
-  - `/api/recent-activity`: aggiunto `totalOrders` (COUNT parallelo dal DB) nella response e nel cache
-  - `page.tsx`: state `orderCount` + useEffect fetch; `trust_earned_sub` usa `{count}` interpolazione con fallback 7496
-  - `messages` (10 locali): numero statico → `{count}` placeholder
-- [2026-02-22] **CRO & UX Mobile Audit — Tier 2** (commit `67b21f9`):
-  - **`/api/recent-activity`** (nuovo file): endpoint che fetcha gli ultimi 8 ordini `paid/shipped/delivered` dal DB Supabase, anonimizza (first name + last initial + city), calcola `timeAgoKey` i18n-compatible, cache 5 min in-memory. Ritorna `[]` su errore → nessun fake fallback (GDPR/EU Directive 2005/29/EC compliant)
-  - **`RecentSalesPopup`**: riscritto completamente per usare dati reali. Se API ritorna vuoto, la popup non appare mai. Mobile: `bottom-24` per non sovrapporsi alla sticky bar
-  - **`page.tsx` testimonials**: `bg-[#0a0a0a]` → `bg-brand-void` (sezione era invisibile); aggiunti 3 trust micro-badge pill (HPLC ≥99.8% Verified, EU Direct Shipping, Janoshik Tested→apre COA modal); rimosso `<div className="mb-16">` accidentale che causava blank space
-  - **i18n**: +1 chiave `trust_badge_view_report` su 10 locali
-- [2026-02-22] **CRO & UX Mobile Audit — Tier 0/1/3** (commit `84d845c`):
-  - **Tier 0 — Bug critici**: `BASE_PRICE 12 → 197` (revenue fix); rimosso `bg-black`/`bg-[#0a0a0a]` da sezioni "Why Aura", Specs, Footer (erano invisibili su dark theme); `bg-[#050505]` → `bg-brand-void` nel footer; PortalForm input contrast fix; sticky bar landing redesign con 197€ + stock urgency
-  - **Tier 1 — Conversion friction**: FAQ `max-h-60` → `max-h-[800px]`; order sticky bar mobile con crypto selector inline + discount badge; checkout gestione `expired`/`cancelled` con pagina dedicata e CTA "Crea nuovo ordine"; nuovo componente `CopyAddressButton` con clipboard API + fallback mobile; `LiveInventoryBadge` timestamp rimosso
-  - **Tier 3 — Polish**: `whileInView viewport` aggiornato a `amount: 0.05` su 5 motion.div; hero subtitle `line-clamp-2` → `line-clamp-3`; calculator CTA "Ordina il tuo Kit →" dopo risultati
-  - **i18n**: +8 chiavi checkout (expired/cancelled/copy) + 2 chiavi calculator (10 lingue ciascuna)
-  - **Nuovo file**: `src/components/ui/CopyAddressButton.tsx`
-- [2026-02-22] **2° round fix mobile da device reale** (commit `153e6a6`, `0a0e765`):
-  - `page.tsx`: nav più sottile (py-2 mobile/py-4 desktop), logo `whitespace-nowrap`, "Portale Clienti" → icona `User` circolare
-  - Hero badge su una riga (`whitespace-nowrap`), hero `pt-20` mobile
-  - Shipping card timeline: `flex-wrap` invece di `overflow-x-auto`
-  - `LiveInventoryBadge`: layout compatto su una riga, rimosso timestamp
-  - `calculator/page.tsx`: redesign above-fold — sezioni 1+2 fuse, inputs sempre grid-cols-2, siringa visibile anche su mobile (h-10 mobile/h-16 desktop)
-  - `order/page.tsx`: `overflow-x-hidden` su main → eliminato scroll orizzontale
-- [2026-02-22] **Mobile UX Sitewide Audit & Fix (1° round)**: 13 fix tra bug, touch targets, sticky bar, language dropdown, spec table layout
-- [2026-02-22] Mobile Conversion Rate Optimization: UX Checkout in `order/page.tsx`
-- [2026-02-22] SEO full implementation (metadata, structured data, sitemap, robots, hreflang, 200 translation keys)
-- [2026-02-22] CLAUDE.md + PROJECT_STATUS.md creati
-- [2026-03-03] **Nuova immagine prodotto hero** (commit `622be16`, `e66496b`, `fcaef17`):
-  - Generata con Gemini 3.1 Flash — fiala TRIPLE-G 10mg, etichetta bianca stampabile (38×21cm), sfondo marmo antracite bokeh
-  - Desktop (3:4): `product_hero_v5.png` — tappo bianco, linea oro sul vetro
-  - Mobile/Tablet (16:9): `product_hero_v5_wide.png` — composizione landscape centrata
-  - Rimosso `mix-blend-screen` e `scale-110` (image ha proprio sfondo)
-  - Altezze responsive corrette: `h-44 sm:h-52 md:h-80` — fiala visibile su tutte le size (375px→768px)
+> Dettagli completi in `PROJECT_HISTORY.md`
+
+- [2026-03-15] **SEO optimization from GSC data**: calculator "Free Retatrutide Dosage Calculator" titles + keyword-rich descriptions (10 locales), FAQ section (4 Q&A) + FAQPage schema, IT homepage "comprare retatrutide europa", improved structured data
+- [2026-03-15] **Hero images WebP**: product_hero_v5 (5.6MB→121KB), product_hero_v5_wide (5.6MB→101KB), vial_v7_white (2.5MB→59KB) — 98% riduzione
+- [2026-03-15] **Fix Ahrefs SEO audit**: disabilitati alternate Link headers middleware (100 errori hreflang duplicati/redirect), accorciate 26 meta descriptions (9 locales ≤155 chars)
+- [2026-03-15] **Ahrefs integration**: analytics script + site verification (meta tag + HTML file)
+- [2026-03-15] **Cart recovery email sequence redesign (6 email)**:
+  - Sequenza: 1h (Helper) → 12h (Motivator) → 24h (Guide) → 48h (Closer) → 68h (Last chance) → 73h (Post-expiry)
+  - Sezione ChangeHero con tutorial carta personalizzato (importo + indirizzo ordine) — solo USDT/USDC
+  - Link ChangeHero locale-specific (7 lingue supportate + 3 fallback EN)
+  - Copy psychology-driven: self-persuasion, social proof, fear reframe, sunk cost, loss aversion
+  - Email 6 post-scadenza: "il primo momento migliore era allora, il secondo è adesso"
+  - 24+ translation keys × 10 locales, wider mobile layout, font +1px
+  - Cron aggiornato: email 1-5 per ordini pending, email 6 per ordini expired
+- [2026-03-13] FAQ dosaggi (#10) + light theme fixato su tutte le pagine secondarie (non committato)
+- [2026-03-13] Blog CTA card in LightPage per glp1journal.eu con UTM + email capture (non committato)
+- [2026-03-12] Light/Dark theme system completo — 20 CSS variables, 17 Tailwind tokens, ~200 classi refactored
+- [2026-03-05] Facebook CAPI server-side + locale prefix `always` + email → info@aurapep.eu
+- [2026-03-03] Nuova immagine prodotto hero (Gemini 3.1 Flash)
+- [2026-03-01] Sentry + Clarity custom tags + PostHog verificato
+
+---
 
 ## In Progress
 
 - **Light theme online strategy** — decidere come servire dark/light in produzione (A/B test PostHog, toggle utente, default light, per campagna)
 - **Blog CTA traduzioni** — 7 chiavi `blog_cta_*` da tradurre in 9 lingue + altre chiavi LightPage mancanti
+- **SEO keyword tracking** — monitorare GSC per "retatrutide dosage calculator" (pos 31→target top 10), "retatrutide comprare" (pos 10→target top 5)
+- **Cart recovery email traduzioni** — le chiavi `recovery_card_*` e nuovi intro sono tradotti solo in EN/IT, le altre 8 lingue hanno i vecchi testi per email 1-2 e mancano card_* keys
+
+---
 
 ## TODO / Planned
 
 - [ ] Configurare wallet XRP (attualmente placeholder `CRYPTAPI_XRP_WALLET`)
 - [ ] Registrare domini extra: glp1research.eu, glp1review.eu, glp1digest.eu, glp1insider.eu
-- [ ] **SEO BLOCCANTE**: sito non indicizzato (site:glp1journal.eu = 0). Registrare su Google Search Console + submittare sitemap
+- [ ] **SEO BLOCCANTE**: glp1journal.eu non indicizzato (site:glp1journal.eu = 0). Registrare su Google Search Console + submittare sitemap
 - [ ] **E-E-A-T**: creare pagina "Chi Siamo", aggiungere autore reale con credenziali, medical review badge
 - [ ] **Content gap**: articoli mancanti ad alto potenziale — Ozempic Face, prezzi GLP-1 Italia/Europa, alimenti GLP-1 naturali, orforglipron, approvazione retatrutide Europa
-- [ ] **Schema markup**: aggiungere FAQ/HowTo schema agli articoli pratici
+- [ ] **Traduzioni email recovery**: aggiornare chiavi recovery_card_* + nuovi intro/subject per FR/DE/ES/PT/PL/RU/UK/AR (attualmente solo EN/IT hanno i testi nuovi)
+- [ ] **Rimuovere PNG originali**: product_hero_v5.png (5.6MB), product_hero_v5_wide.png (5.6MB), vial_v7_white.png (2.5MB) — sostituiti da WebP ma PNG ancora nel repo
+- [ ] **Comprimere immagini non usate**: ~20 immagini in public/images/ (ad creative, vecchi hero) — non servite ma occupano spazio repo
 
 ---
 
@@ -813,6 +298,8 @@ supabase/migrations/                # 4 SQL migration files
 - `next.config.ts` — headers X-Robots-Tag, next-intl plugin
 - `src/lib/auth.ts` — autenticazione e RBAC per tutte le API admin
 - `src/app/api/webhooks/cryptapi/` — webhook pagamenti, errori = ordini persi
+
+---
 
 ## Conventions
 
