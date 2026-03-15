@@ -11,8 +11,8 @@ export function CalculatorStructuredData() {
   const webApplication = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: t("calc_title"),
-    description: t("calc_subtitle"),
+    name: "Retatrutide Dosage Calculator",
+    description: "Free retatrutide dosage calculator. Enter vial size (10mg), bacteriostatic water volume, and desired dose to get exact syringe units for U-100 insulin syringes.",
     url: `${baseUrl}${localePath}/calculator`,
     applicationCategory: "HealthApplication",
     operatingSystem: "Any",
@@ -27,6 +27,7 @@ export function CalculatorStructuredData() {
       url: baseUrl,
     },
     inLanguage: locale === "uk" ? "uk-UA" : locale,
+    keywords: "retatrutide dosage calculator, retatrutide calculator, peptide reconstitution calculator, retatrutide syringe units, bac water calculator",
   };
 
   const breadcrumb = {
@@ -48,11 +49,50 @@ export function CalculatorStructuredData() {
     ],
   };
 
+  const faqPage = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: t("calc_faq_q1"),
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: t("calc_faq_a1"),
+        },
+      },
+      {
+        "@type": "Question",
+        name: t("calc_faq_q2"),
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: t("calc_faq_a2"),
+        },
+      },
+      {
+        "@type": "Question",
+        name: t("calc_faq_q3"),
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: t("calc_faq_a3"),
+        },
+      },
+      {
+        "@type": "Question",
+        name: t("calc_faq_q4"),
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: t("calc_faq_a4"),
+        },
+      },
+    ],
+  };
+
   const howTo = {
     "@context": "https://schema.org",
     "@type": "HowTo",
-    name: `How to Calculate Retatrutide Dosage`,
-    description: t("calc_subtitle"),
+    name: "How to Calculate Retatrutide Dosage",
+    description: "Step-by-step guide to reconstituting retatrutide and calculating exact syringe units for your desired dose using a U-100 insulin syringe.",
     step: [
       {
         "@type": "HowToStep",
@@ -91,6 +131,10 @@ export function CalculatorStructuredData() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqPage) }}
       />
       <script
         type="application/ld+json"

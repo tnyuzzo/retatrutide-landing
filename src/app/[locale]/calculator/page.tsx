@@ -1,13 +1,33 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Syringe, FlaskConical, Droplet, Info, AlertTriangle, Settings, ArrowLeft } from "lucide-react";
+import { Syringe, FlaskConical, Droplet, Info, AlertTriangle, Settings, ArrowLeft, ChevronDown } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { usePostHog } from "posthog-js/react";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 import { CalculatorStructuredData } from "@/components/seo/CalculatorStructuredData";
 import { sendFbEvent } from '@/lib/fb-tracking';
+
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+    const [open, setOpen] = useState(false);
+    return (
+        <div className="border border-t-border rounded-xl overflow-hidden">
+            <button
+                onClick={() => setOpen(!open)}
+                className="w-full flex items-center justify-between gap-3 p-3 md:p-4 text-left hover:bg-t-bg-subtle transition-colors"
+            >
+                <span className="text-xs md:text-sm font-medium text-t-text">{question}</span>
+                <ChevronDown className={`w-4 h-4 shrink-0 text-t-text-4 transition-transform ${open ? "rotate-180" : ""}`} />
+            </button>
+            {open && (
+                <div className="px-3 pb-3 md:px-4 md:pb-4">
+                    <p className="text-xs md:text-sm text-t-text-3 leading-relaxed">{answer}</p>
+                </div>
+            )}
+        </div>
+    );
+}
 
 export default function CalculatorPage() {
     const t = useTranslations("Index");
@@ -258,8 +278,29 @@ export default function CalculatorPage() {
                 </div>
 
                 {/* Disclaimer */}
-                <div className="text-center text-[10px] text-t-text-4 leading-relaxed pb-8">
+                <div className="text-center text-[10px] text-t-text-4 leading-relaxed pb-4">
                     {t("calc_disclaimer")}
+                </div>
+
+                {/* SEO Content: Intro + FAQ */}
+                <div className="border-t border-t-border pt-6 pb-2">
+                    <h2 className="text-lg md:text-2xl font-light mb-3">{t("calc_seo_heading")}</h2>
+                    <p className="text-t-text-3 text-xs md:text-sm leading-relaxed mb-6">
+                        {t("calc_seo_intro")}
+                    </p>
+
+                    <h3 className="text-sm md:text-base font-medium uppercase tracking-widest text-t-accent mb-4">
+                        {t("calc_faq_heading")}
+                    </h3>
+                    <div className="flex flex-col gap-2">
+                        {[1, 2, 3, 4].map((i) => (
+                            <FaqItem
+                                key={i}
+                                question={t(`calc_faq_q${i}`)}
+                                answer={t(`calc_faq_a${i}`)}
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
 
