@@ -10,7 +10,9 @@ import { cartRecoveryEmail } from '@/lib/email-templates';
  * Email cadence per order:
  *   - Email 1: after 1 hour
  *   - Email 2: after 12 hours
- *   - Email 3: after 48 hours
+ *   - Email 3: after 24 hours
+ *   - Email 4: after 48 hours
+ *   - Email 5: after 68 hours
  *
  * Protected by CRON_SECRET.
  */
@@ -18,7 +20,10 @@ import { cartRecoveryEmail } from '@/lib/email-templates';
 const EMAIL_SCHEDULE = [
     { emailNumber: 1 as const, minAgeMs: 1 * 60 * 60 * 1000 },       // 1h
     { emailNumber: 2 as const, minAgeMs: 12 * 60 * 60 * 1000 },      // 12h
-    { emailNumber: 3 as const, minAgeMs: 48 * 60 * 60 * 1000 },      // 48h
+    { emailNumber: 3 as const, minAgeMs: 24 * 60 * 60 * 1000 },      // 24h
+    { emailNumber: 4 as const, minAgeMs: 48 * 60 * 60 * 1000 },      // 48h
+    { emailNumber: 5 as const, minAgeMs: 68 * 60 * 60 * 1000 },      // 68h
+    { emailNumber: 6 as const, minAgeMs: 73 * 60 * 60 * 1000 },      // 73h (1h after expiry)
 ];
 
 export async function GET(req: Request) {
@@ -44,12 +49,13 @@ export async function GET(req: Request) {
         const now = Date.now();
         let totalSent = 0;
 
-        // Find all pending orders that haven't received all 3 recovery emails
+        // Find pending/expired orders that haven't received all 6 recovery emails
+        // Email 1-5: sent while pending. Email 6: sent after expiry.
         const { data: pendingOrders, error: fetchError } = await supabaseAdmin
             .from('orders')
-            .select('id, reference_id, order_number, email, fiat_amount, crypto_currency, crypto_amount, payment_url, created_at, recovery_emails_sent, last_recovery_email_at, locale')
-            .eq('status', 'pending')
-            .lt('recovery_emails_sent', 3)
+            .select('id, reference_id, order_number, email, fiat_amount, crypto_currency, crypto_amount, payment_url, created_at, recovery_emails_sent, last_recovery_email_at, locale, status')
+            .in('status', ['pending', 'expired'])
+            .lt('recovery_emails_sent', 6)
             .order('created_at', { ascending: true });
 
         if (fetchError) {
@@ -70,6 +76,10 @@ export async function GET(req: Request) {
             // Find the next email to send
             const nextEmail = EMAIL_SCHEDULE[emailsSent];
             if (!nextEmail) continue;
+
+            // Email 6 only for expired orders, emails 1-5 only for pending
+            if (nextEmail.emailNumber === 6 && order.status !== 'expired') continue;
+            if (nextEmail.emailNumber < 6 && order.status !== 'pending') continue;
 
             // Check if enough time has passed for this email
             if (orderAgeMs < nextEmail.minAgeMs) continue;
