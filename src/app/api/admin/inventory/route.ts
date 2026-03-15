@@ -3,7 +3,7 @@ import { verifyAuth, requireRole, AuthError } from '@/lib/auth';
 import { Resend } from 'resend';
 import { lowStockAlertEmail } from '@/lib/email-templates';
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
+const resend = new Resend(process.env.RESEND_API_KEY!);
 const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
 const EMAIL_REPLY_TO = 'info@aurapep.eu';
 const SKU = 'RET-KIT-1';

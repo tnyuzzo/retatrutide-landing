@@ -11,7 +11,7 @@ import {
 import { sendSMS } from '@/lib/clicksend';
 import { registerTracking } from '@/lib/tracking';
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
+const resend = new Resend(process.env.RESEND_API_KEY!);
 const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
 const EMAIL_REPLY_TO = 'info@aurapep.eu';
 

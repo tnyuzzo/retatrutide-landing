@@ -7,7 +7,7 @@ import { Resend } from 'resend';
 import { warehouseNewOrderEmail, lowStockAlertEmail } from '@/lib/email-templates';
 import { v4 as uuidv4 } from 'uuid';
 
-const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_key');
+const resend = new Resend(process.env.RESEND_API_KEY!);
 const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || 'Aura Peptides <onboarding@resend.dev>';
 const EMAIL_REPLY_TO = 'info@aurapep.eu';
 
