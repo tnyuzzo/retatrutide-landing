@@ -8,7 +8,7 @@
 
 ## Current State
 
-- **Last deploy**: 2026-03-15 (commit `3b506a3`)
+- **Last deploy**: 2026-03-15 (commit `b4ae93d`)
 - **Branch**: main (up to date with origin/main)
 - **Build**: 99 static pages + 24 API routes, zero errors, 0 vulnerabilities
 - **Theming**: CSS variable-based light/dark theme system. Dark = default. Light attivato da cookie `theme=light` → `data-theme="light"` su `<html>`
@@ -288,9 +288,10 @@
 - [ ] Configurare wallet XRP (attualmente placeholder `CRYPTAPI_XRP_WALLET`)
 - [ ] Registrare domini extra: glp1research.eu, glp1review.eu, glp1digest.eu, glp1insider.eu
 - [ ] **SEO BLOCCANTE**: glp1journal.eu non indicizzato (site:glp1journal.eu = 0). Registrare su Google Search Console + submittare sitemap
-- [ ] **E-E-A-T**: creare pagina "Chi Siamo", aggiungere autore reale con credenziali, medical review badge
+- [ ] **Sezioni compliance sito**: About/Chi Siamo, Terms, Privacy, Disclaimer — prerequisito per GEO optimization
+- [ ] **GEO (Generative Engine Optimization)**: llms.txt, contenuto citabile, sezione About — ChatGPT è il 62% del traffico (da fare DOPO compliance)
+- [ ] **E-E-A-T**: aggiungere autore reale con credenziali, medical review badge
 - [ ] **Content gap**: articoli mancanti ad alto potenziale — Ozempic Face, prezzi GLP-1 Italia/Europa, alimenti GLP-1 naturali, orforglipron, approvazione retatrutide Europa
-- [x] ~~Traduzioni email recovery~~: completate tutte le 10 lingue (2026-03-15)
 - [ ] **Splittare admin/page.tsx** (1582 righe) — estrarre tab in sub-componenti
 - [ ] **Rimuovere PNG originali**: product_hero_v5.png (5.6MB), product_hero_v5_wide.png (5.6MB), vial_v7_white.png (2.5MB) — sostituiti da WebP ma PNG ancora nel repo
 - [ ] **Comprimere immagini non usate**: ~20 immagini in public/images/ (ad creative, vecchi hero) — non servite ma occupano spazio repo
