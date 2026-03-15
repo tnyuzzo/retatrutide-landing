@@ -231,17 +231,15 @@ export function cartRecoveryEmail(params: CartRecoveryParams) {
                 <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.6;margin:0 0 16px;">
                     ${t('recovery_card_intro')}
                 </p>
-                <div style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.8;margin-bottom:16px;">
-                    <strong style="color:${BRAND_GOLD};">1.</strong> ${t('recovery_card_step1')}<br>
-                    <strong style="color:${BRAND_GOLD};">2.</strong> ${t('recovery_card_step2')}<br>
-                    <strong style="color:${BRAND_GOLD};">3.</strong> ${t('recovery_card_step3', { amount: String(cryptoAmount) })}<br>
-                    <strong style="color:${BRAND_GOLD};">4.</strong> ${t('recovery_card_step4')}<br>
-                    <strong style="color:${BRAND_GOLD};">5.</strong> ${t('recovery_card_step5')}
-                    <div style="margin:8px 0;">
-                        <code style="display:block;word-break:break-all;font-size:12px;color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.08);padding:10px;border-radius:8px;">${escapeHtml(paymentUrl)}</code>
-                    </div>
-                    <strong style="color:${BRAND_GOLD};">6.</strong> ${t('recovery_card_step6')}
-                </div>
+                <table cellpadding="0" cellspacing="0" border="0" style="width:100%;margin-bottom:16px;">
+                    <tr><td style="padding:0 0 12px;color:rgba(255,255,255,0.7);font-size:14px;line-height:1.6;"><strong style="color:${BRAND_GOLD};">1.</strong> ${t('recovery_card_step1')}</td></tr>
+                    <tr><td style="padding:0 0 12px;color:rgba(255,255,255,0.7);font-size:14px;line-height:1.6;"><strong style="color:${BRAND_GOLD};">2.</strong> ${t('recovery_card_step2')}</td></tr>
+                    <tr><td style="padding:0 0 12px;color:rgba(255,255,255,0.7);font-size:14px;line-height:1.6;"><strong style="color:${BRAND_GOLD};">3.</strong> ${t('recovery_card_step3', { amount: String(cryptoAmount) })}</td></tr>
+                    <tr><td style="padding:0 0 12px;color:rgba(255,255,255,0.7);font-size:14px;line-height:1.6;"><strong style="color:${BRAND_GOLD};">4.</strong> ${t('recovery_card_step4')}</td></tr>
+                    <tr><td style="padding:0 0 4px;color:rgba(255,255,255,0.7);font-size:14px;line-height:1.6;"><strong style="color:${BRAND_GOLD};">5.</strong> ${t('recovery_card_step5')}</td></tr>
+                    <tr><td style="padding:0 0 12px;"><code style="display:block;word-break:break-all;font-size:13px;font-weight:700;color:#ffffff;background:rgba(255,255,255,0.1);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);">${escapeHtml(paymentUrl)}</code></td></tr>
+                    <tr><td style="padding:0;color:rgba(255,255,255,0.7);font-size:14px;line-height:1.6;"><strong style="color:${BRAND_GOLD};">6.</strong> ${t('recovery_card_step6')}</td></tr>
+                </table>
                 <p style="color:rgba(255,255,255,0.5);font-size:13px;line-height:1.5;margin:0 0 16px;">
                     ${t('recovery_card_done')}
                 </p>
